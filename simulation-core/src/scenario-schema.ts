@@ -7,6 +7,8 @@ import {
   type HealthCapacityConfig,
   type VaccinationConfig,
   type StochasticConfig,
+  type DelayConfig,
+  type ReportingConfig,
   SimulationMode,
   ComplianceModel,
   NPIType,
@@ -115,6 +117,27 @@ export function defaultStochasticConfig(): StochasticConfig {
   };
 }
 
+/** Default clinical delay config */
+export function defaultDelayConfig(): DelayConfig {
+  return {
+    onsetToHospMean: 7,
+    onsetToHospStages: 3,
+    hospLosMean: 10,
+    hospLosStages: 4,
+    icuLosMean: 14,
+    icuLosStages: 3,
+  };
+}
+
+/** Default reporting/surveillance config */
+export function defaultReportingConfig(): ReportingConfig {
+  return {
+    detectionRate: 0.3,
+    reportingDelayMean: 3,
+    reportingDelayStages: 2,
+  };
+}
+
 /** Creates a default scenario */
 export function defaultScenario(name = 'Default COVID-like'): ScenarioConfig {
   return {
@@ -129,5 +152,7 @@ export function defaultScenario(name = 'Default COVID-like'): ScenarioConfig {
     variants: [],
     healthCapacity: defaultHealthCapacity(),
     stochastic: defaultStochasticConfig(),
+    delayConfig: defaultDelayConfig(),
+    reportingConfig: defaultReportingConfig(),
   };
 }

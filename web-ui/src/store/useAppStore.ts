@@ -55,6 +55,10 @@ export interface AppState {
   policyLiteracyOpen: boolean;
   setPolicyLiteracyOpen: (open: boolean) => void;
 
+  // View mode: true epidemiological state vs. observed (reported) cases
+  viewMode: 'true' | 'observed' | 'both';
+  setViewMode: (mode: 'true' | 'observed' | 'both') => void;
+
   // Instructor mode locks
   lockedParams: Set<string>;
   toggleLockedParam: (path: string) => void;
@@ -99,6 +103,9 @@ export const useAppStore = create<AppState>((set) => ({
 
   policyLiteracyOpen: true,
   setPolicyLiteracyOpen: (policyLiteracyOpen) => set({ policyLiteracyOpen }),
+
+  viewMode: 'both',
+  setViewMode: (viewMode) => set({ viewMode }),
 
   lockedParams: new Set(),
   toggleLockedParam: (path) => set((s) => {

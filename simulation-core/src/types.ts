@@ -186,6 +186,34 @@ export interface VariantShockConfig {
   reinfectionBoost: number;
 }
 
+// ---- Clinical delay ----
+
+export interface DelayConfig {
+  /** Onset-to-hospitalization: mean days */
+  onsetToHospMean: number;
+  /** Onset-to-hospitalization: Erlang shape k (stages) */
+  onsetToHospStages: number;
+  /** Hospitalization length-of-stay: mean days */
+  hospLosMean: number;
+  /** Hospitalization LoS: Erlang shape k */
+  hospLosStages: number;
+  /** ICU length-of-stay: mean days */
+  icuLosMean: number;
+  /** ICU LoS: Erlang shape k */
+  icuLosStages: number;
+}
+
+// ---- Reporting / Surveillance ----
+
+export interface ReportingConfig {
+  /** Fraction of true infections detected by surveillance [0,1] */
+  detectionRate: number;
+  /** Reporting delay: mean days from onset to case report */
+  reportingDelayMean: number;
+  /** Reporting delay: Erlang shape k */
+  reportingDelayStages: number;
+}
+
 // ---- Health capacity ----
 
 export interface HealthCapacityConfig {
@@ -234,6 +262,10 @@ export interface ScenarioConfig {
   variants: VariantShockConfig[];
   healthCapacity: HealthCapacityConfig;
   stochastic: StochasticConfig;
+  /** Clinical delay configuration (optional, backward-compatible) */
+  delayConfig?: DelayConfig;
+  /** Reporting/surveillance configuration (optional, backward-compatible) */
+  reportingConfig?: ReportingConfig;
 }
 
 // ---- Simulation results ----
@@ -257,6 +289,10 @@ export interface DailyMetrics {
   hospitalOverflow: boolean;
   /** Is ICU capacity exceeded? */
   icuOverflow: boolean;
+  /** Observed (reported) new infections after detection rate + delay */
+  observedNewInfections?: number;
+  /** Observed (reported) new hospitalizations after reporting delay */
+  observedNewHospitalizations?: number;
 }
 
 /** Result of a single simulation run */

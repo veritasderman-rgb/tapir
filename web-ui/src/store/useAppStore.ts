@@ -8,6 +8,15 @@ import {
 import { defaultScenario } from '@tapir/core';
 
 export interface AppState {
+  // Auth/session
+  auth: {
+    role: 'teacher' | 'student' | 'guest' | null;
+    username: string | null;
+    classId: string | null;
+  };
+  setAuth: (auth: AppState['auth']) => void;
+  logout: () => void;
+
   // Mode
   appMode: AppMode;
   setAppMode: (mode: AppMode) => void;
@@ -67,6 +76,17 @@ export interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
+  auth: {
+    role: null,
+    username: null,
+    classId: null,
+  },
+  setAuth: (auth) => set({ auth }),
+  logout: () => set({
+    auth: { role: null, username: null, classId: null },
+    appMode: AppMode.Student,
+  }),
+
   appMode: AppMode.Student,
   setAppMode: (mode) => set({ appMode: mode }),
 

@@ -246,7 +246,7 @@ export default function App() {
               {activeTab === 'npis' && <NpiPanel />}
               {activeTab === 'vaccination' && <VaccinationPanel />}
               {activeTab === 'variants' && (
-                hiddenEvents && appMode === 'student'
+                hiddenEvents && appMode === AppMode.Student
                   ? <p className="text-xs text-gray-400">Varianty jsou skryty instruktorem.</p>
                   : <VariantPanel />
               )}

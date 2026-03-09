@@ -1,8 +1,60 @@
 @import "tailwindcss";
 
+/* Print styles */
 @media print {
   .disclaimer-banner {
     display: block !important;
     visibility: visible !important;
+    color: #991b1b !important;
+    border: 2px solid #991b1b !important;
+    padding: 8px !important;
+    margin-bottom: 16px !important;
+    font-size: 12px !important;
+    text-align: center !important;
   }
+
+  /* Hide sidebar and controls when printing */
+  aside {
+    display: none !important;
+  }
+
+  header select,
+  header button {
+    display: none !important;
+  }
+
+  /* Add SIMULACE watermark to printed page */
+  body::after {
+    content: "SIMULACE — Edukační model, ne klinická predikce";
+    position: fixed;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 10px;
+    color: #991b1b;
+    opacity: 0.8;
+  }
+}
+
+/* Focus styles for keyboard navigation */
+:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Skip to content link (screen readers) */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  padding: 8px 16px;
+  background: #1e40af;
+  color: white;
+  z-index: 100;
+  font-size: 14px;
+}
+
+.skip-link:focus {
+  top: 0;
 }

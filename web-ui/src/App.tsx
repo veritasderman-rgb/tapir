@@ -73,6 +73,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      <a href="#main-content" className="skip-link">Přeskočit na obsah</a>
       <DisclaimerBanner />
       <Header />
 
@@ -153,7 +154,7 @@ export default function App() {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto">
+        <main id="main-content" className="flex-1 overflow-y-auto" role="main" aria-label="Simulační dashboard">
           <Dashboard />
         </main>
       </div>

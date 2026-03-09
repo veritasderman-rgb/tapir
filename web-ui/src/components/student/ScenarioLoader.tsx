@@ -6,10 +6,22 @@ export default function ScenarioLoader() {
   const [input, setInput] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  // Auto-load from URL query param
+  // Auto-load from URL hash (#game=...) or query param (?game=...)
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const gameParam = params.get('game');
+    let gameParam: string | null = null;
+
+    // Check hash first (preferred — no length limit)
+    const hash = window.location.hash;
+    if (hash.startsWith('#game=')) {
+      gameParam = hash.slice('#game='.length);
+    }
+
+    // Fallback to query param (legacy)
+    if (!gameParam) {
+      const params = new URLSearchParams(window.location.search);
+      gameParam = params.get('game');
+    }
+
     if (gameParam) {
       try {
         loadScenario(gameParam);
@@ -27,7 +39,9 @@ export default function ScenarioLoader() {
     try {
       // Try extracting base64 from URL if pasted as full URL
       let encoded = input.trim();
-      if (encoded.includes('?game=')) {
+      if (encoded.includes('#game=')) {
+        encoded = encoded.split('#game=')[1];
+      } else if (encoded.includes('?game=')) {
         encoded = encoded.split('?game=')[1].split('&')[0];
       }
       loadScenario(encoded);

@@ -48,7 +48,7 @@ export default function ScenarioBuilder() {
   const handleExport = useCallback(() => {
     const gs = buildGameScenario();
     const encoded = encodeGameScenario(gs);
-    const url = `${window.location.origin}${window.location.pathname}?game=${encoded}`;
+    const url = `${window.location.origin}${window.location.pathname}#game=${encoded}`;
     setExportedUrl(url);
     navigator.clipboard.writeText(url).catch(() => {});
   }, [buildGameScenario]);

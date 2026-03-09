@@ -119,6 +119,13 @@ function logGamma(z: number): number {
 
 // ---- Delay Buffer ----
 
+/** Serializable snapshot of a DelayBuffer's internal state. */
+export interface DelayBufferSnapshot {
+  pmf: number[];
+  buffer: number[];
+  head: number;
+}
+
 /**
  * Ring buffer that convolves input with a discrete PMF to produce
  * delayed output. Used for modeling clinical delays.
@@ -132,6 +139,25 @@ export class DelayBuffer {
     this.pmf = pmf;
     this.buffer = new Array(pmf.length).fill(0);
     this.head = 0;
+  }
+
+  /** Create a DelayBuffer from a serialized snapshot. */
+  static fromSnapshot(snap: DelayBufferSnapshot): DelayBuffer {
+    const db = new DelayBuffer(snap.pmf);
+    for (let i = 0; i < snap.buffer.length; i++) {
+      db.buffer[i] = snap.buffer[i];
+    }
+    db.head = snap.head;
+    return db;
+  }
+
+  /** Serialize the buffer's internal state for checkpointing. */
+  serialize(): DelayBufferSnapshot {
+    return {
+      pmf: [...this.pmf],
+      buffer: [...this.buffer],
+      head: this.head,
+    };
   }
 
   /** Push new input and get the delayed output for this timestep. */
@@ -189,6 +215,31 @@ export interface StratumDelayBuffers {
   onsetToHosp: DelayBuffer;
   hospLoS: DelayBuffer;
   icuLoS: DelayBuffer;
+}
+
+/** Serializable snapshot of all delay buffers for one stratum. */
+export interface StratumDelayBuffersSnapshot {
+  onsetToHosp: DelayBufferSnapshot;
+  hospLoS: DelayBufferSnapshot;
+  icuLoS: DelayBufferSnapshot;
+}
+
+/** Serialize all stratum delay buffers for checkpointing. */
+export function serializeDelayBuffers(buffers: StratumDelayBuffers[]): StratumDelayBuffersSnapshot[] {
+  return buffers.map(b => ({
+    onsetToHosp: b.onsetToHosp.serialize(),
+    hospLoS: b.hospLoS.serialize(),
+    icuLoS: b.icuLoS.serialize(),
+  }));
+}
+
+/** Restore stratum delay buffers from a snapshot. */
+export function restoreDelayBuffers(snapshots: StratumDelayBuffersSnapshot[]): StratumDelayBuffers[] {
+  return snapshots.map(snap => ({
+    onsetToHosp: DelayBuffer.fromSnapshot(snap.onsetToHosp),
+    hospLoS: DelayBuffer.fromSnapshot(snap.hospLoS),
+    icuLoS: DelayBuffer.fromSnapshot(snap.icuLoS),
+  }));
 }
 
 /**

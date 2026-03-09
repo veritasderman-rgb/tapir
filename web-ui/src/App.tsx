@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useAppStore } from './store/useAppStore';
-import { validateScenario, type SimulationResult } from '@tapir/core';
+import { useGameStore } from './store/gameStore';
+import { validateScenario, type SimulationResult, AppMode } from '@tapir/core';
 import { runSimulation } from '@tapir/core';
 
 import DisclaimerBanner from './components/DisclaimerBanner';
@@ -18,6 +19,12 @@ import InstructorPanel from './components/InstructorPanel';
 import AuthPanel from './components/AuthPanel';
 import AdminPanel from './components/AdminPanel';
 import { saveAttempt } from './lib/classroom-db';
+
+// Game components
+import ScenarioBuilder from './components/instructor/ScenarioBuilder';
+import TurnDashboard from './components/student/TurnDashboard';
+import GameOverScreen from './components/student/GameOverScreen';
+import ScenarioLoader from './components/student/ScenarioLoader';
 
 const TABS = [
   { id: 'parameters' as const, label: 'Parametry' },
@@ -45,6 +52,8 @@ export default function App() {
     auth,
   } = useAppStore();
 
+  const { gamePhase } = useGameStore();
+
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const handleRun = useCallback(() => {
@@ -54,7 +63,6 @@ export default function App() {
 
     setSimStatus('running');
 
-    // Run synchronously for now (Web Worker integration later with Vite worker)
     try {
       const res = runSimulation(scenario);
       setResult(res);
@@ -89,9 +97,68 @@ export default function App() {
 
   if (!auth.role) return <AuthPanel />;
 
+  // Check if URL has ?game= parameter → go directly to game mode
+  const hasGameParam = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('game');
+
+  // Instructor mode → show Scenario Builder
+  if (auth.role === 'teacher' && appMode === AppMode.Instructor) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <DisclaimerBanner />
+        <Header />
+        <main className="flex-1 overflow-y-auto">
+          <ScenarioBuilder />
+        </main>
+      </div>
+    );
+  }
+
+  // Game mode: student (or guest) with an active game or game URL
+  if (hasGameParam || gamePhase !== 'idle') {
+    // Game: scenario loader
+    if (gamePhase === 'idle') {
+      return (
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+          <DisclaimerBanner />
+          <Header />
+          <main className="flex-1">
+            <ScenarioLoader />
+          </main>
+        </div>
+      );
+    }
+
+    // Game: playing or finished (show debrief modal on top)
+    if (gamePhase === 'playing' || gamePhase === 'finished') {
+      return (
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+          <DisclaimerBanner />
+          <Header />
+          <main className="flex-1 overflow-hidden">
+            <TurnDashboard />
+          </main>
+        </div>
+      );
+    }
+
+    // Game: debrief
+    if (gamePhase === 'debrief') {
+      return (
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+          <DisclaimerBanner />
+          <Header />
+          <main className="flex-1 overflow-y-auto">
+            <GameOverScreen />
+          </main>
+        </div>
+      );
+    }
+  }
+
+  // Default: Sandbox mode (existing UI)
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <a href="#main-content" className="skip-link">Přeskočit na obsah</a>
+      <a href="#main-content" className="skip-link">Preskocit na obsah</a>
       <DisclaimerBanner />
       <Header />
 
@@ -115,7 +182,7 @@ export default function App() {
                   : 'bg-blue-600 text-white hover:bg-blue-700'
               }`}
             >
-              {simStatus === 'running' ? 'Počítám...' : 'Spustit simulaci'}
+              {simStatus === 'running' ? 'Pocitam...' : 'Spustit simulaci'}
             </button>
 
             {validationErrors.length > 0 && (
@@ -173,7 +240,7 @@ export default function App() {
         </aside>
 
         {/* Main content */}
-        <main id="main-content" className="flex-1 overflow-y-auto" role="main" aria-label="Simulační dashboard">
+        <main id="main-content" className="flex-1 overflow-y-auto" role="main" aria-label="Simulacni dashboard">
           <Dashboard />
         </main>
       </div>

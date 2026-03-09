@@ -25,6 +25,36 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
+/** Stateful RNG that exposes its internal seed for checkpointing. */
+export interface StatefulRNG {
+  /** Get next random number in [0, 1). */
+  next: () => number;
+  /** Get current internal state (seed value after last call). */
+  getState: () => number;
+  /** Number of calls made so far. */
+  callCount: number;
+}
+
+/**
+ * Create a stateful RNG wrapper around mulberry32.
+ * Allows checkpointing: save state, then later resume from that state.
+ */
+export function createRNG(seed: number): StatefulRNG {
+  let s = seed | 0;
+  const rng: StatefulRNG = {
+    callCount: 0,
+    next: () => {
+      s = (s + 0x6D2B79F5) | 0;
+      let t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      rng.callCount++;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    },
+    getState: () => s,
+  };
+  return rng;
+}
+
 /**
  * Binomial transition: given a rate and pool, draw from Binomial(pool, rate).
  * Uses normal approximation for large pools, exact for small.

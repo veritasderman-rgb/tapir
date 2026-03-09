@@ -343,3 +343,117 @@ export interface ValidationError {
   /** Human-readable error message */
   message: string;
 }
+
+// ---- Game / Turn-based types ----
+
+/** Event types that instructor can schedule */
+export type HiddenEventType =
+  | 'variant_shock'
+  | 'vaccine_unlock'
+  | 'supply_disruption'
+  | 'public_unrest';
+
+/** A hidden event placed on the timeline by the instructor. */
+export interface HiddenEvent {
+  id: string;
+  type: HiddenEventType;
+  /** Month when event activates (1-indexed) */
+  month: number;
+  /** Human-readable label */
+  label: string;
+  /** Type-specific payload */
+  payload: Record<string, number>;
+}
+
+/** Social capital configuration. */
+export interface SocialCapitalConfig {
+  /** Starting social capital [0, 100] */
+  initial: number;
+  /** Recovery rate per day when no NPIs active (points/day) */
+  recoveryRate: number;
+  /** Threshold below which compliance collapses [0, 100] */
+  collapseThreshold: number;
+}
+
+/** Complete game scenario (what instructor exports). */
+export interface GameScenario {
+  /** Base scenario config (epi, demographics, etc.) */
+  baseScenario: ScenarioConfig;
+  /** Game duration in months */
+  durationMonths: number;
+  /** Days per turn (default 30) */
+  daysPerTurn: number;
+  /** Hidden events timeline */
+  hiddenEvents: HiddenEvent[];
+  /** Social capital config */
+  socialCapital: SocialCapitalConfig;
+  /** Which NPI types the student can use */
+  availableNPITypes: string[];
+  /** Whether vaccination is initially locked */
+  vaccinationLocked: boolean;
+}
+
+/** Serializable snapshot of all mutable simulation state between turns. */
+export interface SimCheckpoint {
+  /** Population compartments at end of last turn */
+  populationState: PopulationState;
+  /** Delay buffer snapshots per stratum (null if delays disabled) */
+  delayBufferSnapshots: import('./delay-engine').StratumDelayBuffersSnapshot[] | null;
+  /** Reporting pipeline snapshot (null if reporting disabled) */
+  reportingSnapshot: import('./reporting').ReportingPipelineSnapshot | null;
+  /** Resolved variant activation days (frozen at game start) */
+  variantActivationDays: number[];
+  /** Calibrated beta (frozen at game start) */
+  calibratedBeta: number;
+  /** RNG internal state (seed value) */
+  rngState: number;
+  /** Current social capital [0, 100] */
+  socialCapital: number;
+}
+
+/** Input for one turn (what the student chose). */
+export interface TurnAction {
+  /** NPIs active during this turn */
+  npis: NPIConfig[];
+  /** Whether vaccination is enabled this turn */
+  vaccinationEnabled: boolean;
+}
+
+/** Monthly report shown to the student at end of turn. */
+export interface MonthlyReport {
+  month: number;
+  /** Observed (reported) total new infections this month */
+  observedInfections: number;
+  /** True total new infections (hidden from student, shown in debrief) */
+  trueInfections: number;
+  /** Total new hospitalizations */
+  newHospitalizations: number;
+  /** Total new ICU admissions */
+  newICU: number;
+  /** Total deaths */
+  newDeaths: number;
+  /** Estimated Reff (noisy — jittered for fog-of-war) */
+  estimatedReff: number;
+  /** True Reff at end of month */
+  trueReff: number;
+  /** Current social capital */
+  socialCapital: number;
+  /** Hospital occupancy at end of month */
+  hospitalOccupancy: number;
+  /** ICU occupancy at end of month */
+  icuOccupancy: number;
+  /** Events that activated this month */
+  activatedEvents: string[];
+}
+
+/** Output of one turn. */
+export interface TurnResult {
+  /** New checkpoint (pass to next turn) */
+  checkpoint: SimCheckpoint;
+  /** Daily metrics for this block only */
+  metrics: DailyMetrics[];
+  /** Daily population states for this block only */
+  states: PopulationState[];
+  /** Monthly summary for the student report */
+  monthlyReport: MonthlyReport;
+}

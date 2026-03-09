@@ -73,6 +73,33 @@ export interface AppState {
   toggleLockedParam: (path: string) => void;
   hiddenEvents: boolean;
   setHiddenEvents: (hidden: boolean) => void;
+
+  // Crisis game layer
+  crisis: {
+    trust: number;
+    round: number;
+    casualties: number;
+    control: 'hygienik' | 'premier';
+    governmentDownRounds: number;
+    enteredCrisisStaff: boolean;
+    initialPopupShown: boolean;
+    popupQueue: Array<{
+      id: string;
+      title: string;
+      body: string;
+      variant?: 'news' | 'warning' | 'success';
+      actionLabel?: string;
+      action?: 'enterCrisisStaff' | 'close';
+    }>;
+  };
+  enqueueCrisisPopup: (popup: AppState['crisis']['popupQueue'][number]) => void;
+  dequeueCrisisPopup: () => void;
+  applyTrustDelta: (delta: number) => void;
+  registerSimulationOutcome: (casualties: number, hiddenEventsActive: boolean) => void;
+  startGovernmentDowntime: () => void;
+  advanceRound: () => void;
+  enterCrisisStaff: () => void;
+  markInitialPopupShown: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -85,6 +112,16 @@ export const useAppStore = create<AppState>((set) => ({
   logout: () => set({
     auth: { role: null, username: null, classId: null },
     appMode: AppMode.Student,
+    crisis: {
+      trust: 55,
+      round: 0,
+      casualties: 0,
+      control: 'hygienik',
+      governmentDownRounds: 0,
+      enteredCrisisStaff: false,
+      initialPopupShown: false,
+      popupQueue: [],
+    },
   }),
 
   appMode: AppMode.Student,
@@ -136,4 +173,105 @@ export const useAppStore = create<AppState>((set) => ({
   }),
   hiddenEvents: false,
   setHiddenEvents: (hiddenEvents) => set({ hiddenEvents }),
+
+  crisis: {
+    trust: 55,
+    round: 0,
+    casualties: 0,
+    control: 'hygienik',
+    governmentDownRounds: 0,
+    enteredCrisisStaff: false,
+    initialPopupShown: false,
+    popupQueue: [],
+  },
+  enqueueCrisisPopup: (popup) => set((s) => ({
+    crisis: {
+      ...s.crisis,
+      popupQueue: [...s.crisis.popupQueue, popup],
+    },
+  })),
+  dequeueCrisisPopup: () => set((s) => ({
+    crisis: {
+      ...s.crisis,
+      popupQueue: s.crisis.popupQueue.slice(1),
+    },
+  })),
+  applyTrustDelta: (delta) => set((s) => ({
+    crisis: {
+      ...s.crisis,
+      trust: Math.max(0, Math.min(100, s.crisis.trust + delta)),
+    },
+  })),
+  registerSimulationOutcome: (casualties, hiddenEventsActive) => set((s) => {
+    const popupQueue = [...s.crisis.popupQueue];
+    let control = s.crisis.control;
+    let trust = s.crisis.trust;
+    let governmentDownRounds = Math.max(0, s.crisis.governmentDownRounds - 1);
+
+    if (hiddenEventsActive) {
+      popupQueue.push({
+        id: `hidden-event-${crypto.randomUUID()}`,
+        title: 'Skrytý event pronikl do veřejného prostoru',
+        body: 'Objevila se nečekaná zpráva v médiích. Veřejnost čeká rychlou reakci krizového štábu.',
+        variant: 'news',
+      });
+      trust = Math.max(0, Math.min(100, trust - 2));
+    }
+
+    if (casualties >= 10000 && control !== 'premier') {
+      control = 'premier';
+      trust = Math.max(0, Math.min(100, trust + 5));
+      popupQueue.push({
+        id: 'premier-takes-control',
+        title: 'Ústřední krizový štáb přebírá řízení',
+        body: 'Počet obětí překročil 10 000. Řízení přebírá premiér. Důvěra krátkodobě roste, ale původní opatření ztrácí část účinnosti.',
+        variant: 'warning',
+      });
+    }
+
+    if (trust <= 0 && s.crisis.governmentDownRounds === 0) {
+      governmentDownRounds = 2;
+      popupQueue.push({
+        id: `government-fall-${crypto.randomUUID()}`,
+        title: 'Pád vlády',
+        body: 'Důvěra veřejnosti klesla na 0 %. Vláda padla a následující 2 kola nebudou opatření účinná.',
+        variant: 'warning',
+      });
+    }
+
+    return {
+      crisis: {
+        ...s.crisis,
+        casualties,
+        control,
+        trust,
+        governmentDownRounds,
+        popupQueue,
+      },
+    };
+  }),
+  startGovernmentDowntime: () => set((s) => ({
+    crisis: {
+      ...s.crisis,
+      governmentDownRounds: 2,
+    },
+  })),
+  advanceRound: () => set((s) => ({
+    crisis: {
+      ...s.crisis,
+      round: s.crisis.round + 1,
+    },
+  })),
+  enterCrisisStaff: () => set((s) => ({
+    crisis: {
+      ...s.crisis,
+      enteredCrisisStaff: true,
+    },
+  })),
+  markInitialPopupShown: () => set((s) => ({
+    crisis: {
+      ...s.crisis,
+      initialPopupShown: true,
+    },
+  })),
 }));

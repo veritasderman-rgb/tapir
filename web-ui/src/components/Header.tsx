@@ -3,7 +3,7 @@ import { AppMode } from '@tapir/core';
 import { VERSION } from '@tapir/core';
 
 export default function Header() {
-  const { auth, appMode, setAppMode, sidebarOpen, setSidebarOpen, logout } = useAppStore();
+  const { appMode, setAppMode, sidebarOpen, setSidebarOpen } = useAppStore();
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between">
@@ -27,26 +27,16 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-600">
-          {auth.role === 'teacher' ? `Učitel: ${auth.username}` : auth.role === 'student' ? `Student: ${auth.username}` : 'Test bez ukládání'}
-        </span>
-        {auth.role === 'teacher' && (
-          <select
-            value={appMode}
-            onChange={(e) => setAppMode(e.target.value as AppMode)}
-            className="text-sm border border-gray-300 rounded px-2 py-1"
-            aria-label="Režim aplikace"
-          >
-            <option value={AppMode.Student}>Student</option>
-            <option value={AppMode.Instructor}>Instructor</option>
-          </select>
-        )}
-        <button
-          onClick={logout}
-          className="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-gray-100"
+        <label className="text-xs text-gray-500 mr-1">Režim:</label>
+        <select
+          value={appMode}
+          onChange={(e) => setAppMode(e.target.value as AppMode)}
+          className="text-sm border border-gray-300 rounded px-2 py-1"
+          aria-label="Režim aplikace"
         >
-          Odhlásit
-        </button>
+          <option value={AppMode.Student}>Student</option>
+          <option value={AppMode.Instructor}>Instructor</option>
+        </select>
       </div>
     </header>
   );

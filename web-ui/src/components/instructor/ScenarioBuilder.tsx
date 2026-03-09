@@ -208,9 +208,21 @@ export default function ScenarioBuilder() {
           </button>
         </div>
         {exportedUrl && (
-          <div className="bg-green-50 border border-green-200 rounded p-2">
-            <p className="text-xs text-green-800 font-medium">URL zkopirovano do schranky!</p>
-            <p className="text-xs text-green-600 break-all mt-1 font-mono">{exportedUrl.slice(0, 120)}...</p>
+          <div className="bg-green-50 border border-green-200 rounded p-3 space-y-2">
+            <p className="text-xs text-green-800 font-medium">URL zkopirovano do schranky! ({exportedUrl.length} znaku)</p>
+            <input
+              type="text"
+              readOnly
+              value={exportedUrl}
+              onFocus={(e) => e.target.select()}
+              className="w-full text-[10px] text-green-700 font-mono bg-green-100 border border-green-300 rounded px-2 py-1"
+            />
+            <button
+              onClick={() => navigator.clipboard.writeText(exportedUrl).catch(() => {})}
+              className="text-[10px] text-green-700 hover:text-green-900 underline"
+            >
+              Kopirovat znovu
+            </button>
           </div>
         )}
       </div>

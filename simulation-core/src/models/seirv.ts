@@ -55,7 +55,7 @@ export function stepSEIRV(
   beta: number,
   contactMatrix: ContactSubMatrix,
   transition: TransitionFunction = deterministicTransition,
-): { newState: PopulationState; metrics: DailyMetrics } {
+): { newState: PopulationState; metrics: DailyMetrics; newInfectionsPerStratum: number[] } {
   const { epiConfig, healthCapacity, vaccination } = scenario;
   const sigma = 1 / epiConfig.latentPeriod;
   const gamma = 1 / epiConfig.infectiousPeriod;
@@ -178,6 +178,7 @@ export function stepSEIRV(
       hospitalOverflow: healthUpdate.hospitalOverflow,
       icuOverflow: healthUpdate.icuOverflow,
     },
+    newInfectionsPerStratum: newInfections,
   };
 }
 

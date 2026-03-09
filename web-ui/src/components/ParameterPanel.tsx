@@ -1,5 +1,5 @@
 import { useAppStore } from '../store/useAppStore';
-import { type ScenarioConfig, type EpiConfig, type Demographics, type HealthCapacityConfig, validateScenario } from '@tapir/core';
+import { type ScenarioConfig, type EpiConfig, type Demographics, type HealthCapacityConfig, type DelayConfig, type ReportingConfig, validateScenario, defaultDelayConfig, defaultReportingConfig } from '@tapir/core';
 import { useCallback, useMemo } from 'react';
 
 function NumberInput({
@@ -82,6 +82,17 @@ export default function ParameterPanel() {
   const updateCapacity = useCallback((partial: Partial<HealthCapacityConfig>) => {
     updateScenario({ healthCapacity: { ...healthCapacity, ...partial } });
   }, [healthCapacity, updateScenario]);
+
+  const delayConfig = scenario.delayConfig ?? defaultDelayConfig();
+  const reportingConfig = scenario.reportingConfig ?? defaultReportingConfig();
+
+  const updateDelay = useCallback((partial: Partial<DelayConfig>) => {
+    updateScenario({ delayConfig: { ...delayConfig, ...partial } });
+  }, [delayConfig, updateScenario]);
+
+  const updateReporting = useCallback((partial: Partial<ReportingConfig>) => {
+    updateScenario({ reportingConfig: { ...reportingConfig, ...partial } });
+  }, [reportingConfig, updateScenario]);
 
   const applyPreset = (preset: typeof PRESETS[number]) => {
     updateEpi({
@@ -233,6 +244,74 @@ export default function ParameterPanel() {
           max={1}
           step={0.05}
           error={errorMap['healthCapacity.excessMortalityRate']}
+        />
+      </fieldset>
+
+      {/* Clinical delays */}
+      <fieldset>
+        <legend className="text-xs font-semibold text-gray-600 mb-1">Klinické zpozdeni</legend>
+        <NumberInput
+          label="Onset → hospitalizace (dny)"
+          value={delayConfig.onsetToHospMean}
+          onChange={(v) => updateDelay({ onsetToHospMean: v })}
+          min={0}
+          max={30}
+          step={1}
+        />
+        <NumberInput
+          label="Onset → hosp stages (k)"
+          value={delayConfig.onsetToHospStages}
+          onChange={(v) => updateDelay({ onsetToHospStages: Math.max(1, Math.round(v)) })}
+          min={1}
+          max={10}
+          step={1}
+        />
+        <NumberInput
+          label="Hospitalizace LoS (dny)"
+          value={delayConfig.hospLosMean}
+          onChange={(v) => updateDelay({ hospLosMean: v })}
+          min={1}
+          max={60}
+          step={1}
+        />
+        <NumberInput
+          label="ICU LoS (dny)"
+          value={delayConfig.icuLosMean}
+          onChange={(v) => updateDelay({ icuLosMean: v })}
+          min={1}
+          max={60}
+          step={1}
+        />
+      </fieldset>
+
+      {/* Reporting / Surveillance */}
+      <fieldset>
+        <legend className="text-xs font-semibold text-gray-600 mb-1">Surveillance</legend>
+        <div className="mb-2">
+          <label className="block text-xs font-medium text-gray-700 mb-0.5">
+            Detekce infekcí: {Math.round(reportingConfig.detectionRate * 100)}%
+          </label>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={Math.round(reportingConfig.detectionRate * 100)}
+            onChange={(e) => updateReporting({ detectionRate: parseInt(e.target.value) / 100 })}
+            className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+          />
+          <div className="flex justify-between text-[10px] text-gray-400">
+            <span>0%</span>
+            <span>50%</span>
+            <span>100%</span>
+          </div>
+        </div>
+        <NumberInput
+          label="Zpozdeni hlaseni (dny)"
+          value={reportingConfig.reportingDelayMean}
+          onChange={(v) => updateReporting({ reportingDelayMean: v })}
+          min={0}
+          max={14}
+          step={1}
         />
       </fieldset>
     </div>

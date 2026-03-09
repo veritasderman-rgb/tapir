@@ -42,3 +42,10 @@ export { exportCSV, exportJSON, getWatermarkText } from './export-utils';
 
 // Health capacity
 export { computeHealthOutcomes } from './health-capacity';
+
+// Delay engine
+export { gammaDelayPMF, DelayBuffer, createDelayBuffers } from './delay-engine';
+export type { StratumDelayBuffers } from './delay-engine';
+
+// Reporting
+export { ReportingPipeline } from './reporting';

@@ -30,6 +30,7 @@ const COLORS = {
   excess: '#991b1b',
   p5: '#bfdbfe',
   p95: '#bfdbfe',
+  observed: '#f59e0b',
 };
 
 interface ChartData {
@@ -53,10 +54,15 @@ interface ChartData {
   infP5?: number;
   infP95?: number;
   infMedian?: number;
+  // Observed (reported) values
+  observedInfections?: number;
+  observedHosp?: number;
 }
 
 export default function Dashboard() {
-  const { result, scenario, comparisonMode, resultB } = useAppStore();
+  const { result, scenario, comparisonMode, resultB, viewMode, setViewMode } = useAppStore();
+
+  const hasReporting = !!scenario.reportingConfig;
 
   const data = useMemo((): ChartData[] => {
     if (!result) return [];
@@ -84,6 +90,8 @@ export default function Dashboard() {
         infP5: q?.infections[i]?.p5,
         infP95: q?.infections[i]?.p95,
         infMedian: q?.infections[i]?.median,
+        observedInfections: metrics.observedNewInfections,
+        observedHosp: metrics.observedNewHospitalizations,
       };
     });
   }, [result, scenario]);
@@ -101,25 +109,48 @@ export default function Dashboard() {
     );
   }
 
+  const showTrue = viewMode === 'true' || viewMode === 'both';
+  const showObserved = (viewMode === 'observed' || viewMode === 'both') && hasReporting;
+
   return (
     <div className="space-y-6 p-4">
       {/* Overflow warning */}
       {hasOverflow && (
         <div className="bg-red-100 border border-red-300 text-red-800 px-4 py-2 rounded text-sm font-medium" role="alert">
-          Kapacita zdravotnictví byla překročena! Excess deaths mohou nastat.
+          Kapacita zdravotnictvi byla prekrocena! Excess deaths mohou nastat.
+        </div>
+      )}
+
+      {/* View mode toggle */}
+      {hasReporting && (
+        <div className="flex items-center gap-2 text-xs">
+          <span className="font-medium text-gray-600">Zobrazeni:</span>
+          {(['true', 'observed', 'both'] as const).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              className={`px-2 py-1 rounded ${
+                viewMode === mode
+                  ? 'bg-gray-800 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {mode === 'true' ? 'Skutecny stav' : mode === 'observed' ? 'Hlasene pripady' : 'Oba'}
+            </button>
+          ))}
         </div>
       )}
 
       {/* Key metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <MetricCard label="Implied R₀" value={result.impliedR0.toFixed(2)} />
+        <MetricCard label="Implied R0" value={result.impliedR0.toFixed(2)} />
         <MetricCard label="Beta" value={result.calibratedBeta.toFixed(4)} />
         <MetricCard
-          label="Peak nových infekcí"
+          label="Peak novych infekci"
           value={Math.round(Math.max(...result.primaryRun.metrics.map((m: DailyMetrics) => m.newInfections))).toLocaleString()}
         />
         <MetricCard
-          label="Celkem úmrtí"
+          label="Celkem umrti"
           value={Math.round(result.primaryRun.metrics.reduce((s: number, m: DailyMetrics) => s + m.newDeaths, 0)).toLocaleString()}
         />
       </div>
@@ -144,8 +175,8 @@ export default function Dashboard() {
         </ResponsiveContainer>
       </ChartCard>
 
-      {/* New infections + MC bands */}
-      <ChartCard title="Nové infekce denně">
+      {/* New infections + MC bands + observed */}
+      <ChartCard title="Nove infekce denne">
         <ResponsiveContainer width="100%" height={250}>
           <ComposedChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -173,13 +204,25 @@ export default function Dashboard() {
                 name="p5"
               />
             )}
-            <Line type="monotone" dataKey="newInfections" stroke={COLORS.I} dot={false} name="Nové infekce" />
+            {showTrue && (
+              <Line type="monotone" dataKey="newInfections" stroke={COLORS.I} dot={false} name="Skutecne infekce" />
+            )}
+            {showObserved && data[0]?.observedInfections !== undefined && (
+              <Line
+                type="monotone"
+                dataKey="observedInfections"
+                stroke={COLORS.observed}
+                strokeDasharray="6 3"
+                dot={false}
+                name="Hlasene infekce"
+              />
+            )}
           </ComposedChart>
         </ResponsiveContainer>
       </ChartCard>
 
       {/* Reff */}
-      <ChartCard title="Efektivní reprodukční číslo Reff(t)">
+      <ChartCard title="Efektivni reprodukcni cislo Reff(t)">
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -201,7 +244,7 @@ export default function Dashboard() {
             <YAxis />
             <Tooltip />
             <Legend />
-            <Line type="monotone" dataKey="totalH" stroke={COLORS.hosp} dot={false} name="Hospitalizovaní" />
+            <Line type="monotone" dataKey="totalH" stroke={COLORS.hosp} dot={false} name="Hospitalizovani" />
             <Line type="monotone" dataKey="totalICU" stroke={COLORS.icu} dot={false} name="ICU" />
             <ReferenceLine y={scenario.healthCapacity.hospitalBeds} stroke={COLORS.hosp} strokeDasharray="5 5" label="Kapacita H" />
             <ReferenceLine y={scenario.healthCapacity.icuBeds} stroke={COLORS.icu} strokeDasharray="5 5" label="Kapacita ICU" />
@@ -212,7 +255,7 @@ export default function Dashboard() {
 
       {/* Comparison */}
       {comparisonMode && resultB && (
-        <ChartCard title="Porovnání: Nové infekce (A vs B)">
+        <ChartCard title="Porovnani: Nove infekce (A vs B)">
           <ResponsiveContainer width="100%" height={250}>
             <LineChart>
               <CartesianGrid strokeDasharray="3 3" />
@@ -226,7 +269,7 @@ export default function Dashboard() {
                 dataKey="value"
                 stroke={COLORS.I}
                 dot={false}
-                name="Scénář A"
+                name="Scenar A"
               />
               <Line
                 data={resultB.primaryRun.metrics.map((m: DailyMetrics) => ({ day: m.day, value: m.newInfections }))}
@@ -234,7 +277,7 @@ export default function Dashboard() {
                 dataKey="value"
                 stroke={COLORS.V}
                 dot={false}
-                name="Scénář B"
+                name="Scenar B"
               />
             </LineChart>
           </ResponsiveContainer>

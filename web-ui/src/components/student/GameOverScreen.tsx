@@ -14,7 +14,7 @@ import {
 import { useGameStore } from '../../store/gameStore';
 
 export default function GameOverScreen() {
-  const { turnHistory, gameScenario, resetGame } = useGameStore();
+  const { turnHistory, gameScenario, resetGame, trust, crisisLeader, premierTakeoverDone } = useGameStore();
 
   const totalDeaths = turnHistory.length > 0
     ? turnHistory[turnHistory.length - 1].report.cumulativeDeaths : 0;
@@ -84,6 +84,12 @@ export default function GameOverScreen() {
         <StatCard label="Min. soc. kapital" value={`${Math.round(lowestCapital)}`} bad={lowestCapital < 20} />
         <StatCard label="Dopad HDP" value={`${finalGDP > 0 ? '+' : ''}${finalGDP.toFixed(1)}%`} bad={finalGDP < -5} />
         <StatCard label="Fiskal. naklady" value={`${finalFiscal.toFixed(1)} mld`} />
+        <StatCard label="Důvěra veřejnosti" value={`${Math.round(trust)}%`} bad={trust < 20} />
+        <StatCard
+          label="Vedení krize"
+          value={premierTakeoverDone ? 'Premiér převzal' : 'Hlavní hygienik'}
+          bad={premierTakeoverDone}
+        />
       </div>
 
       {/* True vs Observed comparison — the big reveal */}

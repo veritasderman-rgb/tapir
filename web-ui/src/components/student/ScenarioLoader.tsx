@@ -47,32 +47,48 @@ export default function ScenarioLoader() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white border border-gray-200 rounded-xl p-6 space-y-4">
-        <h1 className="text-xl font-bold text-gray-900 text-center">Krizovy stab</h1>
-        <p className="text-xs text-gray-500 text-center">
-          Vlozte URL nebo kod scenare od ucitele a zacnete hru.
-        </p>
+      <div className="w-full max-w-md bg-white border border-gray-200 rounded-xl overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-red-700 to-red-900 px-6 py-5 text-center">
+          <div className="text-3xl mb-2">🏛️</div>
+          <h1 className="text-xl font-bold text-white">Krizový štáb</h1>
+          <p className="text-red-200 text-xs mt-1">
+            Epidemiologická simulace rozhodování
+          </p>
+        </div>
 
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Vlozte URL nebo Base64 scenar..."
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm h-24 resize-none"
-          aria-label="Scenar od ucitele"
-        />
+        <div className="p-6 space-y-4">
+          <p className="text-xs text-gray-500 text-center">
+            Vložte URL nebo kód scénáře od učitele a vstupte do Krizového štábu.
+          </p>
 
-        <button
-          onClick={handleLoad}
-          className="w-full py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700"
-        >
-          Nacist scenar a zacit hru
-        </button>
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Vložte URL nebo Base64 scénář..."
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm h-24 resize-none"
+            aria-label="Scénář od učitele"
+          />
 
-        {displayError && (
-          <div className="bg-red-50 border border-red-200 rounded p-3">
-            <p className="text-xs text-red-600 text-center font-medium">{displayError}</p>
+          <button
+            onClick={handleLoad}
+            className="w-full py-3 bg-red-700 text-white font-bold rounded-lg hover:bg-red-800 transition-colors flex items-center justify-center gap-2"
+          >
+            <span>🚨</span>
+            <span>Vstoupit do Krizového štábu</span>
+          </button>
+
+          {displayError && (
+            <div className="bg-red-50 border border-red-200 rounded p-3">
+              <p className="text-xs text-red-600 text-center font-medium">{displayError}</p>
+            </div>
+          )}
+
+          <div className="bg-gray-50 rounded-lg p-3 text-[10px] text-gray-400 space-y-1">
+            <p>Jako člen krizového štábu budete řídit reakci na epidemii.</p>
+            <p>Rozhodujte o opatřeních, sledujte důvěru veřejnosti a snažte se minimalizovat ztráty.</p>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

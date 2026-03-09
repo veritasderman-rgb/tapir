@@ -16,9 +16,10 @@ import { useMemo } from 'react';
 import type { CompartmentState } from '@tapir/core';
 import ActionPanel from './ActionPanel';
 import MonthlyDebriefModal from './MonthlyDebriefModal';
+import CrisisPopup from './CrisisPopup';
 
 export default function TurnDashboard() {
-  const { turnHistory, currentTurn, gameScenario, gamePhase } = useGameStore();
+  const { turnHistory, currentTurn, gameScenario, gamePhase, trust, crisisLeader } = useGameStore();
 
   const chartData = useMemo(() => {
     if (turnHistory.length === 0) return [];
@@ -64,6 +65,18 @@ export default function TurnDashboard() {
                   <span className="text-xs text-gray-500">Reff</span>
                   <span className={`ml-1 text-sm font-bold ${latestReport.estimatedReff > 1 ? 'text-red-600' : 'text-green-600'}`}>
                     ~{latestReport.estimatedReff.toFixed(2)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-500">Důvěra</span>
+                  <span className={`ml-1 text-sm font-bold ${trust < 20 ? 'text-red-600' : trust < 40 ? 'text-amber-600' : 'text-green-600'}`}>
+                    {Math.round(trust)}%
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-500">Vedení</span>
+                  <span className={`ml-1 text-sm font-bold ${crisisLeader === 'premier' ? 'text-purple-600' : 'text-blue-600'}`}>
+                    {crisisLeader === 'hygienik' ? '🏥 Hygienik' : '🏛️ Premiér'}
                   </span>
                 </div>
                 <div>
@@ -145,6 +158,9 @@ export default function TurnDashboard() {
 
       {/* Turn debrief modal */}
       <MonthlyDebriefModal />
+
+      {/* Crisis popup notifications (on top of everything) */}
+      <CrisisPopup />
     </div>
   );
 }

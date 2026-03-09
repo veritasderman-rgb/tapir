@@ -1,69 +1,96 @@
-import { useCallback } from 'react';
+import { useMemo } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import {
-  NPIType,
-  ComplianceModel,
-  type NPIConfig,
-  getNPIMonthlyCost,
-} from '@tapir/core';
+import { getMeasureById, getMeasuresByCategory, type GameMeasure } from '@tapir/core';
 
-let npiCounter = 0;
+const CATEGORY_LABELS: Record<string, string> = {
+  masks: 'Rousky a respiratory',
+  social_distancing: 'Socialni opatreni',
+  testing: 'Testovani a trasovani',
+  travel: 'Cestovni omezeni',
+  vaccination: 'Vakcinace',
+  military: 'Armada',
+  international: 'Mezinarodni',
+  economic: 'Ekonomicka podpora',
+};
 
-const NPI_TEMPLATES: { name: string; type: NPIType; value: number; targetSubMatrix?: string }[] = [
-  { name: 'Zavreni skol', type: NPIType.ContactSubMatrixModifier, value: 0.3, targetSubMatrix: 'school' },
-  { name: 'Prace z domova', type: NPIType.ContactSubMatrixModifier, value: 0.5, targetSubMatrix: 'work' },
-  { name: 'Omezeni komunity', type: NPIType.BetaMultiplier, value: 0.7 },
-  { name: 'Povinne rousky', type: NPIType.BetaMultiplier, value: 0.85 },
-];
+const CATEGORY_ORDER = ['masks', 'social_distancing', 'testing', 'travel', 'vaccination', 'military', 'international', 'economic'];
 
 export default function ActionPanel() {
   const {
-    pendingNPIs,
-    addNPI,
-    removeNPI,
-    updateNPI,
-    vaccinationEnabled,
-    setVaccinationEnabled,
-    vaccinationUnlocked,
-    gameScenario,
+    activeMeasureIds,
+    toggleMeasure,
     checkpoint,
+    gameScenario,
     submitTurn,
-    currentMonth,
+    currentTurn,
     gamePhase,
+    vaccinationPriority,
+    setVaccinationPriority,
   } = useGameStore();
 
   const socialCapital = checkpoint?.socialCapital ?? 100;
-
-  const totalMonthlyCost = pendingNPIs.reduce((s, npi) => s + getNPIMonthlyCost(npi), 0);
-
-  const handleAddNPI = useCallback((template: typeof NPI_TEMPLATES[number]) => {
-    const npi: NPIConfig = {
-      id: `game-npi-${++npiCounter}`,
-      name: template.name,
-      type: template.type,
-      startDay: 0,
-      endDay: 30,
-      value: template.value,
-      targetSubMatrix: template.targetSubMatrix as any,
-      compliance: {
-        model: ComplianceModel.ExponentialDecay,
-        initial: 1.0,
-        decayRate: 0,
-      },
-    };
-    addNPI(npi);
-  }, [addNPI]);
-
+  const economicState = checkpoint?.economicState;
+  const unlockedIds = checkpoint?.unlockedMeasureIds ?? [];
   const isFinished = gamePhase === 'finished';
 
+  // Group unlocked measures by category
+  const categorizedMeasures = useMemo(() => {
+    const result: { category: string; label: string; measures: GameMeasure[] }[] = [];
+    for (const cat of CATEGORY_ORDER) {
+      const measures = getMeasuresByCategory(cat as GameMeasure['category'])
+        .filter(m => unlockedIds.includes(m.id));
+      if (measures.length > 0) {
+        result.push({ category: cat, label: CATEGORY_LABELS[cat] ?? cat, measures });
+      }
+    }
+    return result;
+  }, [unlockedIds]);
+
+  const totalPoliticalCost = activeMeasureIds.reduce((s, id) => {
+    const m = getMeasureById(id);
+    return s + (m?.politicalCostPerTurn ?? 0);
+  }, 0);
+
+  const totalEconomicCost = activeMeasureIds.reduce((s, id) => {
+    const m = getMeasureById(id);
+    return s + (m?.economicCostPerTurn ?? 0);
+  }, 0);
+
+  // Check exclusive groups
+  const getActiveInGroup = (group: string): string | null => {
+    for (const id of activeMeasureIds) {
+      const m = getMeasureById(id);
+      if (m?.exclusiveGroup === group) return id;
+    }
+    return null;
+  };
+
+  const handleToggle = (measure: GameMeasure) => {
+    if (isFinished) return;
+
+    // If this measure has an exclusive group, deactivate the other one first
+    if (measure.exclusiveGroup) {
+      const active = getActiveInGroup(measure.exclusiveGroup);
+      if (active && active !== measure.id) {
+        toggleMeasure(active); // remove old
+      }
+    }
+    toggleMeasure(measure.id);
+  };
+
+  // Check if vaccination capacity is available (any vax measure active)
+  const hasVaxCapacity = activeMeasureIds.some(id =>
+    id === 'vaccination_slow' || id === 'vaccination_fast' || id === 'vaccination_max',
+  );
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Social capital gauge */}
       <div className="bg-white border border-gray-200 rounded-lg p-3">
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs font-semibold text-gray-600">Socialni kapital</span>
           <span className={`text-sm font-bold ${socialCapital < 20 ? 'text-red-600' : socialCapital < 50 ? 'text-amber-600' : 'text-green-600'}`}>
-            {Math.round(socialCapital)}%
+            {Math.round(socialCapital)}
           </span>
         </div>
         <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden" role="progressbar" aria-valuenow={socialCapital} aria-valuemin={0} aria-valuemax={100}>
@@ -79,86 +106,100 @@ export default function ActionPanel() {
             Populace zacina ignorovat opatreni!
           </p>
         )}
-        {totalMonthlyCost > 0 && (
-          <p className="text-[10px] text-gray-500 mt-1">
-            Naklady opatreni: ~{Math.round(totalMonthlyCost)} bodu/mesic
-          </p>
-        )}
       </div>
 
-      {/* Available NPIs */}
-      <div className="bg-white border border-gray-200 rounded-lg p-3">
-        <h3 className="text-xs font-semibold text-gray-600 mb-2">Dostupna opatreni</h3>
-        <div className="grid grid-cols-2 gap-2">
-          {NPI_TEMPLATES.map((t, i) => {
-            const isActive = pendingNPIs.some(n => n.name === t.name);
-            const cost = getNPIMonthlyCost({
-              id: '', name: t.name, type: t.type, startDay: 0, endDay: 30, value: t.value,
-              compliance: { model: ComplianceModel.ExponentialDecay, initial: 1, decayRate: 0 },
-            });
-            return (
-              <button
-                key={i}
-                onClick={() => {
-                  if (isActive) {
-                    const npi = pendingNPIs.find(n => n.name === t.name);
-                    if (npi) removeNPI(npi.id);
-                  } else {
-                    handleAddNPI(t);
-                  }
-                }}
-                disabled={isFinished}
-                className={`text-left text-xs p-2 rounded border transition-colors ${
-                  isActive
-                    ? 'bg-blue-50 border-blue-300 text-blue-800'
-                    : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                } ${isFinished ? 'opacity-50 cursor-not-allowed' : ''}`}
-                aria-pressed={isActive}
-              >
-                <div className="font-medium">{t.name}</div>
-                <div className="text-[10px] mt-0.5 opacity-70">
-                  efekt: {Math.round((1 - t.value) * 100)}% redukce | cena: {Math.round(cost)}/mes
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Active NPI intensity tuning */}
-      {pendingNPIs.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg p-3 space-y-2">
-          <h3 className="text-xs font-semibold text-gray-600">Aktivni opatreni — intenzita</h3>
-          {pendingNPIs.map(npi => (
-            <div key={npi.id} className="flex items-center gap-2">
-              <span className="text-xs text-gray-700 w-28 truncate">{npi.name}</span>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={Math.round((1 - npi.value) * 100)}
-                onChange={(e) => updateNPI(npi.id, { value: 1 - parseInt(e.target.value) / 100 })}
-                className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                aria-label={`Intenzita ${npi.name}`}
-              />
-              <span className="text-xs text-gray-500 w-10 text-right">{Math.round((1 - npi.value) * 100)}%</span>
+      {/* Economic snapshot */}
+      {economicState && (
+        <div className="bg-white border border-gray-200 rounded-lg p-2">
+          <div className="grid grid-cols-2 gap-1 text-[10px]">
+            <div>
+              <span className="text-gray-500">HDP:</span>
+              <span className={`ml-1 font-bold ${economicState.gdpImpact < -2 ? 'text-red-600' : 'text-gray-700'}`}>
+                {economicState.gdpImpact > 0 ? '+' : ''}{economicState.gdpImpact.toFixed(1)}%
+              </span>
             </div>
-          ))}
+            <div>
+              <span className="text-gray-500">Nezam.:</span>
+              <span className={`ml-1 font-bold ${economicState.unemploymentDelta > 3 ? 'text-red-600' : 'text-gray-700'}`}>
+                +{economicState.unemploymentDelta.toFixed(1)}pp
+              </span>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Vaccination toggle */}
-      {vaccinationUnlocked && (
-        <div className="bg-white border border-gray-200 rounded-lg p-3">
-          <label className="flex items-center gap-2 text-xs text-gray-700">
-            <input
-              type="checkbox"
-              checked={vaccinationEnabled}
-              onChange={(e) => setVaccinationEnabled(e.target.checked)}
-              disabled={isFinished}
-            />
-            <span className="font-medium">Aktivovat ockovaci kampan</span>
-          </label>
+      {/* Cost summary */}
+      {activeMeasureIds.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded p-2 text-[10px]">
+          <span className="text-amber-800 font-medium">
+            Politicka cena: {totalPoliticalCost > 0 ? '-' : '+'}{Math.abs(totalPoliticalCost)}/tah |
+            Ekonomicka: -{(totalEconomicCost * 100).toFixed(0)}% HDP/tah
+          </span>
+        </div>
+      )}
+
+      {/* Categorized measures */}
+      {categorizedMeasures.map(({ category, label, measures }) => (
+        <div key={category} className="bg-white border border-gray-200 rounded-lg p-2">
+          <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">{label}</h3>
+          <div className="space-y-1">
+            {measures.map(m => {
+              const isActive = activeMeasureIds.includes(m.id);
+              const isOneShot = m.oneShot && isActive; // already used
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => handleToggle(m)}
+                  disabled={isFinished || isOneShot}
+                  className={`w-full text-left text-xs p-1.5 rounded border transition-colors ${
+                    isActive
+                      ? 'bg-blue-50 border-blue-300 text-blue-800'
+                      : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                  } ${(isFinished || isOneShot) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  aria-pressed={isActive}
+                  title={m.description}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium truncate">{m.name}</span>
+                    <span className={`text-[9px] ml-1 flex-shrink-0 ${m.politicalCostPerTurn < 0 ? 'text-green-600' : 'text-red-500'}`}>
+                      {m.politicalCostPerTurn > 0 ? `-${m.politicalCostPerTurn}` : `+${Math.abs(m.politicalCostPerTurn)}`}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      {/* Vaccination priority (when vax measures active) */}
+      {hasVaxCapacity && (
+        <div className="bg-white border border-gray-200 rounded-lg p-2">
+          <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Priorita ockovani</h3>
+          <select
+            value={vaccinationPriority?.stratumOrder[0] ?? -1}
+            onChange={(e) => {
+              const first = parseInt(e.target.value);
+              if (first < 0) {
+                setVaccinationPriority(null);
+              } else {
+                const order = [first, ...Array.from({ length: 6 }, (_, i) => i).filter(i => i !== first)];
+                const capacity = activeMeasureIds.includes('vaccination_max') ? 25000 :
+                  activeMeasureIds.includes('vaccination_fast') ? 10000 : 3000;
+                setVaccinationPriority({ stratumOrder: order, dailyCapacity: capacity });
+              }
+            }}
+            className="w-full text-xs border rounded px-2 py-1"
+            disabled={isFinished}
+          >
+            <option value={-1}>Vypnout ockovani</option>
+            <option value={4}>Seniori 65+ (vysokorizikovi)</option>
+            <option value={5}>Seniori 65+ (nizkorizikovi)</option>
+            <option value={2}>Dospeli 18-64 (vysokorizikovi)</option>
+            <option value={3}>Dospeli 18-64 (nizkorizikovi)</option>
+            <option value={0}>Mladi 0-17 (vysokorizikovi)</option>
+            <option value={1}>Mladi 0-17 (nizkorizikovi)</option>
+          </select>
         </div>
       )}
 
@@ -168,7 +209,7 @@ export default function ActionPanel() {
           onClick={submitTurn}
           className="w-full py-3 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition-colors"
         >
-          Simulovat mesic {currentMonth + 1}
+          Zasedani stab — kolo {currentTurn + 1}
         </button>
       )}
     </div>

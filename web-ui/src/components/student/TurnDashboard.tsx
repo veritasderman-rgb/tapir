@@ -18,7 +18,7 @@ import ActionPanel from './ActionPanel';
 import MonthlyDebriefModal from './MonthlyDebriefModal';
 
 export default function TurnDashboard() {
-  const { turnHistory, currentMonth, gameScenario, gamePhase } = useGameStore();
+  const { turnHistory, currentTurn, gameScenario, gamePhase } = useGameStore();
 
   const chartData = useMemo(() => {
     if (turnHistory.length === 0) return [];
@@ -39,7 +39,6 @@ export default function TurnDashboard() {
   const hospCapacity = gameScenario?.baseScenario.healthCapacity.hospitalBeds ?? 5000;
   const icuCapacity = gameScenario?.baseScenario.healthCapacity.icuBeds ?? 500;
 
-  const totalDeaths = turnHistory.reduce((s, h) => s + h.report.newDeaths, 0);
   const latestReport = turnHistory.length > 0 ? turnHistory[turnHistory.length - 1].report : null;
 
   if (!gameScenario) return null;
@@ -52,26 +51,40 @@ export default function TurnDashboard() {
         <div className="bg-white border border-gray-200 rounded-lg p-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div>
-              <span className="text-xs text-gray-500">Mesic</span>
-              <span className="ml-1 text-sm font-bold text-gray-900">{currentMonth} / {gameScenario.durationMonths}</span>
-            </div>
-            <div>
-              <span className="text-xs text-gray-500">Celkem umrti</span>
-              <span className="ml-1 text-sm font-bold text-red-600">{Math.round(totalDeaths).toLocaleString()}</span>
+              <span className="text-xs text-gray-500">Kolo</span>
+              <span className="ml-1 text-sm font-bold text-gray-900">{currentTurn} / {gameScenario.totalTurns}</span>
             </div>
             {latestReport && (
-              <div>
-                <span className="text-xs text-gray-500">Reff</span>
-                <span className={`ml-1 text-sm font-bold ${latestReport.estimatedReff > 1 ? 'text-red-600' : 'text-green-600'}`}>
-                  ~{latestReport.estimatedReff.toFixed(2)}
-                </span>
-              </div>
+              <>
+                <div>
+                  <span className="text-xs text-gray-500">Celkem umrti</span>
+                  <span className="ml-1 text-sm font-bold text-red-600">{latestReport.cumulativeDeaths.toLocaleString()}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-500">Reff</span>
+                  <span className={`ml-1 text-sm font-bold ${latestReport.estimatedReff > 1 ? 'text-red-600' : 'text-green-600'}`}>
+                    ~{latestReport.estimatedReff.toFixed(2)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-500">Soc. kapital</span>
+                  <span className={`ml-1 text-sm font-bold ${latestReport.socialCapital < 30 ? 'text-red-600' : 'text-gray-700'}`}>
+                    {latestReport.socialCapital.toFixed(0)}
+                  </span>
+                </div>
+              </>
             )}
           </div>
           {gamePhase === 'finished' && (
             <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">HRA SKONCILA</span>
           )}
         </div>
+
+        {latestReport && (
+          <div className="bg-white border border-gray-200 rounded-lg p-3 text-xs text-gray-600">
+            {latestReport.dateLabel}
+          </div>
+        )}
 
         {/* Observed infections (fog of war — student sees only reported cases) */}
         {chartData.length > 0 && (
@@ -120,17 +133,17 @@ export default function TurnDashboard() {
 
         {chartData.length === 0 && (
           <div className="flex items-center justify-center h-48 text-gray-400 text-sm">
-            Nastavte opatreni a kliknete na "Simulovat mesic 1" v panelu vpravo.
+            Nastavte opatreni a kliknete na "Zasedani stab" v panelu vpravo.
           </div>
         )}
       </div>
 
       {/* Action sidebar */}
-      <aside className="w-72 border-l border-gray-200 bg-white overflow-y-auto p-3 flex-shrink-0">
+      <aside className="w-80 border-l border-gray-200 bg-white overflow-y-auto p-3 flex-shrink-0">
         <ActionPanel />
       </aside>
 
-      {/* Monthly debrief modal */}
+      {/* Turn debrief modal */}
       <MonthlyDebriefModal />
     </div>
   );

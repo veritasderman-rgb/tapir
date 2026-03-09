@@ -2,37 +2,36 @@ import { describe, it, expect } from 'vitest';
 import { initGame, stepTurn } from '../src/step-runner';
 import { defaultScenario, defaultDelayConfig, defaultReportingConfig } from '../src/scenario-schema';
 import { defaultSocialCapitalConfig } from '../src/social-capital';
+import { defaultMeasureIds } from '../src/measure-catalog';
 import {
   type GameScenario,
   type TurnAction,
   type SimCheckpoint,
-  NPIType,
-  ComplianceModel,
 } from '../src/types';
 
 function makeGameScenario(overrides?: Partial<GameScenario>): GameScenario {
   const base = defaultScenario();
-  base.days = 360; // 12 months
+  base.days = 336; // 24 turns × 14 days
   base.delayConfig = defaultDelayConfig();
   base.reportingConfig = defaultReportingConfig();
 
   return {
     baseScenario: base,
-    durationMonths: 12,
-    daysPerTurn: 30,
+    totalTurns: 24,
+    daysPerTurn: 14,
     hiddenEvents: [],
     socialCapital: defaultSocialCapitalConfig(),
-    availableNPITypes: ['beta_multiplier'],
+    availableMeasureIds: defaultMeasureIds(),
     vaccinationLocked: true,
     ...overrides,
   };
 }
 
 function noAction(): TurnAction {
-  return { npis: [], vaccinationEnabled: false };
+  return { activeMeasureIds: [], vaccinationPriority: null };
 }
 
-describe('Step Runner', () => {
+describe('Step Runner v2', () => {
   describe('initGame', () => {
     it('should create a valid initial checkpoint', () => {
       const gs = makeGameScenario();
@@ -44,28 +43,60 @@ describe('Step Runner', () => {
       expect(checkpoint.delayBufferSnapshots).not.toBeNull();
       expect(checkpoint.reportingSnapshot).not.toBeNull();
       expect(checkpoint.variantActivationDays).toEqual([]);
+      expect(checkpoint.economicState.gdpImpact).toBe(0);
+      expect(checkpoint.economicState.businessConfidence).toBe(80);
+      expect(checkpoint.effectiveDetectionRate).toBeGreaterThan(0);
+      expect(checkpoint.unlockedMeasureIds.length).toBeGreaterThan(0);
+      expect(checkpoint.vaccinationCapacity).toBe(0);
+      expect(checkpoint.intelQuality).toBe(1.0);
+    });
+
+    it('should only initially unlock "always" measures', () => {
+      const gs = makeGameScenario();
+      const checkpoint = initGame(gs);
+
+      // Vaccination measures require event_triggered → should NOT be unlocked
+      expect(checkpoint.unlockedMeasureIds).not.toContain('vaccination_slow');
+      expect(checkpoint.unlockedMeasureIds).not.toContain('vaccination_fast');
+
+      // Mask recommendation is always unlocked
+      expect(checkpoint.unlockedMeasureIds).toContain('mask_recommendation');
     });
   });
 
   describe('stepTurn', () => {
-    it('should advance by daysPerTurn days', () => {
+    it('should advance by daysPerTurn (14) days', () => {
       const gs = makeGameScenario();
       const checkpoint = initGame(gs);
       const result = stepTurn(checkpoint, gs, noAction(), 1);
 
-      expect(result.checkpoint.populationState.day).toBe(30);
-      expect(result.metrics).toHaveLength(30);
-      expect(result.states).toHaveLength(30);
+      expect(result.checkpoint.populationState.day).toBe(14);
+      expect(result.metrics).toHaveLength(14);
+      expect(result.states).toHaveLength(14);
     });
 
-    it('should produce a monthly report', () => {
+    it('should produce a turn report with all required fields', () => {
       const gs = makeGameScenario();
       const checkpoint = initGame(gs);
       const result = stepTurn(checkpoint, gs, noAction(), 1);
+      const r = result.turnReport;
 
-      expect(result.monthlyReport.month).toBe(1);
-      expect(result.monthlyReport.trueInfections).toBeGreaterThan(0);
-      expect(result.monthlyReport.socialCapital).toBe(100); // no NPIs → no drain
+      expect(r.turnNumber).toBe(1);
+      expect(r.dateLabel).toBeTruthy();
+      expect(r.trueInfections).toBeGreaterThanOrEqual(0);
+      expect(r.observedInfections).toBeGreaterThanOrEqual(0);
+      expect(r.newDeaths).toBeGreaterThanOrEqual(0);
+      expect(r.cumulativeDeaths).toBeGreaterThanOrEqual(0);
+      expect(r.estimatedReff).toBeGreaterThan(0);
+      expect(r.trueReff).toBeGreaterThan(0);
+      expect(r.socialCapital).toBeGreaterThanOrEqual(0);
+      expect(r.hospitalOccupancy).toBeGreaterThanOrEqual(0);
+      expect(r.hospitalCapacity).toBeGreaterThan(0);
+      expect(r.icuCapacity).toBeGreaterThan(0);
+      expect(r.economicState).toBeDefined();
+      expect(r.advisorMessages).toHaveLength(3); // epi, econ, political
+      expect(r.headlines.length).toBeGreaterThan(0);
+      expect(Array.isArray(r.newlyUnlockedMeasures)).toBe(true);
     });
 
     it('should maintain continuity: state at end of turn N = start of turn N+1', () => {
@@ -83,39 +114,30 @@ describe('Step Runner', () => {
 
       // Turn 2 should start from where turn 1 ended
       const result2 = stepTurn(cp1, gs, noAction(), 2);
-      expect(result2.states[0].day).toBe(31); // day 30 → day 31
+      expect(result2.states[0].day).toBe(15); // day 14 → day 15
     });
 
-    it('should drain social capital when NPIs are active', () => {
+    it('should drain social capital when measures are active', () => {
       const gs = makeGameScenario();
       const checkpoint = initGame(gs);
 
       const action: TurnAction = {
-        npis: [{
-          id: 'test',
-          name: 'school_closure',
-          type: NPIType.BetaMultiplier,
-          startDay: 0,
-          endDay: 30,
-          value: 0.7,
-          compliance: { model: ComplianceModel.ExponentialDecay, initial: 1.0, decayRate: 0 },
-        }],
-        vaccinationEnabled: false,
+        activeMeasureIds: ['lockdown_full'], // 18 political cost per turn
+        vaccinationPriority: null,
       };
 
       const result = stepTurn(checkpoint, gs, action, 1);
-      expect(result.monthlyReport.socialCapital).toBeLessThan(100);
+      expect(result.turnReport.socialCapital).toBeLessThan(100);
     });
 
-    it('should provide observed infections less than true infections', () => {
+    it('should provide observed infections less than or equal to true infections', () => {
       const gs = makeGameScenario();
       const checkpoint = initGame(gs);
       const result = stepTurn(checkpoint, gs, noAction(), 1);
 
       // With 30% detection rate default, observed should be less than true
-      // (may not hold for very first days due to delay, but overall should)
-      expect(result.monthlyReport.observedInfections).toBeLessThanOrEqual(
-        result.monthlyReport.trueInfections,
+      expect(result.turnReport.observedInfections).toBeLessThanOrEqual(
+        result.turnReport.trueInfections,
       );
     });
 
@@ -124,7 +146,7 @@ describe('Step Runner', () => {
         hiddenEvents: [{
           id: 'variant-1',
           type: 'variant_shock',
-          month: 1,
+          turn: 1,
           label: 'Omicron-like variant',
           payload: { transmissibilityMultiplier: 1.5, immuneEscape: 0.1 },
         }],
@@ -133,7 +155,8 @@ describe('Step Runner', () => {
       const checkpoint = initGame(gs);
       const result = stepTurn(checkpoint, gs, noAction(), 1);
 
-      expect(result.monthlyReport.activatedEvents).toContain('Omicron-like variant');
+      expect(result.turnReport.activatedEvents.length).toBe(1);
+      expect(result.turnReport.activatedEvents[0].label).toBe('Omicron-like variant');
     });
 
     it('should produce deterministic results with same checkpoint', () => {
@@ -144,53 +167,179 @@ describe('Step Runner', () => {
       const result2 = stepTurn(checkpoint, gs, noAction(), 1);
 
       // Same input → same output
-      expect(result1.monthlyReport.trueInfections).toBe(result2.monthlyReport.trueInfections);
-      expect(result1.monthlyReport.newDeaths).toBe(result2.monthlyReport.newDeaths);
+      expect(result1.turnReport.trueInfections).toBe(result2.turnReport.trueInfections);
+      expect(result1.turnReport.newDeaths).toBe(result2.turnReport.newDeaths);
       expect(result1.checkpoint.populationState.strata[0].S)
         .toBe(result2.checkpoint.populationState.strata[0].S);
     });
 
-    it('NPI should reduce infections compared to no-action', () => {
+    it('lockdown should reduce infections compared to no-action', () => {
       const gs = makeGameScenario();
       const checkpoint = initGame(gs);
 
-      // Run 3 months without NPIs
-      let cpNoNPI = checkpoint;
-      for (let m = 1; m <= 3; m++) {
-        cpNoNPI = stepTurn(cpNoNPI, gs, noAction(), m).checkpoint;
-      }
-
-      // Run 3 months with strong NPI
-      let cpWithNPI = checkpoint;
-      const npiAction: TurnAction = {
-        npis: [{
-          id: 'lockdown',
-          name: 'community_lockdown',
-          type: NPIType.BetaMultiplier,
-          startDay: 0,
-          endDay: 30,
-          value: 0.5,
-          compliance: { model: ComplianceModel.ExponentialDecay, initial: 1.0, decayRate: 0 },
-        }],
-        vaccinationEnabled: false,
+      const lockdownAction: TurnAction = {
+        activeMeasureIds: ['lockdown_full'],
+        vaccinationPriority: null,
       };
-      let totalInfNPI = 0;
-      let totalInfNoNPI_sum = 0;
-      for (let m = 1; m <= 3; m++) {
-        const r = stepTurn(cpWithNPI, gs, npiAction, m);
-        totalInfNPI += r.monthlyReport.trueInfections;
-        cpWithNPI = r.checkpoint;
+
+      // Run 3 turns with and without lockdown
+      let cpNoAction = checkpoint;
+      let totalInfNoAction = 0;
+      for (let t = 1; t <= 3; t++) {
+        const r = stepTurn(cpNoAction, gs, noAction(), t);
+        totalInfNoAction += r.turnReport.trueInfections;
+        cpNoAction = r.checkpoint;
       }
 
-      // Re-run no-NPI to count infections
-      cpNoNPI = checkpoint;
-      for (let m = 1; m <= 3; m++) {
-        const r = stepTurn(cpNoNPI, gs, noAction(), m);
-        totalInfNoNPI_sum += r.monthlyReport.trueInfections;
-        cpNoNPI = r.checkpoint;
+      let cpLockdown = checkpoint;
+      let totalInfLockdown = 0;
+      for (let t = 1; t <= 3; t++) {
+        const r = stepTurn(cpLockdown, gs, lockdownAction, t);
+        totalInfLockdown += r.turnReport.trueInfections;
+        cpLockdown = r.checkpoint;
       }
 
-      expect(totalInfNPI).toBeLessThan(totalInfNoNPI_sum);
+      expect(totalInfLockdown).toBeLessThan(totalInfNoAction);
+    });
+
+    it('should track economic impact of measures', () => {
+      const gs = makeGameScenario();
+      const checkpoint = initGame(gs);
+
+      const expensiveAction: TurnAction = {
+        activeMeasureIds: ['lockdown_full', 'school_closure_full'],
+        vaccinationPriority: null,
+      };
+
+      const result = stepTurn(checkpoint, gs, expensiveAction, 1);
+      const econ = result.turnReport.economicState;
+
+      expect(econ.gdpImpact).toBeLessThan(0); // GDP loss
+      expect(econ.fiscalCost).toBeGreaterThan(0);
+    });
+
+    it('should generate 3 advisor messages per turn', () => {
+      const gs = makeGameScenario();
+      const checkpoint = initGame(gs);
+      const result = stepTurn(checkpoint, gs, noAction(), 1);
+
+      const advisors = result.turnReport.advisorMessages;
+      expect(advisors).toHaveLength(3);
+
+      const roles = advisors.map(a => a.role);
+      expect(roles).toContain('epidemiologist');
+      expect(roles).toContain('economist');
+      expect(roles).toContain('politician');
+
+      for (const a of advisors) {
+        expect(a.name).toBeTruthy();
+        expect(a.message).toBeTruthy();
+        expect(['low', 'medium', 'high', 'critical']).toContain(a.urgency);
+      }
+    });
+
+    it('public_unrest event should reduce social capital', () => {
+      const gs = makeGameScenario({
+        hiddenEvents: [{
+          id: 'unrest-1',
+          type: 'public_unrest',
+          turn: 1,
+          label: 'Public unrest',
+          payload: { penalty: 20 },
+        }],
+      });
+
+      const checkpoint = initGame(gs);
+      const result = stepTurn(checkpoint, gs, noAction(), 1);
+
+      // Social capital should be reduced by the penalty (may partially recover during turn)
+      expect(result.turnReport.socialCapital).toBeLessThan(100);
+    });
+
+    it('vaccine_unlock event should unlock vaccination measures', () => {
+      const gs = makeGameScenario({
+        hiddenEvents: [{
+          id: 'vax-1',
+          type: 'vaccine_unlock',
+          turn: 1,
+          label: 'Vakcína dostupná',
+          payload: {},
+        }],
+      });
+
+      const checkpoint = initGame(gs);
+      const result = stepTurn(checkpoint, gs, noAction(), 1);
+
+      // After vaccine_unlock, vaccination measures should be unlocked
+      expect(result.checkpoint.unlockedMeasureIds).toContain('vaccination_slow');
+      expect(result.checkpoint.unlockedMeasureIds).toContain('vaccination_fast');
+      expect(result.checkpoint.unlockedMeasureIds).toContain('vaccination_max');
+    });
+
+    it('WHO consultation should improve intel quality', () => {
+      const gs = makeGameScenario();
+      const checkpoint = initGame(gs);
+
+      const whoAction: TurnAction = {
+        activeMeasureIds: ['who_consultation'],
+        vaccinationPriority: null,
+      };
+
+      const result = stepTurn(checkpoint, gs, whoAction, 1);
+      expect(result.checkpoint.intelQuality).toBeLessThan(checkpoint.intelQuality);
+    });
+
+    it('mass testing should improve detection rate', () => {
+      const gs = makeGameScenario();
+      const checkpoint = initGame(gs);
+
+      // Mass testing unlocks at turn 3, so test with testing_basic (always unlocked)
+      const testAction: TurnAction = {
+        activeMeasureIds: ['testing_basic'],
+        vaccinationPriority: null,
+      };
+
+      const result = stepTurn(checkpoint, gs, testAction, 1);
+      expect(result.checkpoint.effectiveDetectionRate).toBeGreaterThan(
+        checkpoint.effectiveDetectionRate,
+      );
+    });
+
+    it('business_support should gain social capital (negative political cost)', () => {
+      const gs = makeGameScenario();
+      const checkpoint = initGame(gs);
+
+      // Run a turn with some expensive measures + business support
+      const actionWithSupport: TurnAction = {
+        activeMeasureIds: ['lockdown_full', 'business_support'],
+        vaccinationPriority: null,
+      };
+      const actionWithout: TurnAction = {
+        activeMeasureIds: ['lockdown_full'],
+        vaccinationPriority: null,
+      };
+
+      const resultWith = stepTurn(checkpoint, gs, actionWithSupport, 1);
+      const resultWithout = stepTurn(checkpoint, gs, actionWithout, 1);
+
+      // Business support offsets some political cost
+      expect(resultWith.turnReport.socialCapital).toBeGreaterThan(
+        resultWithout.turnReport.socialCapital,
+      );
+    });
+
+    it('multi-turn sequence should accumulate effects', () => {
+      const gs = makeGameScenario();
+      let cp = initGame(gs);
+
+      // Run 5 turns with no action
+      for (let t = 1; t <= 5; t++) {
+        const r = stepTurn(cp, gs, noAction(), t);
+        cp = r.checkpoint;
+
+        // Day should advance correctly
+        expect(cp.populationState.day).toBe(t * 14);
+      }
     });
   });
 });

@@ -124,6 +124,8 @@ PNG navíc obsahuje vodoznak "SIMULACE".
   - přihlásit svým anonymním jménem (výsledky se ukládají), nebo
   - zvolit „Test bez ukládání výsledků“.
 - Učitel v administraci vidí přehled pokusů a nejlepší výsledky za studenty i celé třídy.
+- Učitel může pro vybranou třídu nastavit **defaultní scénář** s vlastním označením (tag), který se načte studentovi po přihlášení.
+- Učitel může exportovat výsledky vybrané třídy do **JSON + CSV** (včetně času pokusu, počtu pokusů a metrik výsledku).
 
 > Pozn.: aktuální implementace ukládá data lokálně v prohlížeči (`localStorage`) bez sběru osobních údajů.
 

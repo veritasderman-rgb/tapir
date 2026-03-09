@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@media print {
+  .disclaimer-banner {
+    display: block !important;
+    visibility: visible !important;
+  }
+}

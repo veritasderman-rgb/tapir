@@ -55,7 +55,7 @@ export interface GameState {
 
   // ─── Crisis management layer ───
   crisisLeader: CrisisLeader;
-  trust: number; // 0–100, replaces/parallels socialCapital
+  trust: number; // 0-100, replaces/parallels socialCapital
   governmentDownRounds: number; // >0 means government has fallen, measures disabled
   crisisStaffEntered: boolean; // player has entered the crisis HQ
   introPopupShown: boolean; // initial epidemic news shown
@@ -255,7 +255,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     // ─── Premier takeover at 10,000 deaths ───
-    if (cumulativeDeaths >= 10_000 && !state.premierTakeoverDone) {
+    if (cumulativeDeaths >= 10000 && !state.premierTakeoverDone) {
       newTrust += 8; // initial boost from decisive action
       newPopups.push({
         id: 'premier-takeover',
@@ -366,8 +366,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       // Crisis updates
       trust: newTrust,
       governmentDownRounds: newGovDown,
-      premierTakeoverDone: state.premierTakeoverDone || cumulativeDeaths >= 10_000,
-      crisisLeader: cumulativeDeaths >= 10_000 ? 'premier' : state.crisisLeader,
+      premierTakeoverDone: state.premierTakeoverDone || cumulativeDeaths >= 10000,
+      crisisLeader: cumulativeDeaths >= 10000 ? 'premier' : state.crisisLeader,
       popupQueue: [...state.popupQueue, ...newPopups],
     });
   },

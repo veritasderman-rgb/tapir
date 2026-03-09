@@ -4,25 +4,27 @@ import { type HiddenEvent, type HiddenEventType } from '@tapir/core';
 interface Props {
   events: HiddenEvent[];
   onChange: (events: HiddenEvent[]) => void;
-  durationMonths: number;
+  totalTurns: number;
 }
 
-const EVENT_TYPES: { type: HiddenEventType; label: string; color: string; defaultPayload: Record<string, number> }[] = [
+const EVENT_TYPES: { type: HiddenEventType; label: string; color: string; defaultPayload: Record<string, number | string> }[] = [
   { type: 'variant_shock', label: 'Varianta', color: 'bg-red-100 border-red-300 text-red-800', defaultPayload: { transmissibilityMultiplier: 1.3, immuneEscape: 0.1 } },
   { type: 'vaccine_unlock', label: 'Odemknuti vakciny', color: 'bg-green-100 border-green-300 text-green-800', defaultPayload: {} },
   { type: 'supply_disruption', label: 'Vypadek zasobovani', color: 'bg-orange-100 border-orange-300 text-orange-800', defaultPayload: { bedReductionFraction: 0.3 } },
   { type: 'public_unrest', label: 'Verejne nepokoje', color: 'bg-purple-100 border-purple-300 text-purple-800', defaultPayload: { penalty: 15 } },
+  { type: 'measure_unlock', label: 'Odemknuti opatreni', color: 'bg-blue-100 border-blue-300 text-blue-800', defaultPayload: { measureId: '' } },
+  { type: 'who_intel', label: 'WHO informace', color: 'bg-teal-100 border-teal-300 text-teal-800', defaultPayload: { intelBonus: 0.2 } },
 ];
 
 let eventCounter = 0;
 
-export default function EventTimeline({ events, onChange, durationMonths }: Props) {
+export default function EventTimeline({ events, onChange, totalTurns }: Props) {
   const addEvent = useCallback((type: HiddenEventType) => {
     const def = EVENT_TYPES.find(e => e.type === type)!;
     const newEvent: HiddenEvent = {
       id: `event-${++eventCounter}`,
       type,
-      month: 1,
+      turn: 1,
       label: def.label,
       payload: { ...def.defaultPayload },
     };
@@ -37,32 +39,32 @@ export default function EventTimeline({ events, onChange, durationMonths }: Prop
     onChange(events.map(e => e.id === id ? { ...e, ...partial } : e));
   }, [events, onChange]);
 
-  const updatePayload = useCallback((id: string, key: string, value: number) => {
+  const updatePayload = useCallback((id: string, key: string, value: number | string) => {
     onChange(events.map(e => {
       if (e.id !== id) return e;
       return { ...e, payload: { ...e.payload, [key]: value } };
     }));
   }, [events, onChange]);
 
-  const months = Array.from({ length: durationMonths }, (_, i) => i + 1);
+  const turns = Array.from({ length: totalTurns }, (_, i) => i + 1);
 
   return (
     <div className="space-y-4">
       {/* Visual timeline */}
       <div className="overflow-x-auto">
-        <div className="flex gap-px min-w-[600px]" role="list" aria-label="Casova osa mesicu">
-          {months.map(m => {
-            const monthEvents = events.filter(e => e.month === m);
+        <div className="flex gap-px min-w-[600px]" role="list" aria-label="Casova osa kol">
+          {turns.map(t => {
+            const turnEvents = events.filter(e => e.turn === t);
             return (
               <div
-                key={m}
-                className="flex-1 min-w-[40px] text-center"
+                key={t}
+                className="flex-1 min-w-[25px] text-center"
                 role="listitem"
               >
-                <div className="text-[10px] text-gray-400 mb-1">M{m}</div>
-                <div className={`h-8 rounded border ${monthEvents.length > 0 ? 'bg-amber-50 border-amber-300' : 'bg-gray-50 border-gray-200'} flex items-center justify-center`}>
-                  {monthEvents.length > 0 && (
-                    <span className="text-[10px] font-bold text-amber-700">{monthEvents.length}</span>
+                <div className="text-[9px] text-gray-400 mb-1">T{t}</div>
+                <div className={`h-6 rounded border ${turnEvents.length > 0 ? 'bg-amber-50 border-amber-300' : 'bg-gray-50 border-gray-200'} flex items-center justify-center`}>
+                  {turnEvents.length > 0 && (
+                    <span className="text-[9px] font-bold text-amber-700">{turnEvents.length}</span>
                   )}
                 </div>
               </div>
@@ -115,15 +117,15 @@ export default function EventTimeline({ events, onChange, durationMonths }: Prop
 
             <div className="flex items-center gap-3">
               <label className="text-xs">
-                Mesic:
+                Kolo:
                 <select
-                  value={event.month}
-                  onChange={(e) => updateEvent(event.id, { month: parseInt(e.target.value) })}
+                  value={event.turn}
+                  onChange={(e) => updateEvent(event.id, { turn: parseInt(e.target.value) })}
                   className="ml-1 text-xs border rounded px-1 py-0.5 bg-white/50"
-                  aria-label="Mesic aktivace"
+                  aria-label="Kolo aktivace"
                 >
-                  {months.map(m => (
-                    <option key={m} value={m}>M{m}</option>
+                  {turns.map(t => (
+                    <option key={t} value={t}>T{t}</option>
                   ))}
                 </select>
               </label>
@@ -164,7 +166,7 @@ export default function EventTimeline({ events, onChange, durationMonths }: Prop
                 Snizeni luzek (%)
                 <input
                   type="number"
-                  value={Math.round((event.payload.bedReductionFraction ?? 0) * 100)}
+                  value={Math.round((event.payload.bedReductionFraction as number ?? 0) * 100)}
                   onChange={(e) => updatePayload(event.id, 'bedReductionFraction', (parseInt(e.target.value) || 0) / 100)}
                   min={0}
                   max={80}
@@ -184,6 +186,34 @@ export default function EventTimeline({ events, onChange, durationMonths }: Prop
                   min={0}
                   max={50}
                   step={5}
+                  className="w-full text-xs border rounded px-1 py-0.5 bg-white/50 mt-0.5"
+                />
+              </label>
+            )}
+
+            {event.type === 'measure_unlock' && (
+              <label className="text-xs">
+                ID opatreni
+                <input
+                  type="text"
+                  value={event.payload.measureId ?? ''}
+                  onChange={(e) => updatePayload(event.id, 'measureId', e.target.value)}
+                  placeholder="napr. testing_mass"
+                  className="w-full text-xs border rounded px-1 py-0.5 bg-white/50 mt-0.5"
+                />
+              </label>
+            )}
+
+            {event.type === 'who_intel' && (
+              <label className="text-xs">
+                Intel bonus
+                <input
+                  type="number"
+                  value={event.payload.intelBonus ?? 0.2}
+                  onChange={(e) => updatePayload(event.id, 'intelBonus', parseFloat(e.target.value) || 0)}
+                  min={0}
+                  max={1}
+                  step={0.05}
                   className="w-full text-xs border rounded px-1 py-0.5 bg-white/50 mt-0.5"
                 />
               </label>

@@ -60,3 +60,15 @@ export { initGame, stepTurn } from './step-runner';
 
 // Game scenario encode/decode
 export { encodeGameScenario, decodeGameScenario } from './game-scenario';
+
+// Measure catalog
+export { MEASURE_CATALOG, getMeasureById, getMeasuresByCategory, getAllMeasureIds, isMeasureUnlocked, defaultMeasureIds } from './measure-catalog';
+
+// Economics
+export { stepEconomics, defaultEconomicState, unemploymentSocialCapitalDrain } from './economics';
+
+// Advisors
+export { generateAdvisorMessages } from './advisors';
+
+// Headlines
+export { generateHeadlines } from './headlines';

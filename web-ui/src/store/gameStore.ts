@@ -3,19 +3,17 @@ import {
   type GameScenario,
   type SimCheckpoint,
   type TurnAction,
-  type MonthlyReport,
+  type TurnReport,
   type DailyMetrics,
   type PopulationState,
-  type NPIConfig,
-  NPIType,
-  ComplianceModel,
+  type VaccinationPriority,
 } from '@tapir/core';
 import { initGame, stepTurn, decodeGameScenario } from '@tapir/core';
 
 export interface TurnHistoryEntry {
-  month: number;
+  turnNumber: number;
   action: TurnAction;
-  report: MonthlyReport;
+  report: TurnReport;
   metrics: DailyMetrics[];
   states: PopulationState[];
   checkpointBefore: SimCheckpoint;
@@ -27,19 +25,16 @@ export interface GameState {
   gamePhase: 'idle' | 'playing' | 'finished' | 'debrief';
 
   // Turn state
-  currentMonth: number;
+  currentTurn: number;
   checkpoint: SimCheckpoint | null;
   turnHistory: TurnHistoryEntry[];
 
   // Student's current action draft
-  pendingNPIs: NPIConfig[];
-  vaccinationEnabled: boolean;
+  activeMeasureIds: string[];
+  vaccinationPriority: VaccinationPriority | null;
 
-  // Unlocks (from hidden events)
-  vaccinationUnlocked: boolean;
-
-  // Debrief modal
-  lastReport: MonthlyReport | null;
+  // Last turn report (for debrief modal)
+  lastTurnReport: TurnReport | null;
   showDebrief: boolean;
 
   // Actions
@@ -51,27 +46,26 @@ export interface GameState {
   enterDebrief: () => void;
   resetGame: () => void;
 
-  // NPI management
-  addNPI: (npi: NPIConfig) => void;
-  removeNPI: (id: string) => void;
-  updateNPI: (id: string, partial: Partial<NPIConfig>) => void;
-  setVaccinationEnabled: (v: boolean) => void;
+  // Measure management
+  toggleMeasure: (measureId: string) => void;
+  setActiveMeasures: (ids: string[]) => void;
+  setVaccinationPriority: (priority: VaccinationPriority | null) => void;
 
   // Computed helpers
   allMetrics: () => DailyMetrics[];
   allStates: () => PopulationState[];
+  unlockedMeasureIds: () => string[];
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
   gameScenario: null,
   gamePhase: 'idle',
-  currentMonth: 0,
+  currentTurn: 0,
   checkpoint: null,
   turnHistory: [],
-  pendingNPIs: [],
-  vaccinationEnabled: false,
-  vaccinationUnlocked: false,
-  lastReport: null,
+  activeMeasureIds: [],
+  vaccinationPriority: null,
+  lastTurnReport: null,
   showDebrief: false,
 
   loadScenario: (encoded: string) => {
@@ -88,53 +82,43 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({
       gameScenario,
       gamePhase: 'playing',
-      currentMonth: 0,
+      currentTurn: 0,
       checkpoint,
       turnHistory: [],
-      pendingNPIs: [],
-      vaccinationEnabled: false,
-      vaccinationUnlocked: !gameScenario.vaccinationLocked,
-      lastReport: null,
+      activeMeasureIds: [],
+      vaccinationPriority: null,
+      lastTurnReport: null,
       showDebrief: false,
     });
   },
 
   submitTurn: () => {
-    const { checkpoint, gameScenario, currentMonth, pendingNPIs, vaccinationEnabled } = get();
+    const { checkpoint, gameScenario, currentTurn, activeMeasureIds, vaccinationPriority } = get();
     if (!checkpoint || !gameScenario) return;
 
-    const nextMonth = currentMonth + 1;
-    const action: TurnAction = { npis: pendingNPIs, vaccinationEnabled };
+    const nextTurn = currentTurn + 1;
+    const action: TurnAction = { activeMeasureIds, vaccinationPriority };
 
-    const result = stepTurn(checkpoint, gameScenario, action, nextMonth);
-
-    // Check for vaccine_unlock event
-    let vacUnlocked = get().vaccinationUnlocked;
-    for (const event of gameScenario.hiddenEvents) {
-      if (event.month === nextMonth && event.type === 'vaccine_unlock') {
-        vacUnlocked = true;
-      }
-    }
+    const result = stepTurn(checkpoint, gameScenario, action, nextTurn);
 
     const historyEntry: TurnHistoryEntry = {
-      month: nextMonth,
+      turnNumber: nextTurn,
       action,
-      report: result.monthlyReport,
+      report: result.turnReport,
       metrics: result.metrics,
       states: result.states,
       checkpointBefore: checkpoint,
     };
 
-    const isLastMonth = nextMonth >= gameScenario.durationMonths;
+    const isLastTurn = nextTurn >= gameScenario.totalTurns;
 
     set({
-      currentMonth: nextMonth,
+      currentTurn: nextTurn,
       checkpoint: result.checkpoint,
       turnHistory: [...get().turnHistory, historyEntry],
-      lastReport: result.monthlyReport,
+      lastTurnReport: result.turnReport,
       showDebrief: true,
-      vaccinationUnlocked: vacUnlocked,
-      gamePhase: isLastMonth ? 'finished' : 'playing',
+      gamePhase: isLastTurn ? 'finished' : 'playing',
     });
   },
 
@@ -147,22 +131,26 @@ export const useGameStore = create<GameState>((set, get) => ({
   resetGame: () => set({
     gameScenario: null,
     gamePhase: 'idle',
-    currentMonth: 0,
+    currentTurn: 0,
     checkpoint: null,
     turnHistory: [],
-    pendingNPIs: [],
-    vaccinationEnabled: false,
-    vaccinationUnlocked: false,
-    lastReport: null,
+    activeMeasureIds: [],
+    vaccinationPriority: null,
+    lastTurnReport: null,
     showDebrief: false,
   }),
 
-  addNPI: (npi) => set((s) => ({ pendingNPIs: [...s.pendingNPIs, npi] })),
-  removeNPI: (id) => set((s) => ({ pendingNPIs: s.pendingNPIs.filter(n => n.id !== id) })),
-  updateNPI: (id, partial) => set((s) => ({
-    pendingNPIs: s.pendingNPIs.map(n => n.id === id ? { ...n, ...partial } : n),
-  })),
-  setVaccinationEnabled: (v) => set({ vaccinationEnabled: v }),
+  toggleMeasure: (measureId: string) => set((s) => {
+    const ids = s.activeMeasureIds;
+    if (ids.includes(measureId)) {
+      return { activeMeasureIds: ids.filter(id => id !== measureId) };
+    }
+    return { activeMeasureIds: [...ids, measureId] };
+  }),
+
+  setActiveMeasures: (ids) => set({ activeMeasureIds: ids }),
+
+  setVaccinationPriority: (priority) => set({ vaccinationPriority: priority }),
 
   allMetrics: () => {
     return get().turnHistory.flatMap(h => h.metrics);
@@ -170,5 +158,10 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   allStates: () => {
     return get().turnHistory.flatMap(h => h.states);
+  },
+
+  unlockedMeasureIds: () => {
+    const { checkpoint } = get();
+    return checkpoint?.unlockedMeasureIds ?? [];
   },
 }));

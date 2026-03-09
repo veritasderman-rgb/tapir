@@ -15,6 +15,9 @@ import ExportPanel from './components/ExportPanel';
 import Dashboard from './components/Dashboard';
 import AssumptionsInspector from './components/AssumptionsInspector';
 import InstructorPanel from './components/InstructorPanel';
+import AuthPanel from './components/AuthPanel';
+import AdminPanel from './components/AdminPanel';
+import { getClassroomById, saveAttempt } from './lib/classroom-db';
 
 const TABS = [
   { id: 'parameters' as const, label: 'Parametry' },
@@ -39,6 +42,7 @@ export default function App() {
     sidebarOpen,
     appMode,
     hiddenEvents,
+    auth,
   } = useAppStore();
 
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -55,11 +59,25 @@ export default function App() {
       const res = runSimulation(scenario);
       setResult(res);
       setSimStatus('done');
+
+      if (auth.role === 'student' && auth.username && auth.classId) {
+        const classroom = getClassroomById(auth.classId);
+        saveAttempt({
+          id: `attempt-${crypto.randomUUID()}`,
+          username: auth.username,
+          classId: auth.classId,
+          playedAt: new Date().toISOString(),
+          totalDeaths: Math.round(res.primaryRun.metrics.reduce((acc, m) => acc + m.newDeaths, 0)),
+          peakInfections: Math.round(Math.max(...res.primaryRun.metrics.map((m) => m.newInfections))),
+          overflowDays: res.primaryRun.metrics.filter((m) => m.hospitalOverflow || m.icuOverflow).length,
+          scenarioTag: classroom?.defaultAssignment?.tag,
+        });
+      }
     } catch (err) {
       setSimStatus('error');
       console.error('Simulation error:', err);
     }
-  }, [scenario, setResult, setSimStatus, setValidationErrors]);
+  }, [auth, scenario, setResult, setSimStatus, setValidationErrors]);
 
   // Auto-validate on scenario change (debounced)
   useEffect(() => {
@@ -70,6 +88,8 @@ export default function App() {
     }, 200);
     return () => clearTimeout(debounceRef.current);
   }, [scenario, setValidationErrors]);
+
+  if (!auth.role) return <AuthPanel />;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -144,6 +164,7 @@ export default function App() {
 
             {/* Instructor panel */}
             <InstructorPanel />
+            {auth.role === 'teacher' && <AdminPanel />}
 
             {/* Assumptions Inspector */}
             <AssumptionsInspector />

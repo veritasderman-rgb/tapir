@@ -37,6 +37,9 @@ export interface GameState {
   lastTurnReport: TurnReport | null;
   showDebrief: boolean;
 
+  // Load error
+  loadError: string | null;
+
   // Actions
   loadScenario: (encoded: string) => void;
   startGame: (gameScenario: GameScenario) => void;
@@ -68,12 +71,17 @@ export const useGameStore = create<GameState>((set, get) => ({
   lastTurnReport: null,
   showDebrief: false,
 
+  loadError: null as string | null,
+
   loadScenario: (encoded: string) => {
     try {
       const gs = decodeGameScenario(encoded);
+      set({ loadError: null });
       get().startGame(gs);
     } catch (e) {
-      console.error('Failed to decode scenario:', e);
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error('Failed to decode scenario:', msg);
+      set({ loadError: msg });
     }
   },
 

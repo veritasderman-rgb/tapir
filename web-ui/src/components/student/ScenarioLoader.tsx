@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { useGameStore } from '../../store/gameStore';
 
 export default function ScenarioLoader() {
-  const { loadScenario } = useGameStore();
+  const { loadScenario, loadError } = useGameStore();
   const [input, setInput] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  const displayError = error || loadError;
 
   // Auto-load from URL hash (#game=...) or query param (?game=...)
   useEffect(() => {
@@ -23,11 +25,7 @@ export default function ScenarioLoader() {
     }
 
     if (gameParam) {
-      try {
-        loadScenario(gameParam);
-      } catch {
-        setError('Neplatny scenar v URL.');
-      }
+      loadScenario(gameParam);
     }
   }, [loadScenario]);
 
@@ -36,19 +34,15 @@ export default function ScenarioLoader() {
       setError('Vlozte scenar od ucitele.');
       return;
     }
-    try {
-      // Try extracting base64 from URL if pasted as full URL
-      let encoded = input.trim();
-      if (encoded.includes('#game=')) {
-        encoded = encoded.split('#game=')[1];
-      } else if (encoded.includes('?game=')) {
-        encoded = encoded.split('?game=')[1].split('&')[0];
-      }
-      loadScenario(encoded);
-      setError(null);
-    } catch {
-      setError('Neplatny format scenare.');
+    // Try extracting base64 from URL if pasted as full URL
+    let encoded = input.trim();
+    if (encoded.includes('#game=')) {
+      encoded = encoded.split('#game=')[1];
+    } else if (encoded.includes('?game=')) {
+      encoded = encoded.split('?game=')[1].split('&')[0];
     }
+    loadScenario(encoded);
+    setError(null);
   };
 
   return (
@@ -74,8 +68,10 @@ export default function ScenarioLoader() {
           Nacist scenar a zacit hru
         </button>
 
-        {error && (
-          <p className="text-xs text-red-600 text-center">{error}</p>
+        {displayError && (
+          <div className="bg-red-50 border border-red-200 rounded p-3">
+            <p className="text-xs text-red-600 text-center font-medium">{displayError}</p>
+          </div>
         )}
       </div>
     </div>

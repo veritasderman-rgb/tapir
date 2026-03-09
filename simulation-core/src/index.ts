@@ -35,7 +35,8 @@ export { computeVE, computeDailyVaccinations } from './vaccination';
 export { resolveVariantDay, computeVariantEffects, applyReinfectionBoost } from './variant-engine';
 
 // Stochastic & Monte Carlo
-export { mulberry32, binomialTransition, computeQuantiles, runSimulation } from './stochastic';
+export { mulberry32, createRNG, binomialTransition, computeQuantiles, runSimulation } from './stochastic';
+export type { StatefulRNG } from './stochastic';
 
 // Export utilities
 export { exportCSV, exportJSON, getWatermarkText } from './export-utils';
@@ -44,8 +45,30 @@ export { exportCSV, exportJSON, getWatermarkText } from './export-utils';
 export { computeHealthOutcomes } from './health-capacity';
 
 // Delay engine
-export { gammaDelayPMF, DelayBuffer, createDelayBuffers } from './delay-engine';
-export type { StratumDelayBuffers } from './delay-engine';
+export { gammaDelayPMF, DelayBuffer, createDelayBuffers, serializeDelayBuffers, restoreDelayBuffers } from './delay-engine';
+export type { StratumDelayBuffers, DelayBufferSnapshot, StratumDelayBuffersSnapshot } from './delay-engine';
 
 // Reporting
 export { ReportingPipeline } from './reporting';
+export type { ReportingPipelineSnapshot } from './reporting';
+
+// Social capital
+export { stepSocialCapital, socialCapitalComplianceMultiplier, computeSocialCapitalDelta, getNPIDailyCost, getNPIMonthlyCost, defaultSocialCapitalConfig } from './social-capital';
+
+// Step runner (turn-based game)
+export { initGame, stepTurn } from './step-runner';
+
+// Game scenario encode/decode
+export { encodeGameScenario, decodeGameScenario } from './game-scenario';
+
+// Measure catalog
+export { MEASURE_CATALOG, getMeasureById, getMeasuresByCategory, getAllMeasureIds, isMeasureUnlocked, defaultMeasureIds } from './measure-catalog';
+
+// Economics
+export { stepEconomics, defaultEconomicState, unemploymentSocialCapitalDrain } from './economics';
+
+// Advisors
+export { generateAdvisorMessages } from './advisors';
+
+// Headlines
+export { generateHeadlines } from './headlines';

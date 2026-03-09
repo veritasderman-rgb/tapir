@@ -7,7 +7,7 @@
  * 2. Reporting delay (Gamma-distributed lag between onset and report)
  */
 
-import { DelayBuffer, gammaDelayPMF } from './delay-engine';
+import { DelayBuffer, type DelayBufferSnapshot, gammaDelayPMF } from './delay-engine';
 
 // ---- Configuration ----
 
@@ -26,6 +26,12 @@ export function defaultReportingConfig(): ReportingConfig {
     reportingDelayMean: 3,
     reportingDelayStages: 2,
   };
+}
+
+/** Serializable snapshot of ReportingPipeline state. */
+export interface ReportingPipelineSnapshot {
+  infectionBuffer: DelayBufferSnapshot;
+  hospBuffer: DelayBufferSnapshot;
 }
 
 // ---- Reporting Pipeline ----
@@ -50,6 +56,23 @@ export class ReportingPipeline {
     );
     this.infectionBuffer = new DelayBuffer(pmf);
     this.hospBuffer = new DelayBuffer(pmf);
+  }
+
+  /** Serializable snapshot of internal state. */
+  static fromSnapshot(config: ReportingConfig, snap: ReportingPipelineSnapshot): ReportingPipeline {
+    const pipeline = new ReportingPipeline(config);
+    // Replace the internal buffers with restored ones
+    (pipeline as any).infectionBuffer = DelayBuffer.fromSnapshot(snap.infectionBuffer);
+    (pipeline as any).hospBuffer = DelayBuffer.fromSnapshot(snap.hospBuffer);
+    return pipeline;
+  }
+
+  /** Serialize internal state for checkpointing. */
+  serialize(): ReportingPipelineSnapshot {
+    return {
+      infectionBuffer: (this.infectionBuffer as any).serialize(),
+      hospBuffer: (this.hospBuffer as any).serialize(),
+    };
   }
 
   /**

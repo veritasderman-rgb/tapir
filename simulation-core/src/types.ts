@@ -343,3 +343,237 @@ export interface ValidationError {
   /** Human-readable error message */
   message: string;
 }
+
+// ---- Game / Turn-based types ----
+
+/** Event types that instructor can schedule */
+export type HiddenEventType =
+  | 'variant_shock'
+  | 'vaccine_unlock'
+  | 'supply_disruption'
+  | 'public_unrest'
+  | 'measure_unlock'
+  | 'who_intel';
+
+/** A hidden event placed on the timeline by the instructor. */
+export interface HiddenEvent {
+  id: string;
+  type: HiddenEventType;
+  /** Turn number when event activates (1-indexed) */
+  turn: number;
+  /** Human-readable label */
+  label: string;
+  /** Type-specific payload */
+  payload: Record<string, number | string>;
+}
+
+/** Social capital configuration. */
+export interface SocialCapitalConfig {
+  /** Starting social capital [0, 100] */
+  initial: number;
+  /** Recovery rate per day when no NPIs active (points/day) */
+  recoveryRate: number;
+  /** Threshold below which compliance collapses [0, 100] */
+  collapseThreshold: number;
+}
+
+// ---- Game Measure (NPI) catalog ----
+
+/** Condition under which a measure becomes available. */
+export type MeasureUnlockCondition =
+  | { type: 'always' }
+  | { type: 'turn_reached'; turn: number }
+  | { type: 'social_capital_below'; threshold: number }
+  | { type: 'social_capital_above'; threshold: number }
+  | { type: 'event_triggered'; eventId: string }
+  | { type: 'deaths_above'; threshold: number }
+  | { type: 'hospital_occupancy_above'; fraction: number };
+
+/** A game measure = a concrete action the player can toggle. */
+export interface GameMeasure {
+  id: string;
+  /** Display name */
+  name: string;
+  /** Category for UI grouping */
+  category: 'social_distancing' | 'masks' | 'testing' | 'vaccination' | 'travel' | 'military' | 'international' | 'economic';
+  /** Short description */
+  description: string;
+  /** Epidemiological effect: which NPI type to generate */
+  npiEffect: {
+    type: NPIType;
+    value: number;
+    targetSubMatrix?: keyof ContactMatrix;
+  };
+  /** Political cost per turn (social capital drain, scaled to 14 days) */
+  politicalCostPerTurn: number;
+  /** Economic cost per turn (% GDP hit per 14-day turn) */
+  economicCostPerTurn: number;
+  /** Ramp-up delay in days (effect not immediate) */
+  rampUpDays: number;
+  /** Compliance decay rate (how fast public gets tired of it, per day) */
+  complianceDecayRate: number;
+  /** When does this measure become available? */
+  unlockCondition: MeasureUnlockCondition;
+  /** Special effect: modifies detection rate by this additive amount */
+  detectionRateBonus?: number;
+  /** Special effect: adds daily vaccination capacity */
+  vaccinationCapacityBonus?: number;
+  /** Special: reduces Reff estimation jitter (better intel) */
+  intelBonus?: number;
+  /** Is this a one-shot action (activate once, persists)? */
+  oneShot?: boolean;
+  /** Mutually exclusive group — only one measure from group can be active */
+  exclusiveGroup?: string;
+}
+
+/** Vaccination priority setting (which age/risk groups first). */
+export interface VaccinationPriority {
+  /** Ordered list of stratum indices (0-5), first = highest priority */
+  stratumOrder: number[];
+  /** Daily capacity (doses/day) — can be upgraded */
+  dailyCapacity: number;
+}
+
+// ---- Economic model ----
+
+/** Economic state tracked across turns. */
+export interface EconomicState {
+  /** Cumulative GDP impact (negative = loss, percentage of annual GDP) */
+  gdpImpact: number;
+  /** Current unemployment rate increase (percentage points above baseline) */
+  unemploymentDelta: number;
+  /** Cumulative fiscal cost in arbitrary units (billions) */
+  fiscalCost: number;
+  /** Business confidence [0, 100] — affects recovery speed */
+  businessConfidence: number;
+}
+
+// ---- Advisory system ----
+
+/** Advisor types in the crisis staff. */
+export type AdvisorRole = 'epidemiologist' | 'economist' | 'politician';
+
+/** A single advisor message for one turn. */
+export interface AdvisorMessage {
+  role: AdvisorRole;
+  name: string;
+  /** Main advisory text */
+  message: string;
+  /** Suggested action (informational only) */
+  suggestion?: string;
+  /** Urgency level */
+  urgency: 'low' | 'medium' | 'high' | 'critical';
+}
+
+// ---- Complete game scenario v2 ----
+
+/** Complete game scenario (what instructor exports). */
+export interface GameScenario {
+  /** Base scenario config (epi, demographics, etc.) */
+  baseScenario: ScenarioConfig;
+  /** Game duration in turns (default 24 = 12 months biweekly) */
+  totalTurns: number;
+  /** Days per turn (default 14 = biweekly) */
+  daysPerTurn: number;
+  /** Hidden events timeline */
+  hiddenEvents: HiddenEvent[];
+  /** Social capital config */
+  socialCapital: SocialCapitalConfig;
+  /** Available measures catalog (IDs referencing MEASURE_CATALOG) */
+  availableMeasureIds: string[];
+  /** Whether vaccination is initially locked */
+  vaccinationLocked: boolean;
+}
+
+/** Serializable snapshot of all mutable simulation state between turns. */
+export interface SimCheckpoint {
+  /** Population compartments at end of last turn */
+  populationState: PopulationState;
+  /** Delay buffer snapshots per stratum (null if delays disabled) */
+  delayBufferSnapshots: import('./delay-engine').StratumDelayBuffersSnapshot[] | null;
+  /** Reporting pipeline snapshot (null if reporting disabled) */
+  reportingSnapshot: import('./reporting').ReportingPipelineSnapshot | null;
+  /** Resolved variant activation days (frozen at game start) */
+  variantActivationDays: number[];
+  /** Calibrated beta (frozen at game start) */
+  calibratedBeta: number;
+  /** RNG internal state (seed value) */
+  rngState: number;
+  /** Current social capital [0, 100] */
+  socialCapital: number;
+  /** Current economic state */
+  economicState: EconomicState;
+  /** Current effective detection rate [0, 1] (can be improved by testing measures) */
+  effectiveDetectionRate: number;
+  /** Set of measure IDs that have been unlocked (by events, conditions, etc.) */
+  unlockedMeasureIds: string[];
+  /** Daily vaccination capacity (can be boosted by measures) */
+  vaccinationCapacity: number;
+  /** Intel quality: Reff jitter multiplier (lower = more accurate; 1.0 = default ±15%) */
+  intelQuality: number;
+}
+
+/** Input for one turn (what the student chose). */
+export interface TurnAction {
+  /** IDs of measures active this turn (from catalog) */
+  activeMeasureIds: string[];
+  /** Vaccination priority (null = vaccination disabled) */
+  vaccinationPriority: VaccinationPriority | null;
+}
+
+/** Turn report shown to the student at end of turn. */
+export interface TurnReport {
+  turnNumber: number;
+  /** Simulated date range label */
+  dateLabel: string;
+  /** Observed (reported) total new infections this turn */
+  observedInfections: number;
+  /** True total new infections (hidden from student, shown in debrief) */
+  trueInfections: number;
+  /** Total new hospitalizations */
+  newHospitalizations: number;
+  /** Total new ICU admissions */
+  newICU: number;
+  /** Total deaths */
+  newDeaths: number;
+  /** Cumulative deaths so far */
+  cumulativeDeaths: number;
+  /** Estimated Reff (noisy — jittered for fog-of-war) */
+  estimatedReff: number;
+  /** True Reff at end of turn */
+  trueReff: number;
+  /** Current social capital */
+  socialCapital: number;
+  /** Hospital occupancy at end of turn */
+  hospitalOccupancy: number;
+  /** Hospital capacity */
+  hospitalCapacity: number;
+  /** ICU occupancy at end of turn */
+  icuOccupancy: number;
+  /** ICU capacity */
+  icuCapacity: number;
+  /** Whether hospital or ICU overflowed */
+  capacityOverflow: boolean;
+  /** Economic state snapshot */
+  economicState: EconomicState;
+  /** Events that activated this turn */
+  activatedEvents: HiddenEvent[];
+  /** Advisor messages for this turn */
+  advisorMessages: AdvisorMessage[];
+  /** Newspaper headlines (flavor text) */
+  headlines: string[];
+  /** Newly unlocked measures this turn */
+  newlyUnlockedMeasures: string[];
+}
+
+/** Output of one turn. */
+export interface TurnResult {
+  /** New checkpoint (pass to next turn) */
+  checkpoint: SimCheckpoint;
+  /** Daily metrics for this block only */
+  metrics: DailyMetrics[];
+  /** Daily population states for this block only */
+  states: PopulationState[];
+  /** Turn summary report */
+  turnReport: TurnReport;
+}

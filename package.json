@@ -12,7 +12,7 @@
     "build": "npm run build --workspace=web-ui",
     "test": "npm run test --workspace=simulation-core",
     "test:ui": "npm run test --workspace=web-ui",
-    "lint": "tsc -p simulation-core/tsconfig.json --noEmit && tsc -p web-ui/tsconfig.json --noEmit"
+    "lint": "tsc --noEmit"
   },
   "devDependencies": {
     "typescript": "^5.9.3",

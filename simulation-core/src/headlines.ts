@@ -65,6 +65,8 @@ export function generateHeadlines(ctx: HeadlineContext): string[] {
     headlines.push(`Počet obětí překročil stovku. Premiér vyjádřil soustrast rodinám.`);
   } else if (ctx.cumulativeDeaths > 1000 && ctx.cumulativeDeaths - ctx.newDeaths < 1000) {
     headlines.push(`Černý milník: tisíc obětí epidemie.`);
+  } else if (ctx.cumulativeDeaths > 10000 && ctx.cumulativeDeaths - ctx.newDeaths < 10000) {
+    headlines.push(`🏛️ DESET TISÍC OBĚTÍ: Premiér přebírá vedení Ústředního krizového štábu.`);
   } else if (ctx.cumulativeDeaths > 5000 && ctx.cumulativeDeaths - ctx.newDeaths < 5000) {
     headlines.push(`Pět tisíc obětí. Opozice žádá vyšetřovací komisi.`);
   }

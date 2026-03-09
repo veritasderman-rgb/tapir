@@ -2,7 +2,7 @@ import { useGameStore } from '../../store/gameStore';
 import type { TurnReport, AdvisorMessage } from '@tapir/core';
 
 export default function MonthlyDebriefModal() {
-  const { lastTurnReport, showDebrief, dismissDebrief, gamePhase, enterDebrief } = useGameStore();
+  const { lastTurnReport, showDebrief, dismissDebrief, gamePhase, enterDebrief, trust, crisisLeader, governmentDownRounds } = useGameStore();
 
   if (!showDebrief || !lastTurnReport) return null;
 
@@ -56,6 +56,7 @@ export default function MonthlyDebriefModal() {
           <ReportStat label="Celkem umrti" value={r.cumulativeDeaths.toLocaleString()} highlight={r.cumulativeDeaths > 500} />
           <ReportStat label="Odhad Reff" value={r.estimatedReff.toFixed(2)} highlight={r.estimatedReff > 1} />
           <ReportStat label="Socialni kapital" value={`${r.socialCapital.toFixed(0)}`} highlight={r.socialCapital < 30} />
+          <ReportStat label="Důvěra veřejnosti" value={`${Math.round(trust)}%`} highlight={trust < 20} />
           <ReportStat
             label="Nemocnice"
             value={`${r.hospitalOccupancy} / ${r.hospitalCapacity}`}
@@ -93,6 +94,22 @@ export default function MonthlyDebriefModal() {
           <div className="bg-red-50 border border-red-200 rounded p-2">
             <p className="text-xs text-red-800 font-medium">
               Socialni kapital je kriticky nizky! Populace ignoruje opatreni.
+            </p>
+          </div>
+        )}
+
+        {governmentDownRounds > 0 && (
+          <div className="bg-red-100 border-2 border-red-400 rounded p-3">
+            <p className="text-xs text-red-900 font-bold">
+              ⚠️ VLÁDA PADLA — žádná opatření po dobu {governmentDownRounds} kol!
+            </p>
+          </div>
+        )}
+
+        {crisisLeader === 'premier' && (
+          <div className="bg-purple-50 border border-purple-200 rounded p-2">
+            <p className="text-xs text-purple-800 font-medium">
+              🏛️ Řízení krizového štábu převzal premiér.
             </p>
           </div>
         )}

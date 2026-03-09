@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { getMeasureById, getMeasuresByCategory, type GameMeasure } from '@tapir/core';
+import TrustBar from './TrustBar';
 
 const CATEGORY_LABELS: Record<string, string> = {
   masks: 'Rousky a respiratory',
@@ -85,6 +86,21 @@ export default function ActionPanel() {
 
   return (
     <div className="space-y-3">
+      {/* Trust / Crisis management bar */}
+      <TrustBar />
+
+      {/* Government down overlay */}
+      {useGameStore.getState().governmentDownRounds > 0 && (
+        <div className="bg-red-100 border-2 border-red-400 rounded-lg p-3 text-center">
+          <p className="text-xs font-bold text-red-800">
+            Vláda padla — opatření nelze měnit
+          </p>
+          <p className="text-[10px] text-red-600 mt-1">
+            Zbývá {useGameStore.getState().governmentDownRounds} kol do ustanovení nové vlády
+          </p>
+        </div>
+      )}
+
       {/* Social capital gauge */}
       <div className="bg-white border border-gray-200 rounded-lg p-3">
         <div className="flex items-center justify-between mb-1">

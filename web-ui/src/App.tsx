@@ -99,8 +99,11 @@ export default function App() {
 
   if (!auth.role) return <AuthPanel />;
 
-  // Check if URL has ?game= parameter → go directly to game mode
-  const hasGameParam = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('game');
+  // Check if URL has #game= or ?game= parameter → go directly to game mode
+  const hasGameParam = typeof window !== 'undefined' && (
+    window.location.hash.startsWith('#game=') ||
+    new URLSearchParams(window.location.search).has('game')
+  );
 
   // Instructor mode → show Scenario Builder
   if (auth.role === 'teacher' && appMode === AppMode.Instructor) {

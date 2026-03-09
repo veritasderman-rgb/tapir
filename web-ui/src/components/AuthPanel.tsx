@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { AppMode } from '@tapir/core';
+import { AppMode, defaultScenario } from '@tapir/core';
 import { findStudentClass, verifyTeacher } from '../lib/classroom-db';
 import { useAppStore } from '../store/useAppStore';
 
 export default function AuthPanel() {
-  const { setAuth, setAppMode } = useAppStore();
+  const { setAuth, setAppMode, setScenario } = useAppStore();
   const [teacherUsername, setTeacherUsername] = useState('');
   const [teacherPassword, setTeacherPassword] = useState('');
   const [studentUsername, setStudentUsername] = useState('');
@@ -36,12 +36,14 @@ export default function AuthPanel() {
 
     setAuth({ role: 'student', username, classId: studentClass.id });
     setAppMode(AppMode.Student);
+    setScenario(studentClass.defaultAssignment?.scenario ?? defaultScenario());
     setError(null);
   };
 
   const handleGuestMode = () => {
     setAuth({ role: 'guest', username: 'test-bez-ulozeni', classId: null });
     setAppMode(AppMode.Student);
+    setScenario(defaultScenario());
     setError(null);
   };
 

@@ -18,7 +18,7 @@ import AssumptionsInspector from './components/AssumptionsInspector';
 import InstructorPanel from './components/InstructorPanel';
 import AuthPanel from './components/AuthPanel';
 import AdminPanel from './components/AdminPanel';
-import { saveAttempt } from './lib/classroom-db';
+import { getClassroomById, saveAttempt } from './lib/classroom-db';
 
 // Game components
 import ScenarioBuilder from './components/instructor/ScenarioBuilder';
@@ -69,6 +69,7 @@ export default function App() {
       setSimStatus('done');
 
       if (auth.role === 'student' && auth.username && auth.classId) {
+        const classroom = getClassroomById(auth.classId);
         saveAttempt({
           id: `attempt-${crypto.randomUUID()}`,
           username: auth.username,
@@ -77,6 +78,7 @@ export default function App() {
           totalDeaths: Math.round(res.primaryRun.metrics.reduce((acc, m) => acc + m.newDeaths, 0)),
           peakInfections: Math.round(Math.max(...res.primaryRun.metrics.map((m) => m.newInfections))),
           overflowDays: res.primaryRun.metrics.filter((m) => m.hospitalOverflow || m.icuOverflow).length,
+          scenarioTag: classroom?.defaultAssignment?.tag,
         });
       }
     } catch (err) {
@@ -158,7 +160,7 @@ export default function App() {
   // Default: Sandbox mode (existing UI)
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <a href="#main-content" className="skip-link">Preskocit na obsah</a>
+      <a href="#main-content" className="skip-link">Přeskočit na obsah</a>
       <DisclaimerBanner />
       <Header />
 
@@ -182,7 +184,7 @@ export default function App() {
                   : 'bg-blue-600 text-white hover:bg-blue-700'
               }`}
             >
-              {simStatus === 'running' ? 'Pocitam...' : 'Spustit simulaci'}
+              {simStatus === 'running' ? 'Počítám...' : 'Spustit simulaci'}
             </button>
 
             {validationErrors.length > 0 && (
@@ -240,7 +242,7 @@ export default function App() {
         </aside>
 
         {/* Main content */}
-        <main id="main-content" className="flex-1 overflow-y-auto" role="main" aria-label="Simulacni dashboard">
+        <main id="main-content" className="flex-1 overflow-y-auto" role="main" aria-label="Simulační dashboard">
           <Dashboard />
         </main>
       </div>

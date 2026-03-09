@@ -1,6 +1,14 @@
+import type { ScenarioConfig } from '@tapir/core';
+
 export interface TeacherAccount {
   username: string;
   password: string;
+}
+
+export interface ScenarioAssignment {
+  tag: string;
+  scenario: ScenarioConfig;
+  assignedAt: string;
 }
 
 export interface Classroom {
@@ -9,6 +17,7 @@ export interface Classroom {
   studentCount: number;
   studentUsernames: string[];
   createdAt: string;
+  defaultAssignment?: ScenarioAssignment;
 }
 
 export interface StudentAttempt {
@@ -19,6 +28,7 @@ export interface StudentAttempt {
   totalDeaths: number;
   peakInfections: number;
   overflowDays: number;
+  scenarioTag?: string;
 }
 
 export interface AppDatabase {
@@ -54,7 +64,7 @@ export function loadDb(): AppDatabase {
     const parsed = JSON.parse(raw) as AppDatabase;
     return {
       teacher: parsed.teacher ?? createDefaultDb().teacher,
-      classrooms: parsed.classrooms ?? [],
+      classrooms: (parsed.classrooms ?? []).map((c) => ({ ...c })),
       attempts: parsed.attempts ?? [],
     };
   } catch {
@@ -79,6 +89,11 @@ export function findStudentClass(username: string): Classroom | null {
   return db.classrooms.find((c) => c.studentUsernames.includes(username)) ?? null;
 }
 
+export function getClassroomById(classId: string): Classroom | null {
+  const db = loadDb();
+  return db.classrooms.find((c) => c.id === classId) ?? null;
+}
+
 export function createClassroom(name: string, studentCount: number): Classroom {
   const db = loadDb();
   const id = `class-${crypto.randomUUID()}`;
@@ -94,6 +109,21 @@ export function createClassroom(name: string, studentCount: number): Classroom {
   db.classrooms.unshift(classroom);
   saveDb(db);
   return classroom;
+}
+
+export function assignDefaultScenario(classId: string, scenario: ScenarioConfig, tag: string): boolean {
+  const db = loadDb();
+  const classroom = db.classrooms.find((c) => c.id === classId);
+  if (!classroom) return false;
+
+  classroom.defaultAssignment = {
+    tag: tag.trim() || 'bez-oznaceni',
+    scenario,
+    assignedAt: new Date().toISOString(),
+  };
+
+  saveDb(db);
+  return true;
 }
 
 function slugify(text: string): string {
@@ -130,4 +160,39 @@ export function saveAttempt(attempt: StudentAttempt): void {
 
 export function getTeacherData(): AppDatabase {
   return loadDb();
+}
+
+export function exportClassroomResults(classId: string): { filename: string; json: string; csv: string } | null {
+  const db = loadDb();
+  const classroom = db.classrooms.find((c) => c.id === classId);
+  if (!classroom) return null;
+
+  const attempts = db.attempts
+    .filter((a) => a.classId === classId)
+    .sort((a, b) => a.playedAt.localeCompare(b.playedAt));
+
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    classroom,
+    attempts,
+  };
+
+  const csvLines = [
+    'username,playedAt,scenarioTag,attemptId,totalDeaths,peakInfections,overflowDays',
+    ...attempts.map((a) => [
+      a.username,
+      a.playedAt,
+      a.scenarioTag ?? '',
+      a.id,
+      a.totalDeaths,
+      a.peakInfections,
+      a.overflowDays,
+    ].join(',')),
+  ];
+
+  return {
+    filename: `results-${classroom.name.replace(/\s+/g, '_')}`,
+    json: JSON.stringify(payload, null, 2),
+    csv: csvLines.join('\n'),
+  };
 }

@@ -115,18 +115,6 @@ Všechny exporty obsahují:
 
 PNG navíc obsahuje vodoznak "SIMULACE".
 
-## Admin režim pro výuku (anonymní účty)
-
-- Učitel se přihlásí účtem (v demo verzi `ucitel / tapir123`).
-- V administraci založí třídu (např. `XY`, 27 studentů).
-- Aplikace vygeneruje anonymní studentská uživatelská jména (`xy-01`, `xy-02`, ...), která učitel rozdá.
-- Student se může:
-  - přihlásit svým anonymním jménem (výsledky se ukládají), nebo
-  - zvolit „Test bez ukládání výsledků“.
-- Učitel v administraci vidí přehled pokusů a nejlepší výsledky za studenty i celé třídy.
-
-> Pozn.: aktuální implementace ukládá data lokálně v prohlížeči (`localStorage`) bez sběru osobních údajů.
-
 ## Stack
 
 - TypeScript strict mode

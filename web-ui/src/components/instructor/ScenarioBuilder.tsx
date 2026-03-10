@@ -24,6 +24,7 @@ export default function ScenarioBuilder() {
   const [hiddenEvents, setHiddenEvents] = useState<HiddenEvent[]>([]);
   const [vaccinationLocked, setVaccinationLocked] = useState(true);
   const [selectedMeasureIds, setSelectedMeasureIds] = useState<string[]>(defaultMeasureIds());
+  const [premierTakeoverDeaths, setPremierTakeoverDeaths] = useState(10000);
   const [exportedUrl, setExportedUrl] = useState<string | null>(null);
 
   const buildGameScenario = useCallback((): GameScenario => {
@@ -42,8 +43,9 @@ export default function ScenarioBuilder() {
       socialCapital: defaultSocialCapitalConfig(),
       availableMeasureIds: selectedMeasureIds,
       vaccinationLocked,
+      premierTakeoverDeaths,
     };
-  }, [scenario, totalTurns, daysPerTurn, hiddenEvents, selectedMeasureIds, vaccinationLocked]);
+  }, [scenario, totalTurns, daysPerTurn, hiddenEvents, selectedMeasureIds, vaccinationLocked, premierTakeoverDeaths]);
 
   const handleExport = useCallback(() => {
     const gs = buildGameScenario();
@@ -136,6 +138,20 @@ export default function ScenarioBuilder() {
               />
               Zamknout vakcinaci
             </label>
+          </div>
+        </div>
+        <div className="mt-3">
+          <label className="block text-xs font-medium text-gray-600 mb-1">Prevzeti rizeni premierem (pocet obeti)</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              value={premierTakeoverDeaths}
+              onChange={(e) => setPremierTakeoverDeaths(Math.max(100, parseInt(e.target.value) || 10000))}
+              min={100}
+              step={1000}
+              className="w-32 px-2 py-1 text-sm border border-gray-300 rounded"
+            />
+            <p className="text-[10px] text-gray-400">Pri tomto poctu obeti prevezme rizeni premier a odemknou se dalsi opatreni (lockdown, armada, ekonomicke programy...)</p>
           </div>
         </div>
       </div>

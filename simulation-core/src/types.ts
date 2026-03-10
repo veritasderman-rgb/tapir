@@ -485,6 +485,8 @@ export interface GameScenario {
   availableMeasureIds: string[];
   /** Whether vaccination is initially locked */
   vaccinationLocked: boolean;
+  /** Cumulative deaths threshold for premier takeover (default 10000) */
+  premierTakeoverDeaths?: number;
 }
 
 /** Serializable snapshot of all mutable simulation state between turns. */

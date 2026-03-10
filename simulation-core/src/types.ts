@@ -451,7 +451,7 @@ export interface EconomicState {
 // ---- Advisory system ----
 
 /** Advisor types in the crisis staff. */
-export type AdvisorRole = 'epidemiologist' | 'economist' | 'politician';
+export type AdvisorRole = 'epidemiologist' | 'economist' | 'politician' | 'military';
 
 /** A single advisor message for one turn. */
 export interface AdvisorMessage {

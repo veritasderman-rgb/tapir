@@ -180,7 +180,27 @@ export function stepTurn(
   let intelBoost = 0;
   const newEventUnlocks: string[] = [];
 
+  // WHO consultation enables early detection of variant shocks (2 turns ahead)
+  const whoConsultationActive = turnAction.activeMeasureIds.includes('who_consultation');
+
   for (const event of gameScenario.hiddenEvents) {
+    // Early warning: if WHO consultation is active, detect variant_shock 2 turns early
+    const isEarlyWarning = whoConsultationActive
+      && event.type === 'variant_shock'
+      && event.turn === turnNumber + 2;
+
+    if (isEarlyWarning) {
+      // Don't activate the variant yet, but notify the player via a synthetic who_intel event
+      activatedEvents.push({
+        id: `who_early_${event.id}`,
+        type: 'who_intel',
+        turn: turnNumber,
+        label: `Zahraniční zpravodajství WHO upozorňuje na novou mutaci viru detekovanou v zahraničí. Může se objevit i u nás během několika týdnů.`,
+        payload: { intelBonus: 0.1 },
+      });
+      intelBoost += 0.1;
+    }
+
     if (event.turn === turnNumber) {
       activatedEvents.push(event);
 
@@ -485,6 +505,13 @@ export function stepTurn(
     detectionRate: newDetectionRate,
     vaccinationActive: turnAction.vaccinationPriority != null && totalVaxCapacity > 0,
     intelQuality,
+    activeMeasureIds: turnAction.activeMeasureIds,
+    currentHospitalized: Math.round(hospitalOccupancy),
+    hospitalCapacity,
+    currentICU: Math.round(icuOccupancy),
+    icuCapacity,
+    observedInfections: Math.round(totalObservedInfections),
+    whoConsultationActive: turnAction.activeMeasureIds.includes('who_consultation'),
   });
 
   // Generate headlines

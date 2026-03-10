@@ -1,298 +1,167 @@
-/**
- * Measure Catalog — All available crisis measures for Krizový štáb.
- *
- * Each measure has epidemiological, political, and economic effects,
- * plus unlock conditions that gate availability.
- */
-
-import { type GameMeasure, NPIType } from './types';
+import {
+  type GameMeasure,
+  NPIType,
+  ComplianceModel,
+} from './types';
 
 /**
- * Complete catalog of all game measures.
- * Instructor selects which subset is available for a given scenario.
+ * Global Catalog of all available measures.
+ * New measures are added here.
  */
 export const MEASURE_CATALOG: GameMeasure[] = [
-  // ═══════════════════════════════════════════
-  // MASKS
-  // ═══════════════════════════════════════════
-  {
-    id: 'mask_recommendation',
-    name: 'Doporučení roušek',
-    category: 'masks',
-    description: 'Dobrovolné nošení roušek v uzavřených prostorách. Závisí na ochotě veřejnosti — efekt je nejistý a postupně slábne.',
-    npiEffect: { type: NPIType.BetaMultiplier, value: 0.92 },
-    politicalCostPerTurn: 1,
-    economicCostPerTurn: 0,
-    rampUpDays: 0,
-    complianceDecayRate: 0.005,
-    unlockCondition: { type: 'always' },
-  },
-  {
-    id: 'mask_mandate_indoor',
-    name: 'Povinné roušky v interiéru',
-    category: 'masks',
-    description: 'Povinné chirurgické roušky ve vnitřních prostorách. Odborníci odhadují znatelné snížení přenosu, ale reálný efekt závisí na dodržování.',
-    npiEffect: { type: NPIType.BetaMultiplier, value: 0.82 },
-    politicalCostPerTurn: 3,
-    economicCostPerTurn: 0.02,
-    rampUpDays: 2,
-    complianceDecayRate: 0.008,
-    unlockCondition: { type: 'always' },
-    exclusiveGroup: 'mask_level',
-  },
-  {
-    id: 'ffp2_mandate',
-    name: 'Povinné FFP2 respirátory',
-    category: 'masks',
-    description: 'FFP2 povinné v MHD, obchodech, školách. Významně účinnější než chirurgické roušky, ale veřejnost je nese hůře a compliance klesá rychleji.',
-    npiEffect: { type: NPIType.BetaMultiplier, value: 0.70 },
-    politicalCostPerTurn: 6,
-    economicCostPerTurn: 0.05,
-    rampUpDays: 3,
-    complianceDecayRate: 0.012,
-    unlockCondition: { type: 'always' },
-    exclusiveGroup: 'mask_level',
-  },
-
   // ═══════════════════════════════════════════
   // SOCIAL DISTANCING
   // ═══════════════════════════════════════════
   {
-    id: 'ban_mass_events',
-    name: 'Zákaz hromadných akcí (100+)',
+    id: 'school_closure',
+    name: 'Uzavření škol',
     category: 'social_distancing',
-    description: 'Zákaz akcí nad 100 osob. Omezí superspreaderské události, ale dopad na celkovou křivku může být omezený pokud se přenos děje jinde.',
-    npiEffect: { type: NPIType.ContactSubMatrixModifier, value: 0.7, targetSubMatrix: 'community' },
+    description: 'Kompletní uzavření základních a středních škol. Výrazně omezí šíření mezi dětmi, ale má vysoké sociální a ekonomické náklady.',
+    npiEffect: { type: NPIType.ContactSubMatrixModifier, value: 0.2, targetSubMatrix: 'school' },
+    politicalCostPerTurn: 8,
+    economicCostPerTurn: 0.1,
+    rampUpDays: 1,
+    complianceDecayRate: 0.005,
+    unlockCondition: { type: 'always' },
+  },
+  {
+    id: 'wfh_mandate',
+    name: 'Povinný Home-office',
+    category: 'social_distancing',
+    description: 'Nařízení práce z domova všude, kde je to možné. Omezuje kontakty na pracovištích.',
+    npiEffect: { type: NPIType.ContactSubMatrixModifier, value: 0.4, targetSubMatrix: 'work' },
     politicalCostPerTurn: 4,
     economicCostPerTurn: 0.15,
-    rampUpDays: 0,
-    complianceDecayRate: 0.006,
-    unlockCondition: { type: 'always' },
-  },
-  {
-    id: 'ban_mass_events_strict',
-    name: 'Zákaz hromadných akcí (10+)',
-    category: 'social_distancing',
-    description: 'Drastický zákaz shromažďování nad 10 osob. Silně omezí komunitní přenos, ale společenský a ekonomický dopad je vysoký a trpělivost veřejnosti rychle klesá.',
-    npiEffect: { type: NPIType.ContactSubMatrixModifier, value: 0.4, targetSubMatrix: 'community' },
-    politicalCostPerTurn: 8,
-    economicCostPerTurn: 0.3,
-    rampUpDays: 0,
-    complianceDecayRate: 0.015,
-    unlockCondition: { type: 'always' },
-    exclusiveGroup: 'mass_events',
-    authority: 'premier',
-  },
-  {
-    id: 'school_closure_partial',
-    name: 'Rotační výuka (školy)',
-    category: 'social_distancing',
-    description: 'Střídavá prezenční/distanční výuka. Sníží kontakty mezi dětmi, ale vliv na celkovou epidemii závisí na tom, jak moc děti přenášejí virus v dané epidemii.',
-    npiEffect: { type: NPIType.ContactSubMatrixModifier, value: 0.5, targetSubMatrix: 'school' },
-    politicalCostPerTurn: 5,
-    economicCostPerTurn: 0.08,
-    rampUpDays: 3,
-    complianceDecayRate: 0.01,
-    unlockCondition: { type: 'always' },
-    exclusiveGroup: 'schools',
-  },
-  {
-    id: 'school_closure_full',
-    name: 'Úplné zavření škol',
-    category: 'social_distancing',
-    description: 'Kompletní distanční výuka. Prakticky eliminuje školní přenos, ale může paradoxně zvýšit kontakty v domácnostech. Silný dopad na rodiny a pracovní trh.',
-    npiEffect: { type: NPIType.ContactSubMatrixModifier, value: 0.2, targetSubMatrix: 'school' },
-    politicalCostPerTurn: 10,
-    economicCostPerTurn: 0.2,
-    rampUpDays: 1,
-    complianceDecayRate: 0.02,
-    unlockCondition: { type: 'always' },
-    exclusiveGroup: 'schools',
-    authority: 'premier',
-  },
-  {
-    id: 'homeoffice_recommendation',
-    name: 'Doporučení home office',
-    category: 'social_distancing',
-    description: 'Dobrovolný home office. Závisí na ochotě zaměstnavatelů — některé sektory nemohou pracovat z domova. Očekává se mírný efekt.',
-    npiEffect: { type: NPIType.ContactSubMatrixModifier, value: 0.75, targetSubMatrix: 'work' },
-    politicalCostPerTurn: 1,
-    economicCostPerTurn: 0.05,
-    rampUpDays: 0,
-    complianceDecayRate: 0.003,
-    unlockCondition: { type: 'always' },
-    exclusiveGroup: 'work',
-  },
-  {
-    id: 'homeoffice_mandatory',
-    name: 'Povinný home office',
-    category: 'social_distancing',
-    description: 'Povinný home office kde je technicky možný. Výrazně sníží pracovní kontakty, ale řada profesí nemůže pracovat z domova — ekonomický dopad je značný.',
-    npiEffect: { type: NPIType.ContactSubMatrixModifier, value: 0.4, targetSubMatrix: 'work' },
-    politicalCostPerTurn: 6,
-    economicCostPerTurn: 0.25,
-    rampUpDays: 3,
-    complianceDecayRate: 0.01,
-    unlockCondition: { type: 'always' },
-    exclusiveGroup: 'work',
-    authority: 'premier',
-  },
-  {
-    id: 'curfew_night',
-    name: 'Noční zákaz vycházení',
-    category: 'social_distancing',
-    description: 'Zákaz pohybu 21:00–05:00. Hlavně symbolický efekt a omezení nočního společenského života. Skutečný epidemiologický přínos je odborníky zpochybňován.',
-    npiEffect: { type: NPIType.BetaMultiplier, value: 0.85 },
-    politicalCostPerTurn: 8,
-    economicCostPerTurn: 0.15,
-    rampUpDays: 0,
-    complianceDecayRate: 0.02,
-    unlockCondition: { type: 'always' },
-    exclusiveGroup: 'curfew',
-    authority: 'premier',
-  },
-  {
-    id: 'lockdown_full',
-    name: 'Úplný lockdown',
-    category: 'social_distancing',
-    description: 'Zákaz vycházení kromě nezbytných cest. Nejúčinnější dostupné opatření — ale za obrovskou ekonomickou a společenskou cenu. Dlouhodobě neudržitelné.',
-    npiEffect: { type: NPIType.BetaMultiplier, value: 0.50 },
-    politicalCostPerTurn: 18,
-    economicCostPerTurn: 0.8,
-    rampUpDays: 1,
-    complianceDecayRate: 0.03,
-    unlockCondition: { type: 'always' },
-    exclusiveGroup: 'curfew',
-    authority: 'premier',
-  },
-  {
-    id: 'restaurant_closure',
-    name: 'Zavření restaurací a barů',
-    category: 'social_distancing',
-    description: 'Restaurace pouze výdejní okénko, bary zavřeny. Odstraní jedno z rizikových prostředí, ale lidé se mohou přesunout do soukromých prostor kde je kontrola nemožná.',
-    npiEffect: { type: NPIType.ContactSubMatrixModifier, value: 0.8, targetSubMatrix: 'community' },
-    politicalCostPerTurn: 5,
-    economicCostPerTurn: 0.2,
-    rampUpDays: 1,
-    complianceDecayRate: 0.01,
-    unlockCondition: { type: 'always' },
-  },
-
-  // ═══════════════════════════════════════════
-  // TESTING & TRACING
-  // ═══════════════════════════════════════════
-  {
-    id: 'testing_basic',
-    name: 'Základní testovací program',
-    category: 'testing',
-    description: 'PCR testy pro symptomatické a jejich kontakty. Zlepší přehled o situaci, ale nezachytí asymptomatické šiřitele. Trvá než se rozběhne.',
-    npiEffect: { type: NPIType.BetaMultiplier, value: 0.95 },
-    politicalCostPerTurn: 1,
-    economicCostPerTurn: 0.05,
-    rampUpDays: 7,
-    complianceDecayRate: 0,
-    unlockCondition: { type: 'always' },
-    detectionRateBonus: 0.10,
-    exclusiveGroup: 'testing',
-  },
-  {
-    id: 'testing_mass',
-    name: 'Masivní testování',
-    category: 'testing',
-    description: 'Plošné antigenní testování s PCR konfirmací. Výrazně zlepší detekci, ale trvá týdny než se vybuduje kapacita. Riziko falešné bezpečnosti při negativních testech.',
-    npiEffect: { type: NPIType.BetaMultiplier, value: 0.90 },
-    politicalCostPerTurn: 3,
-    economicCostPerTurn: 0.12,
-    rampUpDays: 14,
-    complianceDecayRate: 0.005,
-    unlockCondition: { type: 'turn_reached', turn: 3 },
-    detectionRateBonus: 0.25,
-    exclusiveGroup: 'testing',
-  },
-  {
-    id: 'contact_tracing',
-    name: 'Trasování kontaktů',
-    category: 'testing',
-    description: 'Hygienické stanice trasují kontakty pozitivních. Při nízkých počtech velmi efektivní, ale při tisících případech denně se systém zahltí.',
-    npiEffect: { type: NPIType.BetaMultiplier, value: 0.85 },
-    politicalCostPerTurn: 2,
-    economicCostPerTurn: 0.06,
-    rampUpDays: 7,
-    complianceDecayRate: 0.003,
-    unlockCondition: { type: 'always' },
-  },
-  {
-    id: 'quarantine_positive',
-    name: 'Povinná karanténa pozitivních',
-    category: 'testing',
-    description: 'Povinná izolace po pozitivním testu. Teoreticky silně účinné, ale záleží na testovací kapacitě a ochotě lidí se hlásit.',
-    npiEffect: { type: NPIType.BetaMultiplier, value: 0.82 },
-    politicalCostPerTurn: 3,
-    economicCostPerTurn: 0.08,
-    rampUpDays: 0,
-    complianceDecayRate: 0.008,
-    unlockCondition: { type: 'always' },
-  },
-
-  // ═══════════════════════════════════════════
-  // TRAVEL
-  // ═══════════════════════════════════════════
-  {
-    id: 'border_testing',
-    name: 'Testování na hranicích',
-    category: 'travel',
-    description: 'Povinný negativní test při vstupu. Může zpomalit import nových variant, ale pokud se virus už šíří v populaci, přínos je omezený.',
-    npiEffect: { type: NPIType.BetaMultiplier, value: 0.95 },
-    politicalCostPerTurn: 2,
-    economicCostPerTurn: 0.05,
     rampUpDays: 3,
     complianceDecayRate: 0.002,
     unlockCondition: { type: 'always' },
   },
   {
-    id: 'border_closure',
-    name: 'Uzavření hranic',
-    category: 'travel',
-    description: 'Uzavření hranic kromě nákladní dopravy. Zpočátku může pomoci, ale pokud je virus komunitně rozšířen, jde spíš o politické gesto s vysokou ekonomickou cenou.',
-    npiEffect: { type: NPIType.BetaMultiplier, value: 0.90 },
-    politicalCostPerTurn: 7,
+    id: 'community_lockdown',
+    name: 'Lockdown (omezení pohybu)',
+    category: 'social_distancing',
+    description: 'Zákaz vycházení a omezení setkávání ve veřejném prostoru. Nejsilnější nástroj, ale s extrémními náklady.',
+    npiEffect: { type: NPIType.ContactSubMatrixModifier, value: 0.3, targetSubMatrix: 'community' },
+    politicalCostPerTurn: 15,
     economicCostPerTurn: 0.3,
     rampUpDays: 2,
     complianceDecayRate: 0.01,
-    unlockCondition: { type: 'always' },
-    exclusiveGroup: 'borders',
+    unlockCondition: { type: 'social_capital_below', threshold: 60 },
+    authority: 'premier',
+  },
+  {
+    id: 'military_lockdown',
+    name: 'Lockdown vynucený armádou',
+    category: 'social_distancing',
+    description: 'Vojenské hlídky v ulicích vynucují zákaz vycházení. Udržuje vysokou účinnost i při nízké sociální stabilitě, ale drasticky dopadá na svobody.',
+    npiEffect: { type: NPIType.ContactSubMatrixModifier, value: 0.25, targetSubMatrix: 'community' },
+    politicalCostPerTurn: 25,
+    economicCostPerTurn: 0.4,
+    rampUpDays: 1,
+    complianceDecayRate: 0.0,
+    unlockCondition: { type: 'social_capital_below', threshold: 30 },
     authority: 'premier',
   },
 
   // ═══════════════════════════════════════════
-  // VACCINATION (gated — require unlock event)
+  // MASKS
   // ═══════════════════════════════════════════
   {
-    id: 'vaccination_slow',
-    name: 'Vakcinace — standardní kapacita',
-    category: 'vaccination',
-    description: 'Distribuce přes praktické lékaře. Pomalý náběh, ale spolehlivé. Účinnost vakcíny závisí na typu viru — u některých kmenů může být nižší než se čekalo.',
-    npiEffect: { type: NPIType.BetaMultiplier, value: 1.0 },
+    id: 'mask_mandate_indoor',
+    name: 'Roušky ve vnitřních prostorách',
+    category: 'masks',
+    description: 'Povinnost nosit roušky v obchodech, úřadech a MHD. Nízká cena, solidní efekt.',
+    npiEffect: { type: NPIType.BetaMultiplier, value: 0.85 },
     politicalCostPerTurn: 2,
-    economicCostPerTurn: 0.05,
-    rampUpDays: 7,
-    complianceDecayRate: 0,
-    unlockCondition: { type: 'event_triggered', eventId: 'vaccine_available' },
-    vaccinationCapacityBonus: 3000,
-    exclusiveGroup: 'vaccination_capacity',
+    economicCostPerTurn: 0.01,
+    rampUpDays: 1,
+    complianceDecayRate: 0.001,
+    unlockCondition: { type: 'always' },
   },
   {
-    id: 'vaccination_fast',
-    name: 'Vakcinace — velkokapacitní centra',
-    category: 'vaccination',
-    description: 'Vybudování velkokapacitních center. Výrazně rychlejší, ale logisticky náročné — chyby v organizaci mohou zpočátku zpomalit celý proces.',
-    npiEffect: { type: NPIType.BetaMultiplier, value: 1.0 },
+    id: 'mask_mandate_outdoor',
+    name: 'Venkovní roušky',
+    category: 'masks',
+    description: 'Povinnost nosit roušky i venku na veřejnosti. Epidemiologický efekt je zanedbatelný, ale opatření má vysokou viditelnost. Výrazně zvyšuje společenské napětí.',
+    npiEffect: { type: NPIType.BetaMultiplier, value: 0.999 },
+    politicalCostPerTurn: 8,
+    economicCostPerTurn: 0.01,
+    rampUpDays: 1,
+    complianceDecayRate: 0.005,
+    unlockCondition: { type: 'always' },
+  },
+  {
+    id: 'respirators_mandatory',
+    name: 'Povinné FFP2/3 respirátory',
+    category: 'masks',
+    description: 'Zpřísnění na ochranu typu FFP2 ve veřejných prostorách. Výrazně vyšší ochrana než látkové roušky.',
+    npiEffect: { type: NPIType.BetaMultiplier, value: 0.7 },
     politicalCostPerTurn: 4,
-    economicCostPerTurn: 0.15,
+    economicCostPerTurn: 0.02,
+    rampUpDays: 3,
+    complianceDecayRate: 0.001,
+    unlockCondition: { type: 'deaths_above', threshold: 100 },
+  },
+
+  // ═══════════════════════════════════════════
+  // TESTING & SURVEILLANCE
+  // ═══════════════════════════════════════════
+  {
+    id: 'contact_tracing',
+    name: 'Chytrá karanténa & trasování',
+    category: 'testing',
+    description: 'Trasování kontaktů a cílená izolace. Pomáhá brzdit epidemii bez plošných uzávěr, ale vyžaduje funkční hygienu.',
+    npiEffect: { type: NPIType.BetaMultiplier, value: 0.92 },
+    politicalCostPerTurn: 1,
+    economicCostPerTurn: 0.03,
+    rampUpDays: 7,
+    complianceDecayRate: 0,
+    unlockCondition: { type: 'always' },
+    detectionRateBonus: 0.1,
+  },
+  {
+    id: 'mass_testing_workplace',
+    name: 'Povinné testování ve firmách',
+    category: 'testing',
+    description: 'Plošné antigenní testování zaměstnanců. Zvyšuje záchyt bezpříznakových, ale zatěžuje rozpočet a firmy.',
+    npiEffect: { type: NPIType.BetaMultiplier, value: 0.95 },
+    politicalCostPerTurn: 3,
+    economicCostPerTurn: 0.08,
+    rampUpDays: 10,
+    complianceDecayRate: 0,
+    unlockCondition: { type: 'turn_reached', turn: 4 },
+    detectionRateBonus: 0.15,
+  },
+
+  // ═══════════════════════════════════════════
+  // VACCINATION
+  // ═══════════════════════════════════════════
+  {
+    id: 'vaccination_standard',
+    name: 'Vakcinace — ordinace PL',
+    category: 'vaccination',
+    description: 'Distribuce vakcín přes praktické lékaře. Pomalý náběh, ale vysoká důvěra pacientů.',
+    npiEffect: { type: NPIType.BetaMultiplier, value: 1.0 },
+    politicalCostPerTurn: -1,
+    economicCostPerTurn: 0.05,
     rampUpDays: 14,
     complianceDecayRate: 0,
     unlockCondition: { type: 'event_triggered', eventId: 'vaccine_available' },
-    vaccinationCapacityBonus: 10000,
+    vaccinationCapacityBonus: 5000,
+    exclusiveGroup: 'vaccination_capacity',
+  },
+  {
+    id: 'vaccination_centers',
+    name: 'Velkokapacitní očkovací centra',
+    category: 'vaccination',
+    description: 'Masivní očkovací centra v halách a stadionech. Rychlá distribuce, logisticky náročné.',
+    npiEffect: { type: NPIType.BetaMultiplier, value: 1.0 },
+    politicalCostPerTurn: 2,
+    economicCostPerTurn: 0.15,
+    rampUpDays: 21,
+    complianceDecayRate: 0,
+    unlockCondition: { type: 'event_triggered', eventId: 'vaccine_available' },
+    vaccinationCapacityBonus: 15000,
     exclusiveGroup: 'vaccination_capacity',
     authority: 'premier',
   },
@@ -403,8 +272,20 @@ export const MEASURE_CATALOG: GameMeasure[] = [
   },
 
   // ═══════════════════════════════════════════
-  // ECONOMIC & TRUST-BUILDING
+  // ECONOMIC & FLAVOR
   // ═══════════════════════════════════════════
+  {
+    id: 'eat_vitamins',
+    name: 'Jezte ovoce a vitamíny!',
+    category: 'economic',
+    description: 'Vládní doporučení ke zdravé stravě a konzumaci vitamínů. Reálný dopad na virus je nulový, ale vládní PR tým to považuje za skvělý nápad. Stojí to jeden bod politického kapitálu za kampaň.',
+    npiEffect: { type: NPIType.BetaMultiplier, value: 1.0 },
+    politicalCostPerTurn: 1,
+    economicCostPerTurn: 0.005,
+    rampUpDays: 0,
+    complianceDecayRate: 0,
+    unlockCondition: { type: 'always' },
+  },
   {
     id: 'business_support',
     name: 'Kompenzace podnikatelům',
@@ -510,22 +391,18 @@ export const MEASURE_CATALOG: GameMeasure[] = [
   },
 ];
 
-/** Get a measure by ID. */
 export function getMeasureById(id: string): GameMeasure | undefined {
   return MEASURE_CATALOG.find(m => m.id === id);
 }
 
-/** Get all measures in a given category. */
 export function getMeasuresByCategory(category: GameMeasure['category']): GameMeasure[] {
   return MEASURE_CATALOG.filter(m => m.category === category);
 }
 
-/** Get all measure IDs. */
 export function getAllMeasureIds(): string[] {
   return MEASURE_CATALOG.map(m => m.id);
 }
 
-/** Check whether a measure's unlock condition is satisfied. */
 export function isMeasureUnlocked(
   measure: GameMeasure,
   state: {
@@ -557,7 +434,6 @@ export function isMeasureUnlocked(
   }
 }
 
-/** Default set of measure IDs for a standard COVID-like scenario. */
 export function defaultMeasureIds(): string[] {
   return MEASURE_CATALOG.map(m => m.id);
 }

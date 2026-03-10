@@ -1,123 +1,13 @@
-// ============================================================
-// Nedovařený tapír — Core Types
-// ============================================================
-
-/** Age groups for population stratification */
-export enum AgeGroup {
-  Child = '0-18',
-  Adult = '19-64',
-  Senior = '65+',
-}
-
-/** Risk categories within each age group */
-export enum RiskGroup {
-  Standard = 'standard',
-  Risk = 'risk',
-}
-
-/** A single population stratum = age × risk (6 total) */
-export interface Stratum {
-  age: AgeGroup;
-  risk: RiskGroup;
-}
-
-/** All 6 strata in canonical order */
-export const ALL_STRATA: readonly Stratum[] = [
-  { age: AgeGroup.Child, risk: RiskGroup.Standard },
-  { age: AgeGroup.Child, risk: RiskGroup.Risk },
-  { age: AgeGroup.Adult, risk: RiskGroup.Standard },
-  { age: AgeGroup.Adult, risk: RiskGroup.Risk },
-  { age: AgeGroup.Senior, risk: RiskGroup.Standard },
-  { age: AgeGroup.Senior, risk: RiskGroup.Risk },
-] as const;
-
-export const NUM_STRATA = 6;
-export const NUM_AGE_GROUPS = 3;
-
-// ---- Compartment state per stratum ----
-
-/** Compartment counts for one stratum at one time step */
-export interface CompartmentState {
-  S: number;  // Susceptible
-  E: number;  // Exposed (latent)
-  I: number;  // Infectious
-  R: number;  // Recovered
-  V: number;  // Vaccinated (reduced susceptibility)
-  H: number;  // Hospitalized
-  ICU: number; // In ICU
-  D: number;  // Dead (cumulative)
-}
-
-/** State of the entire population at one time step */
-export interface PopulationState {
-  /** Compartments per stratum (length = NUM_STRATA) */
-  strata: CompartmentState[];
-  /** Day index (0-based) */
-  day: number;
-}
-
-// ---- Contact matrix ----
-
 /**
- * Sub-matrix for one setting (home/school/work/community).
- * Row i, col j = average daily contacts of person in age group i
- * with persons in age group j.
- * Dimensions: NUM_AGE_GROUPS × NUM_AGE_GROUPS (3×3).
+ * Core Types for @tapir/core
  */
-export type ContactSubMatrix = number[][];
 
-/** Full contact matrix decomposed by setting */
-export interface ContactMatrix {
-  home: ContactSubMatrix;
-  school: ContactSubMatrix;
-  work: ContactSubMatrix;
-  community: ContactSubMatrix;
-}
+// ---- Basic Epidemiological Parameters ----
 
-// ---- Epidemiological parameters ----
-
-/** Per-stratum clinical parameters */
-export interface StratumEpiParams {
-  /** Infection fatality rate [0,1] */
-  ifr: number;
-  /** Hospitalization rate given infection [0,1] */
-  hospRate: number;
-  /** ICU rate given hospitalization [0,1] */
-  icuRate: number;
-}
-
-/** Core epidemiological configuration */
-export interface EpiConfig {
-  /** Basic reproduction number */
-  R0: number;
-  /** Incubation period in days (1/sigma = mean latent period) */
-  latentPeriod: number;
-  /** Infectious period in days (1/gamma = mean infectious period) */
-  infectiousPeriod: number;
-  /** Per-stratum clinical parameters (length = NUM_STRATA) */
-  stratumParams: StratumEpiParams[];
-}
-
-// ---- Demographics ----
-
-/** Population demographics */
-export interface Demographics {
-  /** Total population */
-  totalPopulation: number;
-  /** Fraction of population in each age group [0,1], must sum to 1 */
-  ageFractions: [number, number, number]; // [child, adult, senior]
-  /** Fraction of each age group that is "risk", [0,1] */
-  riskFractions: [number, number, number]; // per age group
-  /** Initial number of infectious individuals */
-  initialInfectious: number;
-}
-
-// ---- NPIs ----
-
-export enum NPIType {
-  BetaMultiplier = 'beta_multiplier',
-  GammaMultiplier = 'gamma_multiplier',
-  ContactSubMatrixModifier = 'contact_submatrix_modifier',
+export enum SimulationMode {
+  Deterministic = 'deterministic',
+  StochasticSingle = 'stochastic_single',
+  MonteCarlo = 'monte_carlo',
 }
 
 export enum ComplianceModel {
@@ -125,112 +15,10 @@ export enum ComplianceModel {
   PiecewiseLinear = 'piecewise_linear',
 }
 
-export interface ComplianceConfig {
-  model: ComplianceModel;
-  /** Initial compliance [0,1] */
-  initial: number;
-  /** For exponential: decay rate (per day). For piecewise: breakpoints */
-  decayRate?: number;
-  /** Piecewise linear breakpoints: [[day, compliance], ...] */
-  breakpoints?: [number, number][];
-}
-
-export interface NPIConfig {
-  id: string;
-  name: string;
-  type: NPIType;
-  startDay: number;
-  endDay: number;
-  /** Multiplier value for beta/gamma NPIs (e.g. 0.7 = 30% reduction) */
-  value: number;
-  /** Which sub-matrix to modify (for ContactSubMatrixModifier type) */
-  targetSubMatrix?: keyof ContactMatrix;
-  compliance: ComplianceConfig;
-}
-
-// ---- Vaccination ----
-
-export interface VaccinationConfig {
-  /** Enable vaccination module */
-  enabled: boolean;
-  /** Target coverage per stratum [0,1] (length = NUM_STRATA) */
-  coverageTarget: number[];
-  /** Doses per day (rollout speed) */
-  dosesPerDay: number;
-  /** Day vaccination starts */
-  startDay: number;
-  /** Vaccine efficacy against infection at peak [0,1] */
-  peakVEInfection: number;
-  /** Vaccine efficacy against severe disease at peak [0,1] */
-  peakVESevere: number;
-  /** Waning half-life in days (VE decays exponentially) */
-  waningHalfLifeDays: number;
-}
-
-// ---- Variants ----
-
-export interface VariantShockConfig {
-  id: string;
-  name: string;
-  /** Fixed day of variant introduction (-1 for random) */
-  day: number;
-  /** If day=-1: mean day for random introduction */
-  randomMeanDay?: number;
-  /** If day=-1: std deviation for random introduction */
-  randomStdDev?: number;
-  /** Multiplier on transmissibility (e.g. 1.5 = 50% more transmissible) */
-  transmissibilityMultiplier: number;
-  /** Fraction of VE lost due to immune escape [0,1] */
-  immuneEscape: number;
-  /** Fraction of R moved back to S (reinfection) [0,1] */
-  reinfectionBoost: number;
-}
-
-// ---- Clinical delay ----
-
-export interface DelayConfig {
-  /** Onset-to-hospitalization: mean days */
-  onsetToHospMean: number;
-  /** Onset-to-hospitalization: Erlang shape k (stages) */
-  onsetToHospStages: number;
-  /** Hospitalization length-of-stay: mean days */
-  hospLosMean: number;
-  /** Hospitalization LoS: Erlang shape k */
-  hospLosStages: number;
-  /** ICU length-of-stay: mean days */
-  icuLosMean: number;
-  /** ICU LoS: Erlang shape k */
-  icuLosStages: number;
-}
-
-// ---- Reporting / Surveillance ----
-
-export interface ReportingConfig {
-  /** Fraction of true infections detected by surveillance [0,1] */
-  detectionRate: number;
-  /** Reporting delay: mean days from onset to case report */
-  reportingDelayMean: number;
-  /** Reporting delay: Erlang shape k */
-  reportingDelayStages: number;
-}
-
-// ---- Health capacity ----
-
-export interface HealthCapacityConfig {
-  /** Standard hospital beds available */
-  hospitalBeds: number;
-  /** ICU beds available */
-  icuBeds: number;
-  /** Excess mortality rate when capacity is exceeded [0,1] */
-  excessMortalityRate: number;
-}
-
-// ---- Simulation configuration ----
-
-export enum SimulationMode {
-  Deterministic = 'deterministic',
-  StochasticSingle = 'stochastic_single',
-  StochasticMonteCarlo = 'stochastic_monte_carlo',
+export enum NPIType {
+  BetaMultiplier = 'beta_multiplier',
+  GammaMultiplier = 'gamma_multiplier',
+  ContactSubMatrixModifier = 'contact_sub_matrix_modifier',
 }
 
 export enum AppMode {
@@ -239,21 +27,133 @@ export enum AppMode {
   CrisisStaff = 'crisis_staff',
 }
 
+export enum AgeGroup {
+  Child = 0,
+  Adult = 1,
+  Senior = 2,
+}
+
+export enum RiskGroup {
+  Standard = 0,
+  HighRisk = 1,
+}
+
+export const NUM_AGE_GROUPS = 3;
+export const NUM_STRATA = 6;
+
+/** List of all stratum indices (0 to NUM_STRATA-1) */
+export const ALL_STRATA = [0, 1, 2, 3, 4, 5];
+
+/** Contact matrix subdivided by setting */
+export interface ContactMatrix {
+  home: ContactSubMatrix;
+  school: ContactSubMatrix;
+  work: ContactSubMatrix;
+  community: ContactSubMatrix;
+}
+
+/** 3x3 matrix for age group interactions */
+export type ContactSubMatrix = number[][];
+
+/** Demographics of the population */
+export interface Demographics {
+  totalPopulation: number;
+  /** Fraction of population in each age group (sums to 1) */
+  ageFractions: number[];
+  /** Fraction of each age group that is "high risk" (0-1) */
+  riskFractions: number[];
+  /** Initial number of infectious individuals */
+  initialInfectious: number;
+}
+
+/** Per-stratum clinical parameters */
+export interface StratumEpiParams {
+  /** Infection Fatality Rate (0-1) */
+  ifr: number;
+  /** Hospitalization rate among infected (0-1) */
+  hospRate: number;
+  /** ICU admission rate among hospitalized (0-1) */
+  icuRate: number;
+}
+
+/** Global epidemiological configuration */
+export interface EpiConfig {
+  /** Basic reproduction number */
+  R0: number;
+  /** Mean latent period (days) */
+  latentPeriod: number;
+  /** Mean infectious period (days) */
+  infectiousPeriod: number;
+  /** Parameters per stratum (length = NUM_STRATA) */
+  stratumParams: StratumEpiParams[];
+}
+
+/** Health system capacity configuration */
+export interface HealthCapacityConfig {
+  /** Total available hospital beds */
+  hospitalBeds: number;
+  /** Total available ICU beds (ventilators) */
+  icuBeds: number;
+  /** Mortality rate for patients who cannot get a bed (0-1) */
+  excessMortalityRate: number;
+}
+
+/** Vaccination campaign configuration */
+export interface VaccinationConfig {
+  enabled: boolean;
+  /** Target coverage fraction per stratum (0-1) */
+  coverageTarget: number[];
+  /** Max doses per day */
+  dosesPerDay: number;
+  /** Start day of vaccination campaign */
+  startDay: number;
+  /** Peak vaccine efficacy against infection (0-1) */
+  peakVEInfection: number;
+  /** Peak vaccine efficacy against severe disease (0-1) */
+  peakVESevere: number;
+  /** Days for VE to drop by half */
+  waningHalfLifeDays: number;
+}
+
+/** Variant / mutation shock configuration */
+export interface VariantShockConfig {
+  id: string;
+  name: string;
+  /** Relative transmissibility (e.g. 1.5 = 50% more transmissible) */
+  transmissibilityMultiplier: number;
+  /** Fraction of immune escape (0-1) */
+  immuneEscape: number;
+  /** Fraction of recovered individuals that become susceptible again (0-1) */
+  reinfectionBoost: number;
+  /** Day of activation (-1 for random) */
+  day: number;
+  /** For random day: mean */
+  randomMeanDay?: number;
+  /** For random day: std dev */
+  randomStdDev?: number;
+}
+
+/** Stochastic simulation configuration */
 export interface StochasticConfig {
   mode: SimulationMode;
-  /** RNG seed (for reproducibility) */
   seed: number;
-  /** Number of Monte Carlo runs (only for MC mode) */
   monteCarloRuns: number;
 }
 
-/** Complete scenario configuration */
+/** Clinical delay configuration (Gamma distributions) */
+export interface DelayConfig {
+  onsetToHospMean: number;
+  onsetToHospStages: number;
+  hospLosMean: number;
+  hospLosStages: number;
+  icuLosMean: number;
+  icuLosStages: number;
+}
+
+/** Complete configuration for a simulation run */
 export interface ScenarioConfig {
-  /** Schema version for forwards compatibility */
   schemaVersion: string;
-  /** Scenario name */
   name: string;
-  /** Number of days to simulate */
   days: number;
   demographics: Demographics;
   epiConfig: EpiConfig;
@@ -263,36 +163,74 @@ export interface ScenarioConfig {
   variants: VariantShockConfig[];
   healthCapacity: HealthCapacityConfig;
   stochastic: StochasticConfig;
-  /** Clinical delay configuration (optional, backward-compatible) */
   delayConfig?: DelayConfig;
-  /** Reporting/surveillance configuration (optional, backward-compatible) */
-  reportingConfig?: ReportingConfig;
+  reportingConfig?: import('./reporting').ReportingConfig;
 }
 
-// ---- Simulation results ----
+// ---- NPI and Compliance ----
 
-/** Daily aggregate metrics */
+export interface NPIConfig {
+  id: string;
+  name: string;
+  type: NPIType;
+  startDay: number;
+  endDay: number;
+  value: number;
+  targetSubMatrix?: keyof ContactMatrix;
+  compliance: ComplianceConfig;
+}
+
+export interface ComplianceConfig {
+  model: ComplianceModel;
+  initial: number;
+  decayRate?: number;
+  breakpoints?: [number, number][];
+}
+
+// ---- Simulation Output ----
+
+/** Population counts in SEIRV compartments for one stratum */
+export interface CompartmentState {
+  S: number;
+  E: number;
+  I: number;
+  R: number;
+  V: number;
+  H: number;
+  ICU: number;
+  D: number;
+}
+
+/** Complete population state at a single point in time */
+export interface PopulationState {
+  /** Counts for each stratum (length = NUM_STRATA) */
+  strata: CompartmentState[];
+  /** Day index */
+  day: number;
+}
+
+/** Daily simulation metrics */
 export interface DailyMetrics {
   day: number;
   /** Effective reproduction number */
   Reff: number;
-  /** New infections this day */
+  /** Total new infections across all strata */
   newInfections: number;
-  /** New hospitalizations this day */
+  /** Total new hospitalizations */
   newHospitalizations: number;
-  /** New ICU admissions this day */
+  /** Total new ICU admissions */
   newICU: number;
-  /** New deaths this day (including excess) */
+  /** Total new deaths (including excess) */
   newDeaths: number;
-  /** Excess deaths due to capacity overflow */
+  /** Deaths due to capacity overflow */
   excessDeaths: number;
-  /** Is hospital capacity exceeded? */
+  /** Whether hospital beds were full */
   hospitalOverflow: boolean;
-  /** Is ICU capacity exceeded? */
+  /** Whether ICU was full */
   icuOverflow: boolean;
-  /** Observed (reported) new infections after detection rate + delay */
+  /** Observed infections after reporting delay */
   observedNewInfections?: number;
-  /** Observed (reported) new hospitalizations after reporting delay */
+  /** Observed hospitalizations after reporting delay */
   observedNewHospitalizations?: number;
 }
 
@@ -518,6 +456,10 @@ export interface SimCheckpoint {
   vaccinationCapacity: number;
   /** Intel quality: Reff jitter multiplier (lower = more accurate; 1.0 = default ±15%) */
   intelQuality: number;
+  /** Whether financial support was granted this turn */
+  financialSupportGranted: boolean;
+  /** Probability of financial support approval [0, 1] */
+  financialSupportApprovalChance: number;
 }
 
 /** Input for one turn (what the student chose). */
@@ -528,6 +470,8 @@ export interface TurnAction {
   vaccinationPriority: VaccinationPriority | null;
   /** Number of opposition briefings held so far (for advisor tone) */
   oppositionBriefings?: number;
+  /** Whether to request government financial support */
+  requestFinancialSupport?: boolean;
 }
 
 /** Turn report shown to the student at end of turn. */
@@ -573,6 +517,14 @@ export interface TurnReport {
   headlines: string[];
   /** Newly unlocked measures this turn */
   newlyUnlockedMeasures: string[];
+}
+
+/** Extended TurnReport with lives saved calculation */
+export interface TurnReportV2 extends TurnReport {
+  /** Baseline cumulative deaths for this turn */
+  baselineCumulativeDeaths: number;
+  /** Estimated lives saved vs baseline */
+  livesSaved: number;
 }
 
 /** Output of one turn. */

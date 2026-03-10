@@ -426,6 +426,8 @@ export interface GameMeasure {
   exclusiveGroup?: string;
   /** Who can activate this measure: 'hygienik' (chief epidemiologist), 'premier', or 'both' (default). */
   authority?: 'hygienik' | 'premier' | 'both';
+  /** Multiplier for hospital+ICU bed capacity (e.g. 2.0 = double beds) */
+  hospitalCapacityMultiplier?: number;
 }
 
 /** Vaccination priority setting (which age/risk groups first). */

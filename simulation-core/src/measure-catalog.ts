@@ -316,6 +316,19 @@ export const MEASURE_CATALOG: GameMeasure[] = [
   // MILITARY
   // ═══════════════════════════════════════════
   {
+    id: 'bed_restructuring',
+    name: 'Restrukturalizace lůžek',
+    category: 'military',
+    description: 'Ukončení standardní péče — veškerá lůžková kapacita převedena na epidemii. Zdvojnásobí dostupná lůžka (standardní i ICU), ale za cenu odložených úmrtí z neléčených chronických pacientů a extrémních nákladů. Projeví se až po 2 kolech (postupné uvolňování kapacit).',
+    npiEffect: { type: NPIType.BetaMultiplier, value: 1.0 },
+    politicalCostPerTurn: 15,
+    economicCostPerTurn: 0.4,
+    rampUpDays: 28,
+    complianceDecayRate: 0,
+    unlockCondition: { type: 'hospital_occupancy_above', fraction: 0.5 },
+    hospitalCapacityMultiplier: 2.0,
+  },
+  {
     id: 'army_hospitals',
     name: 'Polní nemocnice (armáda)',
     category: 'military',

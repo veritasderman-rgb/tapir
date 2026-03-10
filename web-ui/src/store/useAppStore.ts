@@ -10,7 +10,7 @@ import { defaultScenario } from '@tapir/core';
 export interface AppState {
   // Auth/session
   auth: {
-    role: 'teacher' | 'student' | 'guest' | null;
+    role: 'teacher' | 'guest' | null;
     username: string | null;
     classId: string | null;
   };
@@ -84,10 +84,10 @@ export const useAppStore = create<AppState>((set) => ({
   setAuth: (auth) => set({ auth }),
   logout: () => set({
     auth: { role: null, username: null, classId: null },
-    appMode: AppMode.Student,
+    appMode: AppMode.Expert,
   }),
 
-  appMode: AppMode.Student,
+  appMode: AppMode.Expert,
   setAppMode: (mode) => set({ appMode: mode }),
 
   scenario: defaultScenario(),

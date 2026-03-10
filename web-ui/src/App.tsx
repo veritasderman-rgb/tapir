@@ -17,8 +17,6 @@ import Dashboard from './components/Dashboard';
 import AssumptionsInspector from './components/AssumptionsInspector';
 import InstructorPanel from './components/InstructorPanel';
 import AuthPanel from './components/AuthPanel';
-import AdminPanel from './components/AdminPanel';
-import { getClassroomById, saveAttempt } from './lib/classroom-db';
 
 // Game components
 import ScenarioBuilder from './components/instructor/ScenarioBuilder';
@@ -48,13 +46,34 @@ export default function App() {
     setValidationErrors,
     sidebarOpen,
     appMode,
+    setAppMode,
     hiddenEvents,
     auth,
+    setAuth,
   } = useAppStore();
 
-  const { gamePhase } = useGameStore();
+  const { gamePhase, loadScenario } = useGameStore();
 
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const gameAutoLoadRef = useRef(false);
+
+  // Check if URL has #game= or ?game= parameter
+  const hasGameParam = typeof window !== 'undefined' && (
+    window.location.hash.startsWith('#game=') ||
+    new URLSearchParams(window.location.search).has('game')
+  );
+
+  // Auto-load game from URL: skip auth entirely and go straight to crisis staff
+  useEffect(() => {
+    if (hasGameParam && !gameAutoLoadRef.current) {
+      gameAutoLoadRef.current = true;
+      // Auto-authenticate as crisis staff
+      if (!auth.role) {
+        setAuth({ role: 'guest', username: 'odkaz-krizovy-stab', classId: null });
+        setAppMode(AppMode.CrisisStaff);
+      }
+    }
+  }, [hasGameParam, auth.role, setAuth, setAppMode]);
 
   const handleRun = useCallback(() => {
     const errors = validateScenario(scenario);
@@ -67,25 +86,11 @@ export default function App() {
       const res = runSimulation(scenario);
       setResult(res);
       setSimStatus('done');
-
-      if (auth.role === 'student' && auth.username && auth.classId) {
-        const classroom = getClassroomById(auth.classId);
-        saveAttempt({
-          id: `attempt-${crypto.randomUUID()}`,
-          username: auth.username,
-          classId: auth.classId,
-          playedAt: new Date().toISOString(),
-          totalDeaths: Math.round(res.primaryRun.metrics.reduce((acc, m) => acc + m.newDeaths, 0)),
-          peakInfections: Math.round(Math.max(...res.primaryRun.metrics.map((m) => m.newInfections))),
-          overflowDays: res.primaryRun.metrics.filter((m) => m.hospitalOverflow || m.icuOverflow).length,
-          scenarioTag: classroom?.defaultAssignment?.tag,
-        });
-      }
     } catch (err) {
       setSimStatus('error');
       console.error('Simulation error:', err);
     }
-  }, [auth, scenario, setResult, setSimStatus, setValidationErrors]);
+  }, [scenario, setResult, setSimStatus, setValidationErrors]);
 
   // Auto-validate on scenario change (debounced)
   useEffect(() => {
@@ -97,13 +102,8 @@ export default function App() {
     return () => clearTimeout(debounceRef.current);
   }, [scenario, setValidationErrors]);
 
-  if (!auth.role) return <AuthPanel />;
-
-  // Check if URL has #game= or ?game= parameter → go directly to game mode
-  const hasGameParam = typeof window !== 'undefined' && (
-    window.location.hash.startsWith('#game=') ||
-    new URLSearchParams(window.location.search).has('game')
-  );
+  // No auth and no game URL → show login
+  if (!auth.role && !hasGameParam) return <AuthPanel />;
 
   // Instructor mode → show Scenario Builder
   if (auth.role === 'teacher' && appMode === AppMode.Instructor) {
@@ -118,9 +118,9 @@ export default function App() {
     );
   }
 
-  // Game mode: student (or guest) with an active game or game URL
-  if (hasGameParam || gamePhase !== 'idle') {
-    // Game: scenario loader
+  // Crisis Staff mode (or game URL): game screens
+  if (appMode === AppMode.CrisisStaff || hasGameParam || gamePhase !== 'idle') {
+    // Game: scenario loader (waiting for URL or manual input)
     if (gamePhase === 'idle') {
       return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -133,7 +133,7 @@ export default function App() {
       );
     }
 
-    // Game: playing or finished (show debrief modal on top)
+    // Game: playing or finished
     if (gamePhase === 'playing' || gamePhase === 'finished') {
       return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -160,7 +160,7 @@ export default function App() {
     }
   }
 
-  // Default: Sandbox mode (existing UI)
+  // Expert mode: Sandbox (full parameter panel + Dashboard)
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <a href="#main-content" className="skip-link">Přeskočit na obsah</a>
@@ -223,18 +223,13 @@ export default function App() {
               {activeTab === 'parameters' && <ParameterPanel />}
               {activeTab === 'npis' && <NpiPanel />}
               {activeTab === 'vaccination' && <VaccinationPanel />}
-              {activeTab === 'variants' && (
-                hiddenEvents && appMode === AppMode.Student
-                  ? <p className="text-xs text-gray-400">Varianty jsou skryty instruktorem.</p>
-                  : <VariantPanel />
-              )}
+              {activeTab === 'variants' && <VariantPanel />}
               {activeTab === 'stochastic' && <StochasticPanel />}
               {activeTab === 'export' && <ExportPanel />}
             </div>
 
             {/* Instructor panel */}
             <InstructorPanel />
-            {auth.role === 'teacher' && <AdminPanel />}
 
             {/* Assumptions Inspector */}
             <AssumptionsInspector />

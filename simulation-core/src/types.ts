@@ -234,8 +234,9 @@ export enum SimulationMode {
 }
 
 export enum AppMode {
-  Student = 'student',
+  Expert = 'expert',
   Instructor = 'instructor',
+  CrisisStaff = 'crisis_staff',
 }
 
 export interface StochasticConfig {
@@ -455,7 +456,7 @@ export interface EconomicState {
 // ---- Advisory system ----
 
 /** Advisor types in the crisis staff. */
-export type AdvisorRole = 'epidemiologist' | 'economist' | 'politician' | 'military';
+export type AdvisorRole = 'epidemiologist' | 'economist' | 'politician' | 'military' | 'opposition';
 
 /** A single advisor message for one turn. */
 export interface AdvisorMessage {
@@ -525,6 +526,8 @@ export interface TurnAction {
   activeMeasureIds: string[];
   /** Vaccination priority (null = vaccination disabled) */
   vaccinationPriority: VaccinationPriority | null;
+  /** Number of opposition briefings held so far (for advisor tone) */
+  oppositionBriefings?: number;
 }
 
 /** Turn report shown to the student at end of turn. */

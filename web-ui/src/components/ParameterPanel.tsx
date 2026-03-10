@@ -69,7 +69,7 @@ export default function ParameterPanel() {
     return map;
   }, [validationErrors]);
 
-  const isLocked = (path: string) => appMode === 'student' && lockedParams.has(path);
+  const isLocked = (_path: string) => false;
 
   const updateDemographics = useCallback((partial: Partial<Demographics>) => {
     updateScenario({ demographics: { ...demographics, ...partial } });

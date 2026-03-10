@@ -260,9 +260,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       newPopups.push({
         id: 'premier-takeover',
         title: 'Ústřední krizový štáb přebírá řízení!',
-        body: `Počet obětí překročil 10 000. Premiér přebírá vedení Ústředního krizového štábu.\n\nTento krok přináší krátkodobý nárůst důvěry (+8), ale přechod řízení dočasně oslabí zavedená opatření.\n\nNěkterá opatření budou muset být znovu nastavena.`,
+        body: `Počet obětí překročil 10 000. Premiér přebírá vedení Ústředního krizového štábu.\n\nTento krok přináší krátkodobý nárůst důvěry (+8).\n\nJako premiér máte nově k dispozici:\n• Úplný lockdown a zákaz vycházení\n• Nasazení armády\n• Ekonomické záchranné programy\n• Uzavření hranic\n• Velkokapacitní vakcinační centra\n\nNěkterá opatření budou muset být znovu nastavena.`,
         variant: 'crisis',
-        actionLabel: 'Rozumím',
+        actionLabel: 'Převzít řízení',
         action: 'close',
       });
     }

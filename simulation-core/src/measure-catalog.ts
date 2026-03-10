@@ -81,6 +81,7 @@ export const MEASURE_CATALOG: GameMeasure[] = [
     complianceDecayRate: 0.015,
     unlockCondition: { type: 'always' },
     exclusiveGroup: 'mass_events',
+    authority: 'premier',
   },
   {
     id: 'school_closure_partial',
@@ -107,6 +108,7 @@ export const MEASURE_CATALOG: GameMeasure[] = [
     complianceDecayRate: 0.02,
     unlockCondition: { type: 'always' },
     exclusiveGroup: 'schools',
+    authority: 'premier',
   },
   {
     id: 'homeoffice_recommendation',
@@ -133,6 +135,7 @@ export const MEASURE_CATALOG: GameMeasure[] = [
     complianceDecayRate: 0.01,
     unlockCondition: { type: 'always' },
     exclusiveGroup: 'work',
+    authority: 'premier',
   },
   {
     id: 'curfew_night',
@@ -146,6 +149,7 @@ export const MEASURE_CATALOG: GameMeasure[] = [
     complianceDecayRate: 0.02,
     unlockCondition: { type: 'always' },
     exclusiveGroup: 'curfew',
+    authority: 'premier',
   },
   {
     id: 'lockdown_full',
@@ -159,6 +163,7 @@ export const MEASURE_CATALOG: GameMeasure[] = [
     complianceDecayRate: 0.03,
     unlockCondition: { type: 'always' },
     exclusiveGroup: 'curfew',
+    authority: 'premier',
   },
   {
     id: 'restaurant_closure',
@@ -256,6 +261,7 @@ export const MEASURE_CATALOG: GameMeasure[] = [
     complianceDecayRate: 0.01,
     unlockCondition: { type: 'always' },
     exclusiveGroup: 'borders',
+    authority: 'premier',
   },
 
   // ═══════════════════════════════════════════
@@ -288,6 +294,7 @@ export const MEASURE_CATALOG: GameMeasure[] = [
     unlockCondition: { type: 'event_triggered', eventId: 'vaccine_available' },
     vaccinationCapacityBonus: 10000,
     exclusiveGroup: 'vaccination_capacity',
+    authority: 'premier',
   },
   {
     id: 'vaccination_max',
@@ -302,6 +309,7 @@ export const MEASURE_CATALOG: GameMeasure[] = [
     unlockCondition: { type: 'event_triggered', eventId: 'vaccine_available' },
     vaccinationCapacityBonus: 25000,
     exclusiveGroup: 'vaccination_capacity',
+    authority: 'premier',
   },
 
   // ═══════════════════════════════════════════
@@ -319,6 +327,7 @@ export const MEASURE_CATALOG: GameMeasure[] = [
     complianceDecayRate: 0,
     unlockCondition: { type: 'hospital_occupancy_above', fraction: 0.6 },
     oneShot: true,
+    authority: 'premier',
   },
   {
     id: 'army_enforcement',
@@ -332,6 +341,7 @@ export const MEASURE_CATALOG: GameMeasure[] = [
     complianceDecayRate: 0,
     unlockCondition: { type: 'social_capital_below', threshold: 40 },
     intelBonus: 0.1,
+    authority: 'premier',
   },
   {
     id: 'army_logistics',
@@ -345,6 +355,7 @@ export const MEASURE_CATALOG: GameMeasure[] = [
     complianceDecayRate: 0,
     unlockCondition: { type: 'always' },
     detectionRateBonus: 0.05,
+    authority: 'premier',
   },
 
   // ═══════════════════════════════════════════
@@ -375,6 +386,7 @@ export const MEASURE_CATALOG: GameMeasure[] = [
     complianceDecayRate: 0,
     unlockCondition: { type: 'hospital_occupancy_above', fraction: 0.7 },
     oneShot: true,
+    authority: 'premier',
   },
 
   // ═══════════════════════════════════════════
@@ -391,6 +403,7 @@ export const MEASURE_CATALOG: GameMeasure[] = [
     rampUpDays: 7,
     complianceDecayRate: 0,
     unlockCondition: { type: 'always' },
+    authority: 'premier',
   },
   {
     id: 'kurzarbeit',
@@ -403,6 +416,7 @@ export const MEASURE_CATALOG: GameMeasure[] = [
     rampUpDays: 14,
     complianceDecayRate: 0,
     unlockCondition: { type: 'always' },
+    authority: 'premier',
   },
   {
     id: 'public_campaign',
@@ -479,6 +493,7 @@ export const MEASURE_CATALOG: GameMeasure[] = [
     rampUpDays: 7,
     complianceDecayRate: 0,
     unlockCondition: { type: 'social_capital_below', threshold: 50 },
+    authority: 'premier',
   },
 ];
 

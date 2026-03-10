@@ -424,6 +424,8 @@ export interface GameMeasure {
   oneShot?: boolean;
   /** Mutually exclusive group — only one measure from group can be active */
   exclusiveGroup?: string;
+  /** Who can activate this measure: 'hygienik' (chief epidemiologist), 'premier', or 'both' (default). */
+  authority?: 'hygienik' | 'premier' | 'both';
 }
 
 /** Vaccination priority setting (which age/risk groups first). */

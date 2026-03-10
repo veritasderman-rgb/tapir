@@ -120,25 +120,53 @@ export default function GameOverScreen() {
     })),
   [turnHistory]);
 
-  // Counterfactual estimates
+  // Counterfactual estimates based on actual simulation parameters
   const { estimateExtreme, estimateModerate, estimateNoAction } = useMemo(() => {
     if (!gameScenario) return { estimateExtreme: 0, estimateModerate: 0, estimateNoAction: 0 };
     const r0 = gameScenario.baseScenario.epiConfig.R0;
     const pop = gameScenario.baseScenario.demographics.totalPopulation;
-    const avgIFR = gameScenario.baseScenario.epiConfig.stratumParams.reduce(
-      (s, p) => s + p.ifr, 0,
-    ) / gameScenario.baseScenario.epiConfig.stratumParams.length;
+    const demo = gameScenario.baseScenario.demographics;
+    const params = gameScenario.baseScenario.epiConfig.stratumParams;
 
-    // No action: herd immunity threshold * population * average IFR
-    const herdThreshold = 1 - 1 / r0;
-    const noActionInfected = pop * herdThreshold * 0.85; // not everyone gets infected
-    const estimateNoAction = Math.round(noActionInfected * avgIFR);
+    // Weighted IFR by actual population structure (6 strata)
+    const stratumPops = [
+      demo.ageFractions[0] * (1 - demo.riskFractions[0]), // child standard
+      demo.ageFractions[0] * demo.riskFractions[0],        // child risk
+      demo.ageFractions[1] * (1 - demo.riskFractions[1]), // adult standard
+      demo.ageFractions[1] * demo.riskFractions[1],        // adult risk
+      demo.ageFractions[2] * (1 - demo.riskFractions[2]), // senior standard
+      demo.ageFractions[2] * demo.riskFractions[2],        // senior risk
+    ];
+    const weightedIFR = params.reduce((s, p, i) => s + p.ifr * stratumPops[i], 0);
 
-    // Extreme measures (early lockdown + testing + tracing): ~70% reduction
-    const estimateExtreme = Math.round(estimateNoAction * 0.08);
+    // No action: SIR final size approximation
+    // Final epidemic size z satisfies: z = 1 - exp(-R0 * z)
+    // Newton's method for a few iterations
+    let z = 0.9; // initial guess
+    for (let iter = 0; iter < 20; iter++) {
+      const f = z - 1 + Math.exp(-r0 * z);
+      const df = 1 + r0 * Math.exp(-r0 * z);
+      z = z - f / df;
+      z = Math.max(0.01, Math.min(0.999, z));
+    }
+    const noActionInfected = pop * z;
+    // Without healthcare capacity, excess deaths add ~30-50%
+    const hospCapacity = gameScenario.baseScenario.healthCapacity.hospitalBeds;
+    const avgHospRate = params.reduce((s, p, i) => s + p.hospRate * stratumPops[i], 0);
+    const peakHospDemand = noActionInfected * avgHospRate * 0.15; // ~15% of total cases at peak
+    const overflowFactor = peakHospDemand > hospCapacity
+      ? 1 + Math.min(0.5, (peakHospDemand - hospCapacity) / hospCapacity * 0.3)
+      : 1.0;
+    const estimateNoAction = Math.round(noActionInfected * weightedIFR * overflowFactor);
 
-    // Moderate measures: ~50% reduction
-    const estimateModerate = Math.round(estimateNoAction * 0.25);
+    // Extreme measures from start: Reff reduced to ~0.6-0.7, much fewer infected
+    // With early lockdown + testing + tracing, total infected ~5-15% of no-action
+    const extremeReduction = r0 > 5 ? 0.15 : r0 > 3 ? 0.10 : 0.05;
+    const estimateExtreme = Math.round(noActionInfected * extremeReduction * weightedIFR);
+
+    // Moderate measures: Reff hovers around 1, ~30-50% of no-action infections
+    const moderateReduction = r0 > 5 ? 0.50 : r0 > 3 ? 0.40 : 0.30;
+    const estimateModerate = Math.round(noActionInfected * moderateReduction * weightedIFR);
 
     return { estimateExtreme, estimateModerate, estimateNoAction };
   }, [gameScenario]);
@@ -196,14 +224,15 @@ export default function GameOverScreen() {
     }
 
     // Counterfactual comparison
-    if (totalDeaths > estimateExtreme) {
-      const saved = totalDeaths - estimateExtreme;
-      result.push({
-        title: 'Kolik životů se dalo zachránit?',
-        text: `Při razantních opatřeních od začátku (okamžitý lockdown + masivní testování + trasování) se odhaduje ~${estimateExtreme.toLocaleString()} úmrtí. Při středně silných opatřeních ~${estimateModerate.toLocaleString()}. Bez jakýchkoli opatření by zemřelo odhadem ~${estimateNoAction.toLocaleString()} lidí. Vaše řízení vedlo k ${Math.round(totalDeaths).toLocaleString()} úmrtím — ${saved > 0 ? `mohlo být zachráněno odhadem ${saved.toLocaleString()} životů` : 'dosáhli jste blízko optimálního výsledku'}.`,
-        type: totalDeaths > estimateModerate ? 'warning' : 'info',
-      });
-    }
+    result.push({
+      title: 'Srovnání s alternativními scénáři',
+      text: totalDeaths <= estimateExtreme
+        ? `Výborný výsledek! Vaše řízení (${Math.round(totalDeaths).toLocaleString()} úmrtí) se blíží nebo je lepší než odhad pro razantní opatření od začátku (~${estimateExtreme.toLocaleString()}). Pro srovnání: bez opatření by zemřelo odhadem ~${estimateNoAction.toLocaleString()} lidí.`
+        : totalDeaths <= estimateModerate
+        ? `Solidní výsledek. Vaše řízení vedlo k ${Math.round(totalDeaths).toLocaleString()} úmrtím — to odpovídá středně silným opatřením (~${estimateModerate.toLocaleString()}). Razantní opatření od začátku mohla snížit oběti na ~${estimateExtreme.toLocaleString()}. Bez opatření: ~${estimateNoAction.toLocaleString()}.`
+        : `Vaše řízení vedlo k ${Math.round(totalDeaths).toLocaleString()} úmrtím. Odhady: bez opatření ~${estimateNoAction.toLocaleString()}, střední opatření ~${estimateModerate.toLocaleString()}, razantní opatření od začátku ~${estimateExtreme.toLocaleString()}. ${totalDeaths > estimateNoAction ? 'Výsledek je horší než úplná nečinnost — přetížení nemocnic a pozdní reakce způsobily více škody než žádná opatření.' : 'Včasnější a důraznější reakce mohla zachránit tisíce životů.'}`,
+      type: totalDeaths <= estimateExtreme ? 'success' : totalDeaths <= estimateModerate ? 'info' : 'warning',
+    });
 
     // Social capital
     if (lowestCapital < 10) {

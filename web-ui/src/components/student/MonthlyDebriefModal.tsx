@@ -157,6 +157,7 @@ const ADVISOR_COLORS: Record<string, string> = {
   epidemiologist: 'border-blue-200 bg-blue-50',
   economist: 'border-emerald-200 bg-emerald-50',
   politician: 'border-purple-200 bg-purple-50',
+  military: 'border-amber-200 bg-amber-50',
 };
 
 const URGENCY_BADGE: Record<string, string> = {

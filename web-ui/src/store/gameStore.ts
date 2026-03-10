@@ -183,7 +183,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         {
           id: 'intro-news',
           title: `${epi.name} — První zprávy`,
-          body: `${epi.headline}\n\nHlavní hygienik ČR svolává Ústřední epidemiologický štáb. Řízení epidemie je v jeho kompetenci.\n\nPokud počet obětí překročí 10 000, řízení přebírá Ústřední krizový štáb pod vedením premiéra.`,
+          body: `${epi.headline}\n\nHlavní hygienik ČR svolává Ústřední epidemiologický štáb. Řízení epidemie je ve vaší kompetenci. Máte k dispozici zdravotnická a organizační opatření — politická rozhodnutí vyššího řádu vyžadují zásah vlády.`,
           variant: 'news',
           actionLabel: 'Vstoupit do Krizového štábu',
           action: 'enterCrisisStaff',
@@ -254,15 +254,16 @@ export const useGameStore = create<GameState>((set, get) => ({
       });
     }
 
-    // ─── Premier takeover at 10,000 deaths ───
-    if (cumulativeDeaths >= 10000 && !state.premierTakeoverDone) {
+    // ─── Premier takeover at configurable death threshold ───
+    const premierThreshold = gameScenario.premierTakeoverDeaths ?? 10000;
+    if (cumulativeDeaths >= premierThreshold && !state.premierTakeoverDone) {
       newTrust += 8; // initial boost from decisive action
       newPopups.push({
         id: 'premier-takeover',
         title: 'Ústřední krizový štáb přebírá řízení!',
-        body: `Počet obětí překročil 10 000. Premiér přebírá vedení Ústředního krizového štábu.\n\nTento krok přináší krátkodobý nárůst důvěry (+8), ale přechod řízení dočasně oslabí zavedená opatření.\n\nNěkterá opatření budou muset být znovu nastavena.`,
+        body: `Počet obětí překročil ${premierThreshold.toLocaleString('cs-CZ')}. Premiér přebírá vedení Ústředního krizového štábu.\n\nTento krok přináší krátkodobý nárůst důvěry (+8).\n\nJako premiér máte nově k dispozici:\n• Úplný lockdown a zákaz vycházení\n• Nasazení armády\n• Ekonomické záchranné programy\n• Uzavření hranic\n• Velkokapacitní vakcinační centra\n\nNěkterá opatření budou muset být znovu nastavena.`,
         variant: 'crisis',
-        actionLabel: 'Rozumím',
+        actionLabel: 'Převzít řízení',
         action: 'close',
       });
     }
@@ -366,8 +367,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       // Crisis updates
       trust: newTrust,
       governmentDownRounds: newGovDown,
-      premierTakeoverDone: state.premierTakeoverDone || cumulativeDeaths >= 10000,
-      crisisLeader: cumulativeDeaths >= 10000 ? 'premier' : state.crisisLeader,
+      premierTakeoverDone: state.premierTakeoverDone || cumulativeDeaths >= premierThreshold,
+      crisisLeader: cumulativeDeaths >= premierThreshold ? 'premier' : state.crisisLeader,
       popupQueue: [...state.popupQueue, ...newPopups],
     });
   },

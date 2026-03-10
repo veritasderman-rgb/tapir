@@ -84,7 +84,7 @@ export default function AuthPanel() {
             Přihlásit studenta
           </button>
           <button onClick={handleGuestMode} className="w-full bg-gray-100 text-gray-800 rounded py-2 text-sm hover:bg-gray-200 border border-gray-300">
-            Test bez ukládání výsledků
+            Krizový štáb — vstup
           </button>
         </div>
       </div>

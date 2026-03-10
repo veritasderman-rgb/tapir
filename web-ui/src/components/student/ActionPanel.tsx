@@ -27,6 +27,7 @@ export default function ActionPanel() {
     gamePhase,
     vaccinationPriority,
     setVaccinationPriority,
+    crisisLeader,
   } = useGameStore();
 
   const socialCapital = checkpoint?.socialCapital ?? 100;
@@ -34,18 +35,24 @@ export default function ActionPanel() {
   const unlockedIds = checkpoint?.unlockedMeasureIds ?? [];
   const isFinished = gamePhase === 'finished';
 
-  // Group unlocked measures by category
+  // Group unlocked measures by category, respecting authority restrictions
   const categorizedMeasures = useMemo(() => {
     const result: { category: string; label: string; measures: GameMeasure[] }[] = [];
     for (const cat of CATEGORY_ORDER) {
       const measures = getMeasuresByCategory(cat as GameMeasure['category'])
-        .filter(m => unlockedIds.includes(m.id));
+        .filter(m => unlockedIds.includes(m.id))
+        .filter(m => {
+          const auth = m.authority ?? 'both';
+          if (auth === 'both' || auth === 'hygienik') return true;
+          // 'premier' measures only available when premier is in charge
+          return crisisLeader === 'premier';
+        });
       if (measures.length > 0) {
         result.push({ category: cat, label: CATEGORY_LABELS[cat] ?? cat, measures });
       }
     }
     return result;
-  }, [unlockedIds]);
+  }, [unlockedIds, crisisLeader]);
 
   const totalPoliticalCost = activeMeasureIds.reduce((s, id) => {
     const m = getMeasureById(id);

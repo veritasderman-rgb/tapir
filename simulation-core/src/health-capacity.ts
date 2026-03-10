@@ -56,13 +56,23 @@ export function computeHealthOutcomes(
 
   // Excess deaths from overflow
   let excessDeaths = 0;
+
+  // Hospital overflow mortality (less critical than ICU)
   if (hospitalOverflow) {
     const overflow = totalHosp - capacity.hospitalBeds;
-    excessDeaths += overflow * capacity.excessMortalityRate;
+    // Standard excess mortality rate (e.g. 0.3)
+    excessDeaths += overflow * (capacity.excessMortalityRate || 0.1);
   }
+
+  // ICU overflow: "Mortality Multiplier" logic
+  // "Assume 80–90% mortality for unventilated critical patients"
+  // Standard ICU mortality is already in IFR.
+  // This represents the *additional* deaths because of lack of ICU care.
   if (icuOverflow) {
     const overflow = totalICU - capacity.icuBeds;
-    excessDeaths += overflow * capacity.excessMortalityRate;
+    // If standard ICU mortality is 20-30%, and unventilated is 90%,
+    // the *excess* is around 60-70%.
+    excessDeaths += overflow * 0.7; // ~90% total mortality for overflow
   }
 
   return {

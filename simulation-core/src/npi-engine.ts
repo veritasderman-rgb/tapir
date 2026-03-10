@@ -4,9 +4,9 @@ import {
   type ContactSubMatrix,
   ComplianceModel,
   NPIType,
-  NUM_AGE_GROUPS,
 } from './types';
 import { sumContactMatrix, modifySubMatrix } from './contact-matrix';
+import { socialCapitalComplianceMultiplier } from './social-capital';
 
 /**
  * Compute compliance at a given day for an NPI.
@@ -50,15 +50,16 @@ export function computeCompliance(npi: NPIConfig, day: number): number {
 /**
  * Apply all active NPIs for a given day.
  *
- * Returns:
- * - modified contact matrix (aggregated)
- * - beta multiplier
- * - gamma multiplier
+ * @param npis - active NPIs
+ * @param day - current day
+ * @param baseContactMatrix - original contact matrix
+ * @param socialCapital - current social capital (affects compliance scaling)
  */
 export function applyNPIs(
   npis: NPIConfig[],
   day: number,
   baseContactMatrix: ContactMatrix,
+  socialCapital?: number,
 ): {
   contactMatrix: ContactSubMatrix;
   betaMultiplier: number;
@@ -66,14 +67,26 @@ export function applyNPIs(
 } {
   let betaMultiplier = 1.0;
   let gammaMultiplier = 1.0;
-  let currentCM = baseContactMatrix;
+  let currentCM = { ...baseContactMatrix };
+
+  // Compliance scaling based on social capital (towards zero as capital drops)
+  // Exception: Military-enforced measures (id starts with 'army_' or 'military_')
+  const capitalMultiplier = socialCapital !== undefined
+    ? socialCapitalComplianceMultiplier(socialCapital, 20)
+    : 1.0;
 
   for (const npi of npis) {
     if (day < npi.startDay || day > npi.endDay) continue;
 
-    const compliance = computeCompliance(npi, day);
+    let compliance = computeCompliance(npi, day);
+
+    // Scaling compliance by social capital, unless it's a military measure
+    const isMilitary = npi.id.startsWith('army_') || npi.id.startsWith('military_') || npi.name.toLowerCase().includes('armád');
+    if (!isMilitary) {
+      compliance *= capitalMultiplier;
+    }
+
     // Effective reduction = value * compliance
-    // value < 1 means reduction, so effective modifier = 1 - (1 - value) * compliance
     const effectiveModifier = 1 - (1 - npi.value) * compliance;
 
     switch (npi.type) {

@@ -14,6 +14,7 @@ import {
   type TurnAction,
   type TurnResult,
   type TurnReport,
+  type TurnReportV2,
   type GameScenario,
   type HiddenEvent,
   type NPIConfig,
@@ -33,7 +34,7 @@ import {
   restoreDelayBuffers,
   type StratumDelayBuffers,
 } from './delay-engine';
-import { ReportingPipeline, type ReportingPipelineSnapshot, type ReportingConfig } from './reporting';
+import { ReportingPipeline, type ReportingPipelineSnapshot, calculateWeightedIFR, calculateBaselineDeaths } from './reporting';
 import { stepSEIRV } from './models/seirv';
 import { initializePopulation } from './models/seir';
 import { createRNG } from './stochastic';
@@ -50,13 +51,11 @@ import { generateHeadlines } from './headlines';
  * Convert a GameMeasure to an NPIConfig for the engine.
  */
 function measureToNPI(measure: GameMeasure, startDay: number, endDay: number, turnsSinceActivation: number): NPIConfig {
-  // Apply ramp-up: if active for fewer days than rampUpDays, reduce effect
-  const daysActive = turnsSinceActivation * 14; // approximate
+  const daysActive = turnsSinceActivation * 14;
   const rampFraction = measure.rampUpDays > 0
     ? Math.min(1, daysActive / measure.rampUpDays)
     : 1;
 
-  // Value adjusted for ramp: 1.0 = no effect, value = full effect
   const effectiveValue = 1 - (1 - measure.npiEffect.value) * rampFraction;
 
   return {
@@ -91,7 +90,6 @@ function formatDateLabel(startDay: number, endDay: number): string {
 export function initGame(gameScenario: GameScenario): SimCheckpoint {
   const scenario = gameScenario.baseScenario;
 
-  // Calibrate beta
   const aggCM = sumContactMatrix(scenario.contactMatrix);
   const beta = calibrateBeta(
     scenario.epiConfig.R0,
@@ -100,26 +98,21 @@ export function initGame(gameScenario: GameScenario): SimCheckpoint {
     scenario.demographics,
   );
 
-  // Resolve variant activation days
   const rng = createRNG(scenario.stochastic.seed);
   const variantActivationDays = scenario.variants.map(v => resolveVariantDay(v, rng.next));
 
-  // Initialize population
   const populationState = initializePopulation(scenario);
 
-  // Create delay buffers if configured
   const delayBufferSnapshots = scenario.delayConfig
     ? serializeDelayBuffers(createDelayBuffers(scenario.delayConfig))
     : null;
 
-  // Create reporting pipeline if configured
   let reportingSnapshot: ReportingPipelineSnapshot | null = null;
   if (scenario.reportingConfig) {
     const pipeline = new ReportingPipeline(scenario.reportingConfig);
     reportingSnapshot = pipeline.serialize();
   }
 
-  // Determine initially unlocked measures
   const unlockedMeasureIds = MEASURE_CATALOG
     .filter(m => gameScenario.availableMeasureIds.includes(m.id))
     .filter(m => m.unlockCondition.type === 'always')
@@ -138,6 +131,8 @@ export function initGame(gameScenario: GameScenario): SimCheckpoint {
     unlockedMeasureIds,
     vaccinationCapacity: 0,
     intelQuality: 1.0,
+    financialSupportGranted: false,
+    financialSupportApprovalChance: 0.4,
   };
 }
 
@@ -155,7 +150,6 @@ export function stepTurn(
   const socialCapitalConfig = gameScenario.socialCapital;
   const startDay = checkpoint.populationState.day;
 
-  // Restore mutable state
   const rng = createRNG(checkpoint.rngState);
 
   const delayBuffers: StratumDelayBuffers[] | null = checkpoint.delayBufferSnapshots
@@ -170,27 +164,22 @@ export function stepTurn(
     );
   }
 
-  // Process hidden events for this turn
   const activatedEvents: HiddenEvent[] = [];
   let tempTransmissibilityBoost = 1.0;
   let tempImmuneEscape = 0;
   let tempBedReduction = 0;
   let socialCapitalPenalty = 0;
-  let detectionRateBoost = 0;
   let intelBoost = 0;
   const newEventUnlocks: string[] = [];
 
-  // WHO consultation enables early detection of variant shocks (2 turns ahead)
   const whoConsultationActive = turnAction.activeMeasureIds.includes('who_consultation');
 
   for (const event of gameScenario.hiddenEvents) {
-    // Early warning: if WHO consultation is active, detect variant_shock 2 turns early
     const isEarlyWarning = whoConsultationActive
       && event.type === 'variant_shock'
       && event.turn === turnNumber + 2;
 
     if (isEarlyWarning) {
-      // Don't activate the variant yet, but notify the player via a synthetic who_intel event
       activatedEvents.push({
         id: `who_early_${event.id}`,
         type: 'who_intel',
@@ -230,14 +219,36 @@ export function stepTurn(
     }
   }
 
-  // Resolve active measures
+  // Handle financial support request
+  let financialSupportGranted = false;
+  if (turnAction.requestFinancialSupport) {
+    const roll = rng.next();
+    if (roll < checkpoint.financialSupportApprovalChance) {
+      financialSupportGranted = true;
+      activatedEvents.push({
+        id: 'financial_support_granted',
+        type: 'measure_unlock',
+        turn: turnNumber,
+        label: 'Vláda schválila mimořádné finanční kompenzace! Ekonomické dopady a sociální pnutí budou v tomto kole zmírněny.',
+        payload: {},
+      });
+    } else {
+      activatedEvents.push({
+        id: 'financial_support_denied',
+        type: 'public_unrest',
+        turn: turnNumber,
+        label: 'Žádost o finanční podporu byla ministerstvem financí zamítnuta. "Nejsou peníze," zní strohá odpověď.',
+        payload: { penalty: 5 },
+      });
+    }
+  }
+
   const activeMeasures: GameMeasure[] = [];
   for (const mId of turnAction.activeMeasureIds) {
     const m = getMeasureById(mId);
     if (m) activeMeasures.push(m);
   }
 
-  // Compute measure-based bonuses
   let totalDetectionBonus = 0;
   let totalVaxCapacity = 0;
   let totalIntelBonus = intelBoost;
@@ -250,29 +261,25 @@ export function stepTurn(
     totalPoliticalCost += m.politicalCostPerTurn;
   }
 
-  // Convert measures to NPIs
-  const absoluteNPIs: NPIConfig[] = activeMeasures
-    .filter(m => m.npiEffect.value < 1.0) // Only measures that actually reduce transmission
-    .map(m => measureToNPI(m, startDay, startDay + daysPerTurn, 1));
+  // Apply financial support effect: reduce social capital drain
+  if (financialSupportGranted) {
+    totalPoliticalCost *= 0.5;
+  }
 
-  // Build effective scenario
-  const effectiveScenario: ScenarioConfig = { ...scenario };
-
-  // Vaccination: use measure-determined capacity
   const vacPriority = turnAction.vaccinationPriority;
+  const effectiveScenario: ScenarioConfig = { ...scenario };
   if (vacPriority && totalVaxCapacity > 0) {
     effectiveScenario.vaccination = {
       ...scenario.vaccination,
       enabled: true,
       dosesPerDay: vacPriority.dailyCapacity || totalVaxCapacity,
-      startDay: 0, // always active from day 0 if enabled
+      startDay: 0,
       coverageTarget: reorderCoverageByPriority(scenario.vaccination.coverageTarget, vacPriority.stratumOrder),
     };
   } else {
     effectiveScenario.vaccination = { ...scenario.vaccination, enabled: false };
   }
 
-  // Apply supply disruption
   if (tempBedReduction > 0) {
     effectiveScenario.healthCapacity = {
       ...effectiveScenario.healthCapacity,
@@ -281,7 +288,6 @@ export function stepTurn(
     };
   }
 
-  // Army hospitals bonus (one-shot)
   if (turnAction.activeMeasureIds.includes('army_hospitals')) {
     effectiveScenario.healthCapacity = {
       ...effectiveScenario.healthCapacity,
@@ -289,7 +295,6 @@ export function stepTurn(
       icuBeds: effectiveScenario.healthCapacity.icuBeds + 50,
     };
   }
-  // International aid
   if (turnAction.activeMeasureIds.includes('international_aid')) {
     effectiveScenario.healthCapacity = {
       ...effectiveScenario.healthCapacity,
@@ -297,66 +302,45 @@ export function stepTurn(
     };
   }
 
-  // Bed restructuring: apply capacity multiplier from measures
-  for (const m of activeMeasures) {
-    if (m.hospitalCapacityMultiplier && m.hospitalCapacityMultiplier !== 1.0) {
-      effectiveScenario.healthCapacity = {
-        ...effectiveScenario.healthCapacity,
-        hospitalBeds: Math.round(effectiveScenario.healthCapacity.hospitalBeds * m.hospitalCapacityMultiplier),
-        icuBeds: Math.round(effectiveScenario.healthCapacity.icuBeds * m.hospitalCapacityMultiplier),
-      };
-    }
+  const capacityMultiplier = activeMeasures.reduce((acc, m) => acc * (m.hospitalCapacityMultiplier ?? 1.0), 1.0);
+  if (capacityMultiplier !== 1.0) {
+    effectiveScenario.healthCapacity = {
+      ...effectiveScenario.healthCapacity,
+      hospitalBeds: Math.round(effectiveScenario.healthCapacity.hospitalBeds * capacityMultiplier),
+      icuBeds: Math.round(effectiveScenario.healthCapacity.icuBeds * capacityMultiplier),
+    };
   }
 
-  let state = checkpoint.populationState;
-  let socialCapital = Math.max(0, checkpoint.socialCapital - socialCapitalPenalty);
-
-  // Political cost: drain social capital per turn (scaled to daily)
+  let socialCapital = checkpoint.socialCapital - socialCapitalPenalty;
   const dailyPoliticalDrain = totalPoliticalCost / daysPerTurn;
 
+  let state = checkpoint.populationState;
+  const states: PopulationState[] = [state];
   const metrics: DailyMetrics[] = [];
-  const states: PopulationState[] = [];
 
-  for (let d = 0; d < daysPerTurn; d++) {
-    const day = startDay + d;
-
-    // Social capital compliance modifier
-    const complianceMultiplier = socialCapitalComplianceMultiplier(
-      socialCapital,
-      socialCapitalConfig.collapseThreshold,
-    );
-
-    // Army enforcement boosts compliance in collapsed state
-    const armyEnforcementActive = turnAction.activeMeasureIds.includes('army_enforcement');
-    const effectiveComplianceMult = armyEnforcementActive
-      ? Math.max(complianceMultiplier, 0.5) // army ensures at least 50% compliance
-      : complianceMultiplier;
-
-    const complianceAdjustedNPIs = absoluteNPIs.map(npi => ({
-      ...npi,
-      compliance: {
-        ...npi.compliance,
-        initial: npi.compliance.initial * effectiveComplianceMult,
-      },
-    }));
-
-    const npiResult = applyNPIs(complianceAdjustedNPIs, day, scenario.contactMatrix);
-
-    // Variant effects
-    const variantEffect = computeVariantEffects(
-      scenario.variants,
-      checkpoint.variantActivationDays,
-      day,
-    );
-
+  for (let day = 0; day < daysPerTurn; day++) {
+    const currentDay = startDay + day;
+    const variantEffect = computeVariantEffects(scenario.variants, checkpoint.variantActivationDays, currentDay);
     if (variantEffect.variantActivated) {
-      const activeVariant = scenario.variants.find(
-        (v, idx) => checkpoint.variantActivationDays[idx] === day,
-      );
-      if (activeVariant && activeVariant.reinfectionBoost > 0) {
-        applyReinfectionBoost(state.strata, activeVariant.reinfectionBoost);
+      activatedEvents.push({
+        id: `variant_at_${currentDay}`,
+        type: 'variant_shock',
+        turn: turnNumber,
+        label: variantEffect.variantName ? `Detekována varianta ${variantEffect.variantName}!` : 'Detekována nová varianta viru!',
+        payload: {},
+      });
+      const variantDef = scenario.variants.find(v => v.name === variantEffect.variantName);
+      if (variantDef && variantDef.reinfectionBoost > 0) {
+        applyReinfectionBoost(state.strata, variantDef.reinfectionBoost);
       }
     }
+
+    const npiResult = applyNPIs(
+      activeMeasures.map(m => measureToNPI(m, startDay, startDay + daysPerTurn, 1)),
+      currentDay,
+      scenario.contactMatrix,
+      socialCapital
+    );
 
     const effectiveBeta = checkpoint.calibratedBeta
       * npiResult.betaMultiplier
@@ -375,7 +359,6 @@ export function stepTurn(
     const result = stepSEIRV(state, modifiedScenario, effectiveBeta, npiResult.contactMatrix);
     const dayMetrics = result.metrics;
 
-    // Clinical delays
     if (delayBuffers) {
       let delayedTotalHosp = 0;
       let delayedTotalICU = 0;
@@ -383,25 +366,20 @@ export function stepTurn(
       for (let i = 0; i < NUM_STRATA; i++) {
         const hospRate = scenario.epiConfig.stratumParams[i].hospRate;
         const icuRate = scenario.epiConfig.stratumParams[i].icuRate;
-
         const rawHospDemand = result.newInfectionsPerStratum[i] * hospRate;
         const delayedHosp = delayBuffers[i].onsetToHosp.pushAndGet(rawHospDemand);
         delayedTotalHosp += delayedHosp;
-
         const hospDischarge = delayBuffers[i].hospLoS.pushAndGet(delayedHosp);
         const icuAdmit = delayedHosp * icuRate;
         const icuDischarge = delayBuffers[i].icuLoS.pushAndGet(icuAdmit);
         delayedTotalICU += icuAdmit;
-
         result.newState.strata[i].H = Math.max(0, state.strata[i].H + delayedHosp - hospDischarge);
         result.newState.strata[i].ICU = Math.max(0, state.strata[i].ICU + icuAdmit - icuDischarge);
       }
-
       dayMetrics.newHospitalizations = delayedTotalHosp;
       dayMetrics.newICU = delayedTotalICU;
     }
 
-    // Reporting pipeline (using current effective detection rate)
     if (reportingPipeline) {
       const observed = reportingPipeline.processDay(
         dayMetrics.newInfections,
@@ -411,15 +389,11 @@ export function stepTurn(
       dayMetrics.observedNewHospitalizations = observed.observedNewHospitalizations;
     }
 
-    // Social capital: political drain + unemployment drain + natural recovery
     socialCapital -= dailyPoliticalDrain;
     socialCapital += unemploymentSocialCapitalDrain(checkpoint.economicState.unemploymentDelta) / daysPerTurn;
-
-    // Natural recovery when few measures active
     if (activeMeasures.filter(m => m.politicalCostPerTurn > 0).length <= 1) {
       socialCapital += socialCapitalConfig.recoveryRate;
     }
-
     socialCapital = Math.max(0, Math.min(socialCapitalConfig.initial, socialCapital));
 
     state = result.newState;
@@ -427,7 +401,6 @@ export function stepTurn(
     metrics.push(dayMetrics);
   }
 
-  // Aggregate turn metrics
   const totalTrueInfections = metrics.reduce((s, m) => s + m.newInfections, 0);
   const totalObservedInfections = metrics.reduce((s, m) => s + (m.observedNewInfections ?? m.newInfections * checkpoint.effectiveDetectionRate), 0);
   const totalHosp = metrics.reduce((s, m) => s + m.newHospitalizations, 0);
@@ -440,24 +413,19 @@ export function stepTurn(
   const icuOccupancy = lastState.strata.reduce((s, st) => s + st.ICU, 0);
   const hospitalCapacity = effectiveScenario.healthCapacity.hospitalBeds;
   const icuCapacity = effectiveScenario.healthCapacity.icuBeds;
-
-  // Cumulative deaths
   const cumulativeDeaths = lastState.strata.reduce((s, st) => s + st.D, 0);
 
-  // Reff with fog-of-war jitter (reduced by WHO consultation / intel bonuses)
   const trueReff = lastMetrics.Reff;
   const intelQuality = Math.max(0.1, checkpoint.intelQuality - totalIntelBonus);
-  const jitterRange = 0.3 * intelQuality; // default ±15%, reduced by intel
+  const jitterRange = 0.3 * intelQuality;
   const jitter = 1 + (rng.next() - 0.5) * jitterRange;
   const estimatedReff = trueReff * jitter;
 
   // Step economics
-  const newEconomicState = stepEconomics(checkpoint.economicState, activeMeasures);
+  const newEconomicState = stepEconomics(checkpoint.economicState, activeMeasures, financialSupportGranted);
 
-  // Update detection rate
   const newDetectionRate = Math.min(0.8, checkpoint.effectiveDetectionRate + totalDetectionBonus * 0.1);
 
-  // Update unlock conditions
   const hospOccFraction = hospitalOccupancy / Math.max(1, hospitalCapacity);
   const unlockState = {
     turnNumber,
@@ -469,7 +437,6 @@ export function stepTurn(
 
   const newlyUnlockedMeasures: string[] = [];
   const allUnlockedIds = new Set(checkpoint.unlockedMeasureIds);
-
   for (const m of MEASURE_CATALOG) {
     if (!gameScenario.availableMeasureIds.includes(m.id)) continue;
     if (allUnlockedIds.has(m.id)) continue;
@@ -479,27 +446,12 @@ export function stepTurn(
     }
   }
 
-  // Add event-triggered unlocks
-  for (const eventId of newEventUnlocks) {
-    for (const m of MEASURE_CATALOG) {
-      if (!gameScenario.availableMeasureIds.includes(m.id)) continue;
-      if (allUnlockedIds.has(m.id)) continue;
-      if (m.unlockCondition.type === 'event_triggered' && m.unlockCondition.eventId === eventId) {
-        allUnlockedIds.add(m.id);
-        newlyUnlockedMeasures.push(m.id);
-      }
-    }
-  }
-
-  // Infection trend
-  const midMetrics = metrics[Math.floor(metrics.length / 2)];
   const endInf = metrics.slice(-3).reduce((s, m) => s + m.newInfections, 0);
   const startInf = metrics.slice(0, 3).reduce((s, m) => s + m.newInfections, 0);
   const trendInfections: 'rising' | 'stable' | 'falling' =
     endInf > startInf * 1.15 ? 'rising' :
     endInf < startInf * 0.85 ? 'falling' : 'stable';
 
-  // Generate advisor messages
   const advisorMessages = generateAdvisorMessages({
     estimatedReff,
     trueReff,
@@ -522,15 +474,14 @@ export function stepTurn(
     currentICU: Math.round(icuOccupancy),
     icuCapacity,
     observedInfections: Math.round(totalObservedInfections),
-    whoConsultationActive: turnAction.activeMeasureIds.includes('who_consultation'),
+    whoConsultationActive,
     oppositionBriefings: turnAction.oppositionBriefings ?? 0,
   });
 
-  // Generate headlines
   const headlines = generateHeadlines({
     turnNumber,
     observedInfections: Math.round(totalObservedInfections),
-    prevObservedInfections: 0, // Would need previous turn data, simplified
+    prevObservedInfections: 0,
     newDeaths: Math.round(totalDeaths),
     cumulativeDeaths: Math.round(cumulativeDeaths),
     socialCapital,
@@ -542,7 +493,22 @@ export function stepTurn(
     estimatedReff,
   });
 
-  const turnReport: TurnReport = {
+  const weightedIFR = calculateWeightedIFR(
+    scenario.demographics.ageFractions,
+    scenario.demographics.riskFractions,
+    scenario.epiConfig.stratumParams
+  );
+
+  let maxR0 = scenario.epiConfig.R0;
+  for (const variant of scenario.variants) {
+    const activationDay = checkpoint.variantActivationDays[scenario.variants.indexOf(variant)];
+    if (state.day >= activationDay) {
+       maxR0 = Math.max(maxR0, scenario.epiConfig.R0 * variant.transmissibilityMultiplier);
+    }
+  }
+  const totalPotentialDeaths = calculateBaselineDeaths(maxR0, scenario.demographics.totalPopulation, weightedIFR);
+
+  const turnReport: TurnReportV2 = {
     turnNumber,
     dateLabel: formatDateLabel(startDay, startDay + daysPerTurn),
     observedInfections: Math.round(totalObservedInfections),
@@ -564,6 +530,8 @@ export function stepTurn(
     advisorMessages,
     headlines,
     newlyUnlockedMeasures,
+    baselineCumulativeDeaths: Math.round(totalPotentialDeaths),
+    livesSaved: Math.round(Math.max(0, totalPotentialDeaths - cumulativeDeaths)),
   };
 
   const newCheckpoint: SimCheckpoint = {
@@ -579,6 +547,8 @@ export function stepTurn(
     unlockedMeasureIds: Array.from(allUnlockedIds),
     vaccinationCapacity: totalVaxCapacity,
     intelQuality,
+    financialSupportGranted,
+    financialSupportApprovalChance: checkpoint.financialSupportApprovalChance,
   };
 
   return {
@@ -589,21 +559,15 @@ export function stepTurn(
   };
 }
 
-/**
- * Reorder coverage targets based on vaccination priority.
- * Higher-priority strata get full coverage target, lower-priority get reduced.
- */
 function reorderCoverageByPriority(baseCoverage: number[], stratumOrder: number[]): number[] {
   const result = [...baseCoverage];
-  // Priority strata get full target, others get 50%
   for (let i = 0; i < result.length; i++) {
     const priorityIdx = stratumOrder.indexOf(i);
     if (priorityIdx === -1 || priorityIdx > 2) {
-      result[i] *= 0.3; // Low priority = much less coverage
+      result[i] *= 0.3;
     } else if (priorityIdx > 0) {
-      result[i] *= 0.7; // Medium priority
+      result[i] *= 0.7;
     }
-    // priorityIdx === 0: full coverage target
   }
   return result;
 }

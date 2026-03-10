@@ -2,140 +2,94 @@ import { useGameStore } from '../../store/gameStore';
 import type { TurnReport, AdvisorMessage } from '@tapir/core';
 
 export default function MonthlyDebriefModal() {
-  const { lastTurnReport, showDebrief, dismissDebrief, gamePhase, enterDebrief, trust, crisisLeader, governmentDownRounds } = useGameStore();
+  const { lastTurnReport, showDebrief, dismissDebrief, gamePhase, enterDebrief, trust } = useGameStore();
 
   if (!showDebrief || !lastTurnReport) return null;
 
   const r = lastTurnReport;
   const isLast = gamePhase === 'finished';
+  const livesSaved = (r as any).livesSaved ?? 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" role="dialog" aria-modal="true" aria-label="Report z kola">
-      <div className="bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 p-5 space-y-4 max-h-[90vh] overflow-y-auto">
-        <div className="text-center">
-          <h2 className="text-lg font-bold text-gray-900">
-            Kolo {r.turnNumber} — {r.dateLabel}
-          </h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4" role="dialog" aria-modal="true">
+      <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-2xl w-full flex flex-col max-h-[90vh] overflow-hidden border border-gray-100">
+        <div className="bg-gray-900 text-white px-8 py-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 className="text-2xl font-black uppercase tracking-tighter italic">Hlášení štábu</h2>
+            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{r.dateLabel} (Kolo {r.turnNumber})</p>
+          </div>
+          {livesSaved > 0 && (
+            <div className="bg-green-500/10 border border-green-500/20 px-4 py-2 rounded-2xl text-right">
+              <div className="text-[9px] text-green-500 font-black uppercase leading-none mb-1">Zachráněné životy</div>
+              <div className="text-xl font-black text-green-400 tabular-nums">+{livesSaved.toLocaleString()}</div>
+            </div>
+          )}
         </div>
 
-        {/* Headlines (flavor text) */}
-        {r.headlines.length > 0 && (
-          <div className="bg-gray-100 rounded p-3 space-y-1">
-            {r.headlines.map((h, i) => (
-              <p key={i} className="text-xs text-gray-700 italic">{h}</p>
-            ))}
-          </div>
-        )}
+        <div className="flex-1 overflow-y-auto p-8 space-y-8">
+          {/* Headlines */}
+          {r.headlines.length > 0 && (
+            <div className="grid grid-cols-1 gap-3">
+              {r.headlines.map((h, i) => (
+                <div key={i} className="bg-gray-50 border-l-4 border-gray-900 p-4 rounded-r-2xl italic text-xs text-gray-700 leading-relaxed font-medium">
+                  "{h}"
+                </div>
+              ))}
+            </div>
+          )}
 
-        {/* Activated events */}
-        {r.activatedEvents.length > 0 && (
-          <div className="bg-amber-50 border border-amber-200 rounded p-2">
-            <p className="text-xs font-bold text-amber-800">Nova udalost!</p>
-            {r.activatedEvents.map((e, i) => (
-              <p key={i} className="text-xs text-amber-700">{e.label}</p>
-            ))}
+          {/* Key stats grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <ReportStat label="Hlášeno" value={r.observedInfections.toLocaleString()} />
+            <ReportStat label="Skutečnost" value={r.trueInfections.toLocaleString()} highlight={r.trueInfections > r.observedInfections * 1.5} />
+            <ReportStat label="Nová úmrtí" value={r.newDeaths.toLocaleString()} highlight={r.newDeaths > 50} />
+            <ReportStat label="JIP Kapacita" value={`${Math.round((r.icuOccupancy / Math.max(1, r.icuCapacity)) * 100)} %`} highlight={r.icuOccupancy > r.icuCapacity} />
+            <ReportStat label="Důvěra" value={`${Math.round(trust)} %`} highlight={trust < 40} />
+            <ReportStat label="HDP dopad" value={`${r.economicState.gdpImpact.toFixed(1)} %`} highlight={r.economicState.gdpImpact < -5} />
+            <ReportStat label="Sociál. kapitál" value={`${Math.round(r.socialCapital)} %`} highlight={r.socialCapital < 40} />
+            <ReportStat label="Nezaměstnanost" value={`+${r.economicState.unemploymentDelta.toFixed(1)} %`} />
           </div>
-        )}
 
-        {/* Newly unlocked measures */}
-        {r.newlyUnlockedMeasures.length > 0 && (
-          <div className="bg-green-50 border border-green-200 rounded p-2">
-            <p className="text-xs font-bold text-green-800">Odemknuta nova opatreni!</p>
-            {r.newlyUnlockedMeasures.map((id, i) => (
-              <p key={i} className="text-xs text-green-700">{id}</p>
-            ))}
+          {/* Events */}
+          {(r.activatedEvents.length > 0 || r.newlyUnlockedMeasures.length > 0) && (
+             <div className="space-y-3">
+                {r.activatedEvents.map((e, i) => (
+                    <div key={i} className="bg-amber-50 border border-amber-100 rounded-2xl p-4 text-xs text-amber-900 flex gap-4 items-center shadow-sm">
+                        <span className="text-2xl animate-pulse">⚠️</span>
+                        <div>
+                            <span className="font-black block uppercase text-[9px] mb-1 tracking-widest text-amber-600">Mimořádná situace</span>
+                            <p className="font-bold">{e.label}</p>
+                        </div>
+                    </div>
+                ))}
+             </div>
+          )}
+
+          {/* Advisors */}
+          <div className="space-y-6">
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100 pb-3">Konzultace s poradci</h3>
+            <div className="space-y-4">
+              {r.advisorMessages.map((msg, i) => (
+                <AdvisorCard key={i} advisor={msg} />
+              ))}
+            </div>
           </div>
-        )}
-
-        {/* Key statistics */}
-        <div className="grid grid-cols-2 gap-2">
-          <ReportStat label="Hlasene pripady" value={r.observedInfections.toLocaleString()} />
-          <ReportStat label="Hospitalizace" value={r.newHospitalizations.toLocaleString()} />
-          <ReportStat label="ICU" value={r.newICU.toLocaleString()} />
-          <ReportStat label="Umrti (kolo)" value={r.newDeaths.toLocaleString()} highlight={r.newDeaths > 50} />
-          <ReportStat label="Celkem umrti" value={r.cumulativeDeaths.toLocaleString()} highlight={r.cumulativeDeaths > 500} />
-          <ReportStat label="Odhad Reff" value={r.estimatedReff.toFixed(2)} highlight={r.estimatedReff > 1} />
-          <ReportStat label="Socialni kapital" value={`${r.socialCapital.toFixed(0)}`} highlight={r.socialCapital < 30} />
-          <ReportStat label="Důvěra veřejnosti" value={`${Math.round(trust)}%`} highlight={trust < 20} />
-          <ReportStat
-            label="Nemocnice"
-            value={`${r.hospitalOccupancy} / ${r.hospitalCapacity}`}
-            highlight={r.capacityOverflow}
-          />
         </div>
 
-        {/* Economic report */}
-        <div className="grid grid-cols-3 gap-2">
-          <ReportStat
-            label="HDP"
-            value={`${r.economicState.gdpImpact > 0 ? '+' : ''}${r.economicState.gdpImpact.toFixed(1)}%`}
-            highlight={r.economicState.gdpImpact < -3}
-          />
-          <ReportStat
-            label="Nezamestnanost"
-            value={`+${r.economicState.unemploymentDelta.toFixed(1)}pp`}
-            highlight={r.economicState.unemploymentDelta > 3}
-          />
-          <ReportStat
-            label="Fiskal. naklady"
-            value={`${r.economicState.fiscalCost.toFixed(1)} mld`}
-          />
-        </div>
-
-        {r.capacityOverflow && (
-          <div className="bg-red-50 border border-red-200 rounded p-2">
-            <p className="text-xs text-red-800 font-medium">
-              Kapacita nemocnic byla prekrocena! Dalsi umrti.
-            </p>
-          </div>
-        )}
-
-        {r.socialCapital < 20 && (
-          <div className="bg-red-50 border border-red-200 rounded p-2">
-            <p className="text-xs text-red-800 font-medium">
-              Socialni kapital je kriticky nizky! Populace ignoruje opatreni.
-            </p>
-          </div>
-        )}
-
-        {governmentDownRounds > 0 && (
-          <div className="bg-red-100 border-2 border-red-400 rounded p-3">
-            <p className="text-xs text-red-900 font-bold">
-              ⚠️ VLÁDA PADLA — žádná opatření po dobu {governmentDownRounds} kol!
-            </p>
-          </div>
-        )}
-
-        {crisisLeader === 'premier' && (
-          <div className="bg-purple-50 border border-purple-200 rounded p-2">
-            <p className="text-xs text-purple-800 font-medium">
-              🏛️ Řízení krizového štábu převzal premiér.
-            </p>
-          </div>
-        )}
-
-        {/* Advisor messages */}
-        <div className="space-y-2">
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Poradci</h3>
-          {r.advisorMessages.map((a, i) => (
-            <AdvisorCard key={i} advisor={a} />
-          ))}
-        </div>
-
-        <div className="flex gap-2 pt-2">
+        <div className="bg-gray-50 px-8 py-6 border-t border-gray-100 flex justify-end">
           {isLast ? (
             <button
-              onClick={() => { dismissDebrief(); enterDebrief(); }}
-              className="flex-1 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700"
+              onClick={enterDebrief}
+              className="w-full md:w-auto px-12 py-4 bg-red-600 text-white font-black uppercase tracking-widest text-sm rounded-2xl hover:bg-red-700 shadow-xl transition-all"
             >
-              Zobrazit vysledky hry
+              Závěrečné vyhodnocení
             </button>
           ) : (
             <button
               onClick={dismissDebrief}
-              className="flex-1 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
+              className="w-full md:w-auto px-12 py-4 bg-gray-900 text-white font-black uppercase tracking-widest text-sm rounded-2xl hover:bg-black shadow-xl transition-all"
             >
-              Pokracovat
+              Rozumím
             </button>
           )}
         </div>
@@ -146,40 +100,43 @@ export default function MonthlyDebriefModal() {
 
 function ReportStat({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className="bg-gray-50 rounded p-2">
-      <div className="text-[10px] text-gray-500">{label}</div>
-      <div className={`text-sm font-bold ${highlight ? 'text-red-600' : 'text-gray-900'}`}>{value}</div>
+    <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+      <div className="text-[9px] text-gray-400 font-black uppercase tracking-widest leading-none mb-1">{label}</div>
+      <div className={`text-lg font-black tracking-tight ${highlight ? 'text-red-600' : 'text-gray-900'}`}>{value}</div>
     </div>
   );
 }
 
 const ADVISOR_COLORS: Record<string, string> = {
-  epidemiologist: 'border-blue-200 bg-blue-50',
-  economist: 'border-emerald-200 bg-emerald-50',
-  politician: 'border-purple-200 bg-purple-50',
-  military: 'border-amber-200 bg-amber-50',
-  opposition: 'border-red-200 bg-red-50',
+  epidemiologist: 'border-blue-500 bg-blue-50/30 text-blue-900',
+  economist: 'border-emerald-500 bg-emerald-50/30 text-emerald-900',
+  politician: 'border-purple-500 bg-purple-50/30 text-purple-900',
+  military: 'border-amber-500 bg-amber-50/30 text-amber-900',
+  opposition: 'border-red-500 bg-red-50/30 text-red-900',
 };
 
 const URGENCY_BADGE: Record<string, string> = {
-  low: 'bg-gray-200 text-gray-700',
-  medium: 'bg-yellow-200 text-yellow-800',
-  high: 'bg-orange-200 text-orange-800',
-  critical: 'bg-red-200 text-red-800',
+  low: 'bg-gray-100 text-gray-500',
+  medium: 'bg-yellow-100 text-yellow-700',
+  high: 'bg-orange-100 text-orange-700',
+  critical: 'bg-red-600 text-white shadow-lg',
 };
 
 function AdvisorCard({ advisor }: { advisor: AdvisorMessage }) {
   return (
-    <div className={`border rounded p-2 ${ADVISOR_COLORS[advisor.role] ?? 'border-gray-200'}`}>
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-xs font-bold text-gray-800">{advisor.name}</span>
-        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${URGENCY_BADGE[advisor.urgency]}`}>
+    <div className={`border-l-4 rounded-r-3xl p-5 shadow-sm transition-all hover:shadow-md ${ADVISOR_COLORS[advisor.role] || 'border-gray-200 bg-gray-50'}`}>
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[11px] font-black uppercase tracking-wider">{advisor.name}</span>
+        <span className={`text-[8px] px-2 py-1 rounded-full font-black uppercase tracking-[0.1em] ${URGENCY_BADGE[advisor.urgency] || 'bg-gray-100'}`}>
           {advisor.urgency}
         </span>
       </div>
-      <p className="text-xs text-gray-700">{advisor.message}</p>
+      <p className="text-xs leading-relaxed font-bold italic">"{advisor.message}"</p>
       {advisor.suggestion && (
-        <p className="text-[10px] text-gray-500 mt-1 italic">Navrh: {advisor.suggestion}</p>
+        <div className="mt-4 pt-3 border-t border-current/10">
+           <span className="text-[8px] font-black uppercase opacity-50 block mb-1">Doporučení:</span>
+           <span className="text-[11px] font-black uppercase tracking-tight">{advisor.suggestion}</span>
+        </div>
       )}
     </div>
   );

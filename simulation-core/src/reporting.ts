@@ -8,6 +8,7 @@
  */
 
 import { DelayBuffer, type DelayBufferSnapshot, gammaDelayPMF } from './delay-engine';
+import { solveFinalSize } from './calibration/final-size';
 
 // ---- Configuration ----
 
@@ -91,4 +92,47 @@ export class ReportingPipeline {
       observedNewHospitalizations: this.hospBuffer.pushAndGet(detectedHosp),
     };
   }
+}
+
+/**
+ * Calculate the weighted IFR for the population.
+ * @param ageFractions - population fractions per age group
+ * @param riskFractions - population fractions in risk group per age group
+ * @param stratumParams - epidemiological parameters per stratum
+ */
+export function calculateWeightedIFR(
+  ageFractions: number[],
+  riskFractions: number[],
+  stratumParams: { ifr: number }[],
+): number {
+  let weightedIFR = 0;
+  for (let ageIdx = 0; ageIdx < ageFractions.length; ageIdx++) {
+    const agePopFraction = ageFractions[ageIdx];
+    const riskFraction = riskFractions[ageIdx];
+
+    // Stratum index for this age group:
+    // i = 2 * ageIdx (standard)
+    // i = 2 * ageIdx + 1 (risk)
+    const standardIFR = stratumParams[2 * ageIdx].ifr;
+    const riskIFR = stratumParams[2 * ageIdx + 1].ifr;
+
+    const stratumIFR = standardIFR * (1 - riskFraction) + riskIFR * riskFraction;
+    weightedIFR += stratumIFR * agePopFraction;
+  }
+  return weightedIFR;
+}
+
+/**
+ * Calculate total potential deaths in a "No Action" baseline scenario.
+ * @param R0 - basic reproduction number
+ * @param populationSize - total population
+ * @param weightedIFR - overall infection fatality rate
+ */
+export function calculateBaselineDeaths(
+  R0: number,
+  populationSize: number,
+  weightedIFR: number,
+): number {
+  const z = solveFinalSize(R0);
+  return populationSize * z * weightedIFR;
 }

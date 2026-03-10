@@ -32,17 +32,18 @@ const CONFIDENCE_DRAIN_PER_GDP_LOSS = 5;
  *
  * @param current - Current economic state
  * @param activeMeasures - Active measures this turn
- * @param hasCompensation - Whether business_support or kurzarbeit is active
+ * @param financialSupportGranted - Whether extraordinary financial support was granted this turn
  * @returns Updated economic state
  */
 export function stepEconomics(
   current: EconomicState,
   activeMeasures: GameMeasure[],
+  financialSupportGranted: boolean = false,
 ): EconomicState {
   // Sum economic costs of active measures
   let totalGDPHit = 0;
   let totalFiscalCost = 0;
-  let hasCompensation = false;
+  let hasCompensation = financialSupportGranted; // financial support acts as business_support
   let hasKurzarbeit = false;
 
   for (const m of activeMeasures) {
@@ -58,6 +59,11 @@ export function stepEconomics(
   if (hasCompensation) {
     totalFiscalCost += totalGDPHit * 0.4;
     totalGDPHit *= 0.6;
+
+    // Extraordinary support has additional fiscal cost if granted
+    if (financialSupportGranted) {
+        totalFiscalCost += 1.0; // arbitrary billion
+    }
   }
 
   // Kurzarbeit reduces unemployment growth by 60%

@@ -297,6 +297,17 @@ export function stepTurn(
     };
   }
 
+  // Bed restructuring: apply capacity multiplier from measures
+  for (const m of activeMeasures) {
+    if (m.hospitalCapacityMultiplier && m.hospitalCapacityMultiplier !== 1.0) {
+      effectiveScenario.healthCapacity = {
+        ...effectiveScenario.healthCapacity,
+        hospitalBeds: Math.round(effectiveScenario.healthCapacity.hospitalBeds * m.hospitalCapacityMultiplier),
+        icuBeds: Math.round(effectiveScenario.healthCapacity.icuBeds * m.hospitalCapacityMultiplier),
+      };
+    }
+  }
+
   let state = checkpoint.populationState;
   let socialCapital = Math.max(0, checkpoint.socialCapital - socialCapitalPenalty);
 

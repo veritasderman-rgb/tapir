@@ -183,7 +183,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         {
           id: 'intro-news',
           title: `${epi.name} — První zprávy`,
-          body: `${epi.headline}\n\nHlavní hygienik ČR svolává Ústřední epidemiologický štáb. Řízení epidemie je v jeho kompetenci.\n\nPokud počet obětí překročí 10 000, řízení přebírá Ústřední krizový štáb pod vedením premiéra.`,
+          body: `${epi.headline}\n\nHlavní hygienik ČR svolává Ústřední epidemiologický štáb. Řízení epidemie je ve vaší kompetenci. Máte k dispozici zdravotnická a organizační opatření — politická rozhodnutí vyššího řádu vyžadují zásah vlády.`,
           variant: 'news',
           actionLabel: 'Vstoupit do Krizového štábu',
           action: 'enterCrisisStaff',

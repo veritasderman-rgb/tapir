@@ -98,7 +98,7 @@ export default function ScenarioBuilder() {
       <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
         <h2 className="text-lg font-bold text-indigo-900 mb-1">Krizovy stab — tvorba scenare</h2>
         <p className="text-xs text-indigo-700">
-          Nastavte parametry epidemie, dostupna opatreni, skryte udalosti a pravidla hry. Exportujte URL pro studenty.
+          Nastavte parametry epidemie, dostupna opatreni, skryte udalosti a pravidla hry. Exportujte URL pro Krizovy stab.
         </p>
       </div>
 
@@ -214,7 +214,7 @@ export default function ScenarioBuilder() {
             onClick={handleExport}
             className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700"
           >
-            Kopirovat URL pro studenty
+            Kopirovat URL pro Krizovy stab
           </button>
           <button
             onClick={handleDownload}

@@ -42,7 +42,7 @@ export interface GameState {
   checkpoint: SimCheckpoint | null;
   turnHistory: TurnHistoryEntry[];
 
-  // Student's current action draft
+  // Player's current action draft
   activeMeasureIds: string[];
   vaccinationPriority: VaccinationPriority | null;
 

@@ -523,6 +523,7 @@ export function stepTurn(
     icuCapacity,
     observedInfections: Math.round(totalObservedInfections),
     whoConsultationActive: turnAction.activeMeasureIds.includes('who_consultation'),
+    oppositionBriefings: turnAction.oppositionBriefings ?? 0,
   });
 
   // Generate headlines

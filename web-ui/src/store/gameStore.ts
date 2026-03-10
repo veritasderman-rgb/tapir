@@ -206,6 +206,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const action: TurnAction = {
       activeMeasureIds: effectiveMeasures,
       vaccinationPriority: effectiveVax,
+      oppositionBriefings: state.oppositionBriefings,
     };
 
     const result = stepTurn(checkpoint, gameScenario, action, nextTurn);

@@ -55,7 +55,79 @@ const DOCUMENT_CONTENTS: Record<string, { title: string; content: string; hasTab
     content: `<h3 class="text-lg font-semibold mb-3">Výpovědi a stravovací návyky</h3>
 <p class="mb-3">George Soper provedl podrobné rozhovory se všemi členy domácnosti Warrenových. Zaměřil se na to, <strong>co kdo jedl</strong> v období před propuknutím nemoci.</p>
 
-<p class="mb-4">Přečtěte si pozorně výpovědi jednotlivých členů domácnosti. Hledejte <strong>společný jmenovatel</strong> — co mají všichni nemocní společného a co je odlišuje od zdravých? Zaměřte se na <strong>konkrétní potraviny</strong> a na to, <strong>kdo je připravoval</strong>.</p>`,
+<p class="mb-4 bg-indigo-50 border border-indigo-200 rounded p-3 text-sm"><strong>Úkol:</strong> Přečtěte si pozorně výpovědi jednotlivých členů domácnosti. Hledejte <strong>společný jmenovatel</strong> — co mají nemocní společného a co je odlišuje od zdravých? Zaměřte se na <strong>konkrétní potraviny</strong> a na to, <strong>kdo je připravoval</strong>.</p>
+
+<hr class="my-4 border-gray-300">
+
+<h4 class="font-semibold mt-4 mb-2 text-gray-700">Rodina Warrenových</h4>
+
+<div class="bg-gray-50 rounded p-3 mb-3 border-l-4 border-gray-400">
+<p class="font-semibold text-sm mb-1">Charles Warren — pán domu, bankéř</p>
+<p class="text-sm italic text-gray-700">"Jedli jsme vždy společně u jednoho stolu — celá rodina i s matkou mé ženy. Služebnictvo jedlo v kuchyni odděleně, až na ty, které servírovaly. Kuchařka Mary vařila všechna jídla. Vodu jsme brali z místního vodovodu, stejně jako všichni sousedé. Pamatuji se, že jsem jedl mušle, které Mary připravila, a také její vynikající broskvovou zmrzlinu — tu jsme měli tuším 20. srpna, tedy asi týden před tím, než Margo onemocněla. Jedl jsem ji dvě porce."</p>
+</div>
+
+<div class="bg-gray-50 rounded p-3 mb-3 border-l-4 border-gray-400">
+<p class="font-semibold text-sm mb-1">Paní Warren — manželka, paní domu</p>
+<p class="text-sm italic text-gray-700">"Naše kuchařka Mary přišla začátkem srpna, nahradila předchozí kuchařku, která odešla. Mary vařila výborně. Ten den, co dělala broskvovou zmrzlinu, jsme ji jedli snad všichni — byla výtečná, Mary ji dělala zcela vlastnoručně, sama nakrájela broskve a všechno smíchala. Helen ten den nebyla doma, jela na návštěvu ke kamarádce. Myslím, že Bessie ten den taky nejedla zmrzlinu — měla volno."</p>
+</div>
+
+<div class="bg-gray-50 rounded p-3 mb-3 border-l-4 border-gray-400">
+<p class="font-semibold text-sm mb-1">Margaret Warren — dcera</p>
+<p class="text-sm italic text-gray-700">"Milovala jsem Maryino vaření. Tu broskvovou zmrzlinu jsem jedla jako první — Mary mi dala ochutnat ještě předtím, než se podávala u stolu. Bylo mi špatně asi za týden poté. Hrozná horečka, bolesti břicha. Doktor řekl, že je to tyfus."</p>
+</div>
+
+<div class="bg-gray-50 rounded p-3 mb-3 border-l-4 border-gray-400">
+<p class="font-semibold text-sm mb-1">Helen Warren — dcera</p>
+<p class="text-sm italic text-gray-700">"Já jsem ten den nebyla doma vůbec. Jela jsem za přítelkyní do sousedního města a vrátila jsem se až druhý den večer. Zmrzlinu jsem tedy nejedla. Jinak jsem ale jedla všechno ostatní — maso, zeleninu, pila jsem vodu ze stejného kohoutku. Nedovedu si vysvětlit, proč jsem jediná z rodiny neonemocněla."</p>
+</div>
+
+<div class="bg-gray-50 rounded p-3 mb-3 border-l-4 border-gray-400">
+<p class="font-semibold text-sm mb-1">Robert Warren — syn</p>
+<p class="text-sm italic text-gray-700">"Jedl jsem všechno co ostatní. Zmrzlinu, mušle, maso, ovoce. Vodu z kohoutku. Byl jsem poslední, kdo onemocněl — horečku jsem dostal 3. září."</p>
+</div>
+
+<div class="bg-gray-50 rounded p-3 mb-3 border-l-4 border-gray-400">
+<p class="font-semibold text-sm mb-1">Matka paní Warrenové — tchyně, starší paní</p>
+<p class="text-sm italic text-gray-700">"Jsem starší paní a broskvová zmrzlina byla jedna z mála věcí, co jsem mohla jíst s chutí. Onemocněla jsem krátce po vnučce Margaret."</p>
+</div>
+
+<hr class="my-4 border-gray-300">
+
+<h4 class="font-semibold mt-4 mb-2 text-gray-700">Služebnictvo</h4>
+
+<div class="bg-gray-50 rounded p-3 mb-3 border-l-4 border-blue-400">
+<p class="font-semibold text-sm mb-1">Anna — pokojská</p>
+<p class="text-sm italic text-gray-700">"My služebné jsme jedly odděleně v kuchyni, ale ze stejného jídla co rodina. Tu zmrzlinu jsem jedla taky — Mary nám ji dala ochutnat. Bylo jí dost. Bessie ten den ale nejedla, protože měla volno a šla do města."</p>
+</div>
+
+<div class="bg-gray-50 rounded p-3 mb-3 border-l-4 border-blue-400">
+<p class="font-semibold text-sm mb-1">Bessie — pokojská</p>
+<p class="text-sm italic text-gray-700">"V ten den co se dělala ta zmrzlina jsem měla volný den. Šla jsem do města na nákupy. Vrátila jsem se až večer a zmrzlina už žádná nebyla. Jedla jsem normálně všechno ostatní — maso, ryby, zeleninu, pila jsem vodu. Ale neonemocněla jsem."</p>
+</div>
+
+<div class="bg-gray-50 rounded p-3 mb-3 border-l-4 border-blue-400">
+<p class="font-semibold text-sm mb-1">Patrick — zahradník</p>
+<p class="text-sm italic text-gray-700">"Já jím ve svém domku na zahradě. Mám vlastní kuchyňku. Občas si vezmu něco z velké kuchyně, ale většinou si vařím sám. Tu slavnou zmrzlinu jsem nejedl. Vodu beru ze stejného pramene jako dům."</p>
+</div>
+
+<div class="bg-gray-50 rounded p-3 mb-3 border-l-4 border-amber-400">
+<p class="font-semibold text-sm mb-1">Mary Mallon — kuchařka</p>
+<p class="text-sm italic text-gray-700">"Nevím, proč se mě na to ptáte. Já jsem úplně zdravá, nikdy jsem tyfus neměla. Vařím pro lidi léta a nikdy nebyl žádný problém. Tu zmrzlinu jsem dělala z čerstvých broskví — kupovala jsem je na trhu. Já sama zmrzlinu moc nerada, takže jsem ji nejedla. Vodu používám z kohoutku jako všichni. Neumývám si ruce nějak speciálně — proč bych měla, nejsem přece nemocná!"</p>
+</div>
+
+<div class="bg-gray-50 rounded p-3 mb-3 border-l-4 border-blue-400">
+<p class="font-semibold text-sm mb-1">Katherine — pradlena</p>
+<p class="text-sm italic text-gray-700">"Já peru a žehlím, v kuchyni se nezdržuji. Jím většinou u sebe v prádelně, nosím si něco z kuchyně. Tu zmrzlinu jsem nejedla. Piju čaj, který si sama vařím."</p>
+</div>
+
+<div class="bg-gray-50 rounded p-3 mb-3 border-l-4 border-blue-400">
+<p class="font-semibold text-sm mb-1">James — kočí</p>
+<p class="text-sm italic text-gray-700">"Většinu dne jsem u koní nebo na cestách. Jím odděleně ve stáji nebo v hospodě ve městě. Z kuchyně velkého domu jím málokdy. Zmrzlinu jsem neměl."</p>
+</div>
+
+<hr class="my-4 border-gray-300">
+<h4 class="font-semibold mt-4 mb-2">Interaktivní analýza</h4>
+<p class="text-sm text-gray-600 mb-3">Na základě výpovědí výše označte v tabulce, kdo podle vás onemocněl. Poté si prohlédněte matici konzumace potravin a hledejte společný vzorec.</p>`,
   },
   'water-report': {
     title: 'Zpráva o kvalitě vody',

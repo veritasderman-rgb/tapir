@@ -115,12 +115,16 @@ export const questions: TyfovaQuestion[] = [
   {
     id: 'q4-1',
     step: 4,
-    question: 'Jaký společný vzorec pozorujete ve čtyřech historických případech (1900–1904) a případu Warrenových?',
-    type: 'text',
-    correctAnswer: 'nová kuchařka',
+    question: 'Jaký společný vzorec pozorujete ve všech historických případech (1900–1906)?',
+    type: 'multiple_choice',
+    options: [
+      'Ve všech domácnostech byla kontaminovaná voda ze studny',
+      'Ve všech případech se tyfus objevil krátce po příchodu nové kuchařky, která sama neonemocněla',
+      'Všechny rodiny kupovaly mléko od stejného dodavatele',
+    ],
+    correctAnswer: 'Ve všech případech se tyfus objevil krátce po příchodu nové kuchařky, která sama neonemocněla',
     explanation:
       'Ve všech pěti případech se tyfus objevil krátce po příchodu nové kuchařky. Kuchařka nikdy sama neonemocněla a vždy odešla před nebo během vyšetřování. Časový vzorec odpovídá inkubační době tyfu (7–14 dní po jejím nástupu). V jednom případu (Sands Point, 1904) se v záznamech objevuje jméno „Mary".',
-    hint: 'Zaměřte se na personální změny v domácnostech a na to, kdo nikdy neonemocněl.',
   },
 
   // ===== STEP 5: Identifikace zdroje =====
@@ -175,12 +179,16 @@ export const questions: TyfovaQuestion[] = [
     id: 'q6-2',
     step: 6,
     question:
-      'Mary Mallon byla v roce 1910 propuštěna z izolace pod podmínkou, že nebude pracovat jako kuchařka. V roce 1915 byla znovu dopadena — opět pracovala jako kuchařka a způsobila další ohnisko (25 nakažených, 2 mrtví). Jak byste tuto situaci zhodnotili?',
-    type: 'text',
-    correctAnswer: 'etický konflikt',
+      'Mary Mallon byla v roce 1910 propuštěna z izolace pod podmínkou, že nebude pracovat jako kuchařka. V roce 1915 byla znovu dopadena — opět pracovala jako kuchařka a způsobila další ohnisko (25 nakažených, 2 mrtví). Co je hlavní příčinou selhání tohoto přístupu?',
+    type: 'multiple_choice',
+    options: [
+      'Mary byla záměrně zlomyslná a chtěla škodit lidem',
+      'Mary neměla jinou kvalifikaci, nevěřila diagnóze a systém jí nenabídl dostatečnou podporu',
+      'Zdravotní úřady měly příliš slabé pravomoci k vymáhání podmínek',
+    ],
+    correctAnswer: 'Mary neměla jinou kvalifikaci, nevěřila diagnóze a systém jí nenabídl dostatečnou podporu',
     explanation:
-      'Toto je otevřená otázka k diskusi. Případ Mary Mallon ilustruje základní dilema veřejného zdraví: právo jednotlivce na svobodu vs. ochrana společnosti. Mary neměla jinou kvalifikaci než vaření a odmítala přijmout, že je přenašečkou. Systém jí sice pomohl najít práci pradleny, ale tato práce byla hůře placená. Eticky lze argumentovat z obou stran — neexistuje jednoznačně „správná" odpověď. Důležité je umět zvažovat obě perspektivy.',
-    hint: 'Zamyslete se nad tím, proč Mary porušila podmínky propuštění. Měla jinou možnost?',
+      'Případ Mary Mallon ilustruje základní dilema veřejného zdraví: právo jednotlivce na svobodu vs. ochrana společnosti. Mary neměla jinou kvalifikaci než vaření a odmítala přijmout, že je přenašečkou. Systém jí sice pomohl najít práci pradleny, ale tato práce byla hůře placená. Kombinace nedostatečné podpory, nepochopení diagnózy a ekonomického tlaku vedla k selhání. Neexistuje jednoznačně „správná" odpověď — důležité je umět zvažovat obě perspektivy.',
   },
 ];
 

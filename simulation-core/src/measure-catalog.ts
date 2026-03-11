@@ -215,8 +215,21 @@ export const MEASURE_CATALOG: GameMeasure[] = [
     economicCostPerTurn: 0.12,
     rampUpDays: 10,
     complianceDecayRate: 0,
-    unlockCondition: { type: 'turn_reached', turn: 4 },
+    unlockCondition: { type: 'always' },
     detectionRateBonus: 0.15,
+  },
+  {
+    id: 'mass_testing_schools',
+    name: 'Povinné testování ve školách',
+    category: 'testing',
+    description: 'Pravidelné antigenní testování žáků a učitelů. Odhalí bezpříznakové přenašeče mezi dětmi a zabrání šíření do rodin.',
+    npiEffect: { type: NPIType.BetaMultiplier, value: 0.96 },
+    politicalCostPerTurn: 4,
+    economicCostPerTurn: 0.08,
+    rampUpDays: 7,
+    complianceDecayRate: 0.001,
+    unlockCondition: { type: 'always' },
+    detectionRateBonus: 0.1,
   },
 
   // ═══════════════════════════════════════════

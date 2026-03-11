@@ -55,24 +55,26 @@ export function computeHealthOutcomes(
   const icuOverflow = totalICU > capacity.icuBeds;
 
   // Excess deaths from overflow
+  // NOTE: excessMortalityRate and ICU mortality are *total* rates over a patient's
+  // stay, not daily hazard rates. We convert to daily rates using average stay
+  // durations (hospital ~10 days, ICU ~14 days).
   let excessDeaths = 0;
 
   // Hospital overflow mortality (less critical than ICU)
   if (hospitalOverflow) {
     const overflow = totalHosp - capacity.hospitalBeds;
-    // Standard excess mortality rate (e.g. 0.3)
-    excessDeaths += overflow * (capacity.excessMortalityRate || 0.1);
+    const totalRate = capacity.excessMortalityRate || 0.1;
+    // Convert total mortality to daily hazard: ~totalRate / avgStayDays
+    const dailyRate = totalRate / 10;
+    excessDeaths += overflow * dailyRate;
   }
 
-  // ICU overflow: "Mortality Multiplier" logic
-  // "Assume 80–90% mortality for unventilated critical patients"
-  // Standard ICU mortality is already in IFR.
-  // This represents the *additional* deaths because of lack of ICU care.
+  // ICU overflow: patients who can't get ventilation have ~70% total mortality
+  // over their ~14-day ICU stay. Convert to daily hazard rate.
   if (icuOverflow) {
     const overflow = totalICU - capacity.icuBeds;
-    // If standard ICU mortality is 20-30%, and unventilated is 90%,
-    // the *excess* is around 60-70%.
-    excessDeaths += overflow * 0.7; // ~90% total mortality for overflow
+    const dailyRate = 0.7 / 14; // ~5% per day
+    excessDeaths += overflow * dailyRate;
   }
 
   return {

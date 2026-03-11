@@ -410,6 +410,11 @@ export interface AdvisorMessage {
   suggestion?: string;
   /** Urgency level */
   urgency: 'low' | 'medium' | 'high' | 'critical';
+  /** Background story / bio shown on hover */
+  background?: string;
+  /** Short prediction for 14 days / 1 month (military advisor) */
+  prediction14d?: string;
+  prediction1m?: string;
 }
 
 // ---- Complete game scenario v2 ----
@@ -476,6 +481,8 @@ export interface TurnAction {
   oppositionBriefings?: number;
   /** Whether to request government financial support */
   requestFinancialSupport?: boolean;
+  /** Who is leading the crisis staff ('hygienik' or 'premier') */
+  crisisLeader?: 'hygienik' | 'premier';
 }
 
 /** Turn report shown to the student at end of turn. */

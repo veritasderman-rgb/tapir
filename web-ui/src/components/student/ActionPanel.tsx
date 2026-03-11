@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import { getMeasureById, getMeasuresByCategory, type GameMeasure } from '@tapir/core';
+import { getMeasureById, getMeasuresByCategory, type GameMeasure, NPIType } from '@tapir/core';
 import TrustBar from './TrustBar';
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -15,6 +15,42 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 const CATEGORY_ORDER = ['masks', 'social_distancing', 'testing', 'travel', 'vaccination', 'military', 'international', 'economic'];
+
+/** Human-readable effectiveness label from NPI effect. */
+function effectivenessLabel(m: GameMeasure): string {
+  const e = m.npiEffect;
+  if (e.type === NPIType.BetaMultiplier) {
+    const pct = Math.round((1 - e.value) * 100);
+    if (pct <= 0) return 'Nepřímo';
+    if (pct <= 5) return `Mírný (−${pct} % přenos)`;
+    if (pct <= 15) return `Střední (−${pct} % přenos)`;
+    return `Silný (−${pct} % přenos)`;
+  }
+  if (e.type === NPIType.ContactSubMatrixModifier) {
+    const pct = Math.round((1 - e.value) * 100);
+    const target = e.targetSubMatrix === 'school' ? 'školy' : e.targetSubMatrix === 'work' ? 'práce' : 'komunita';
+    return `−${pct} % kontaktů (${target})`;
+  }
+  return '—';
+}
+
+function costLabel(cost: number): string {
+  if (cost <= 0.01) return 'Zanedbatelná';
+  if (cost <= 0.05) return 'Nízká';
+  if (cost <= 0.15) return 'Střední';
+  if (cost <= 0.3) return 'Vysoká';
+  return 'Extrémní';
+}
+
+function politicalLabel(cost: number): string {
+  if (cost <= -3) return 'Získává podporu';
+  if (cost < 0) return 'Mírně populární';
+  if (cost === 0) return 'Neutrální';
+  if (cost <= 3) return 'Nízká';
+  if (cost <= 8) return 'Střední';
+  if (cost <= 15) return 'Vysoká';
+  return 'Extrémní';
+}
 
 export default function ActionPanel() {
   const {
@@ -56,6 +92,7 @@ export default function ActionPanel() {
   }, [unlockedIds, crisisLeader]);
 
   const hasVaxCapacity = activeMeasureIds.some(id => id.startsWith('vaccination_'));
+  const [hoveredMeasure, setHoveredMeasure] = useState<string | null>(null);
 
   return (
     <div className="space-y-4">
@@ -119,22 +156,41 @@ export default function ActionPanel() {
           <div className="space-y-1">
             {cat.measures.map(m => {
               const isActive = activeMeasureIds.includes(m.id);
+              const isHovered = hoveredMeasure === m.id;
               return (
-                <button
+                <div
                   key={m.id}
-                  onClick={() => toggleMeasure(m.id)}
-                  disabled={isFinished}
-                  className={`w-full text-left px-3 py-2 rounded-lg border text-xs transition-all ${
-                    isActive
-                      ? 'bg-blue-50 border-blue-300 text-blue-700 ring-1 ring-blue-300'
-                      : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
+                  onMouseEnter={() => setHoveredMeasure(m.id)}
+                  onMouseLeave={() => setHoveredMeasure(null)}
                 >
-                  <div className="font-bold flex justify-between items-center">
-                    <span>{m.name}</span>
-                    {isActive && <span className="text-[10px]">✓</span>}
-                  </div>
-                </button>
+                  <button
+                    onClick={() => toggleMeasure(m.id)}
+                    disabled={isFinished}
+                    className={`w-full text-left px-3 py-2 rounded-lg border text-xs transition-all ${
+                      isActive
+                        ? 'bg-blue-50 border-blue-300 text-blue-700 ring-1 ring-blue-300'
+                        : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="font-bold flex justify-between items-center">
+                      <span>{m.name}</span>
+                      {isActive && <span className="text-[10px]">✓</span>}
+                    </div>
+                  </button>
+                  {isHovered && (
+                    <div className="mx-1 mt-0.5 mb-1 px-2.5 py-2 bg-gray-50 border border-gray-200 rounded-md text-[10px] text-gray-600 leading-relaxed space-y-1.5 animate-in fade-in">
+                      <p>{m.description}</p>
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[9px] font-medium text-gray-500">
+                        <span title="Účinnost">⚕ {effectivenessLabel(m)}</span>
+                        <span title="Ekonomická cena">💰 {costLabel(m.economicCostPerTurn)}</span>
+                        <span title="Politická cena">🏛 {politicalLabel(m.politicalCostPerTurn)}</span>
+                        {m.rampUpDays > 0 && <span title="Náběh">⏱ {m.rampUpDays} dní náběh</span>}
+                        {m.detectionRateBonus && <span title="Záchyt">🔍 +{Math.round(m.detectionRateBonus * 100)} % záchyt</span>}
+                        {m.hospitalCapacityMultiplier && m.hospitalCapacityMultiplier > 1 && <span title="Kapacita">🏥 ×{m.hospitalCapacityMultiplier} lůžek</span>}
+                      </div>
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>

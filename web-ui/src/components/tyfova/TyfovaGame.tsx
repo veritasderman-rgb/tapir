@@ -10,7 +10,7 @@ const STEP_TITLES = [
   'Případ Warrenových',
   'Výpovědi',
   'Kvalita vody',
-  'Historické případy',
+  'Podezřelý vzorec',
   'Novinové články',
   'Kontrolní opatření',
 ];
@@ -34,7 +34,7 @@ const TyfovaGame: React.FC = () => {
       {/* Top bar */}
       <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm">
         <h1 className="text-lg font-bold text-gray-800">
-          Tyfová Mary — Epidemiologické vyšetřování
+          Záhada z Oyster Bay — Epidemiologické vyšetřování
         </h1>
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-gray-500">
@@ -81,10 +81,10 @@ const IntroScreen: React.FC<{ onStart: () => void }> = ({ onStart }) => (
     <div className="max-w-2xl bg-white rounded-2xl shadow-xl p-8 space-y-6">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Tyfová Mary
+          Záhada z Oyster Bay
         </h1>
         <p className="text-sm text-gray-500 uppercase tracking-wide">
-          Epidemiologické vyšetřování
+          Epidemiologické vyšetřování — New York, 1906
         </p>
       </div>
 

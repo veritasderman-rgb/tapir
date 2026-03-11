@@ -35,7 +35,7 @@ export const TyfovaResults: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Vyšetřování uzavřeno
           </h1>
-          <p className="text-gray-500">Tyfová Mary — výsledky</p>
+          <p className="text-gray-500">Záhada z Oyster Bay — výsledky</p>
         </div>
 
         {/* Score */}

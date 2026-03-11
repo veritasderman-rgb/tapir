@@ -108,62 +108,62 @@ export const documents: TyfovaDocument[] = [
     content: `
 <h2>Výpovědi členů domácnosti Warrenových</h2>
 
-<h3>Charles Warren (pán domu) — nakažen</h3>
+<h3>Charles Warren (pán domu)</h3>
 <blockquote>
 „Jedli jsme vždy společně u jednoho stolu — celá rodina i s matkou mé ženy. Služebnictvo jedlo v kuchyni odděleně, až na ty, které servírovaly. Kuchařka Mary vařila všechna jídla. Vodu jsme brali z místního vodovodu, stejně jako všichni sousedé. Pamatuji se, že jsem jedl mušle, které Mary připravila, a také její vynikající broskvovou zmrzlinu — tu jsme měli tuším 20. srpna, tedy asi týden před tím, než Margo onemocněla. Jedl jsem ji dvě porce."
 </blockquote>
 
-<h3>Paní Warren — nakažena</h3>
+<h3>Paní Warren</h3>
 <blockquote>
 „Naše kuchařka Mary přišla začátkem srpna, nahradila předchozí kuchařku, která odešla. Mary vařila výborně. Ten den, co dělala broskvovou zmrzlinu, jsme ji jedli snad všichni — byla výtečná, Mary ji dělala zcela vlastnoručně, sama nakrájela broskve a všechno smíchala. Helen ten den nebyla doma, jela na návštěvu ke kamarádce. Myslím, že Bessie ten den taky nejedla zmrzlinu — měla volno."
 </blockquote>
 
-<h3>Helen Warren (dcera) — ZDRAVÁ</h3>
+<h3>Helen Warren (dcera)</h3>
 <blockquote>
 „Já jsem ten den nebyla doma vůbec. Jela jsem za přítelkyní do sousedního města a vrátila jsem se až druhý den večer. Zmrzlinu jsem tedy nejedla. Jinak jsem ale jedla všechno ostatní — maso, zeleninu, pila jsem vodu ze stejného kohoutku. Nedovedu si vysvětlit, proč jsem jediná z rodiny neonemocněla."
 </blockquote>
 
-<h3>Margaret Warren (dcera) — nakažena (první případ)</h3>
+<h3>Margaret Warren (dcera)</h3>
 <blockquote>
 „Milovala jsem Maryino vaření. Tu broskvovou zmrzlinu jsem jedla jako první — Mary mi dala ochutnat ještě předtím, než se podávala u stolu. Bylo mi špatně asi za týden poté. Hrozná horečka, bolesti břicha. Doktor řekl, že je to tyfus."
 </blockquote>
 
-<h3>Robert Warren (syn) — nakažen</h3>
+<h3>Robert Warren (syn)</h3>
 <blockquote>
 „Jedl jsem všechno co ostatní. Zmrzlinu, mušle, maso, ovoce. Vodu z kohoutku. Byl jsem poslední, kdo onemocněl — horečku jsem dostal 3. září."
 </blockquote>
 
-<h3>Matka paní Warrenové — nakažena</h3>
+<h3>Matka paní Warrenové</h3>
 <blockquote>
 „Jsem starší paní a broskvová zmrzlina byla jedna z mála věcí, co jsem mohla jíst s chutí. Onemocněla jsem krátce po vnučce Margaret."
 </blockquote>
 
-<h3>Anna (pokojská) — nakažena</h3>
+<h3>Anna (pokojská)</h3>
 <blockquote>
 „My služebné jsme jedly odděleně v kuchyni, ale ze stejného jídla co rodina. Tu zmrzlinu jsem jedla taky — Mary nám ji dala ochutnat. Bylo jí dost. Bessie ten den ale nejedla, protože měla volno a šla do města."
 </blockquote>
 
-<h3>Bessie (pokojská) — ZDRAVÁ</h3>
+<h3>Bessie (pokojská)</h3>
 <blockquote>
 „V ten den co se dělala ta zmrzlina jsem měla volný den. Šla jsem do města na nákupy. Vrátila jsem se až večer a zmrzlina už žádná nebyla. Jedla jsem normálně všechno ostatní — maso, ryby, zeleninu, pila jsem vodu. Ale neonemocněla jsem."
 </blockquote>
 
-<h3>Patrick (zahradník) — ZDRAVÝ</h3>
+<h3>Patrick (zahradník)</h3>
 <blockquote>
 „Já jím ve svém domku na zahradě. Mám vlastní kuchyňku. Občas si vezmu něco z velké kuchyně, ale většinou si vařím sám. Tu slavnou zmrzlinu jsem nejedl. Vodu beru ze stejného pramene jako dům."
 </blockquote>
 
-<h3>Mary Mallon (kuchařka) — ZDRAVÁ</h3>
+<h3>Mary Mallon (kuchařka)</h3>
 <blockquote>
 „Nevím, proč se mě na to ptáte. Já jsem úplně zdravá, nikdy jsem tyfus neměla. Vařím pro lidi léta a nikdy nebyl žádný problém. Tu zmrzlinu jsem dělala z čerstvých broskví — kupovala jsem je na trhu. Já sama zmrzlinu moc nerada, takže jsem ji nejedla. Vodu používám z kohoutku jako všichni. Neumývám si ruce nějak speciálně — proč bych měla, nejsem přece nemocná! To je urážka, že mě z něčeho obviňujete."
 </blockquote>
 
-<h3>Katherine (pradlena) — ZDRAVÁ</h3>
+<h3>Katherine (pradlena)</h3>
 <blockquote>
 „Já peru a žehlím, v kuchyni se nezdržuji. Jím většinou u sebe v prádelně, nosím si něco z kuchyně. Tu zmrzlinu jsem nejedla. Piju čaj, který si sama vařím."
 </blockquote>
 
-<h3>James (kočí) — ZDRAVÝ</h3>
+<h3>James (kočí)</h3>
 <blockquote>
 „Většinu dne jsem u koní nebo na cestách. Jím odděleně ve stáji nebo v hospodě ve městě. Z kuchyně velkého domu jím málokdy. Zmrzlinu jsem neměl."
 </blockquote>
@@ -213,7 +213,7 @@ export const documents: TyfovaDocument[] = [
   },
   {
     id: 'doc-historical-cases',
-    title: 'Historické případy',
+    title: 'Historické případy — podezřelý vzorec',
     order: 4,
     unlockedByStep: 4,
     content: `

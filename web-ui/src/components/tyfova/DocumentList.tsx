@@ -6,7 +6,7 @@ const STEP_TITLES = [
   'Případ Warrenových',
   'Výpovědi',
   'Kvalita vody',
-  'Historické případy',
+  'Podezřelý vzorec',
   'Novinové články',
   'Kontrolní opatření',
 ];
@@ -22,7 +22,7 @@ const ALL_DOCUMENTS: DocumentInfo[] = [
   { id: 'warren-case', title: 'Případ rodiny Warrenových', step: 1 },
   { id: 'testimonies', title: 'Výpovědi členů domácnosti', step: 2 },
   { id: 'water-report', title: 'Zpráva o kvalitě vody', step: 3 },
-  { id: 'historical-cases', title: 'Pracovní historie Mary', step: 4 },
+  { id: 'historical-cases', title: 'Historické případy — podezřelý vzorec', step: 4 },
   { id: 'newspapers', title: 'Novinové články', step: 5 },
   { id: 'control-measures', title: 'Kontrolní opatření', step: 6 },
 ];
@@ -76,7 +76,7 @@ export const DocumentList: React.FC = () => {
               }`}
             >
               <span className="flex-shrink-0 mt-0.5">{icon}</span>
-              <span className="leading-tight">{doc.title}</span>
+              <span className="leading-tight">{isUnlocked ? doc.title : `Krok ${doc.step + 1}`}</span>
             </li>
           );
         })}

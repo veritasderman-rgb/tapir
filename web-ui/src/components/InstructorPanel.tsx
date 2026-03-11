@@ -40,7 +40,7 @@ export default function InstructorPanel() {
 
       {/* Lock parameters */}
       <div>
-        <label className="block text-xs font-medium text-indigo-700 mb-1">Zamknout parametry (student nemůže měnit)</label>
+        <label className="block text-xs font-medium text-indigo-700 mb-1">Zamknout parametry (hráč nemůže měnit)</label>
         <div className="space-y-1">
           {LOCKABLE_PARAMS.map((p) => (
             <label key={p.path} className="flex items-center gap-2 text-xs text-indigo-900">
@@ -63,11 +63,11 @@ export default function InstructorPanel() {
             checked={hiddenEvents}
             onChange={(e) => setHiddenEvents(e.target.checked)}
           />
-          Skrýt varianty před studenty (hidden events)
+          Skrýt varianty před hráči (hidden events)
         </label>
         {hiddenEvents && scenario.variants.length > 0 && (
           <p className="text-xs text-indigo-600 mt-1">
-            {scenario.variants.length} varianta(y) bude skryta. Student uvidí efekt, ale ne konfiguraci.
+            {scenario.variants.length} varianta(y) bude skryta. Hráč uvidí efekt, ale ne konfiguraci.
           </p>
         )}
       </div>

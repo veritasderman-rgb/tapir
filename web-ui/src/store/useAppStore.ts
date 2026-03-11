@@ -12,7 +12,7 @@ export interface AppState {
   auth: {
     role: 'teacher' | 'guest' | null;
     username: string | null;
-    classId: string | null;
+    classId?: string | null;
   };
   setAuth: (auth: AppState['auth']) => void;
   logout: () => void;

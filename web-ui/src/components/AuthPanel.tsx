@@ -69,7 +69,7 @@ export default function AuthPanel() {
               <div className="text-2xl mb-2">🎓</div>
               <h2 className="font-semibold text-gray-900">Učitelský režim</h2>
               <p className="text-xs text-gray-500 mt-1">
-                Tvorba scénářů pro studenty, generování odkazů do Krizového štábu.
+                Tvorba scénářů, generování odkazů do Krizového štábu.
               </p>
             </div>
             <p className="text-[10px] text-gray-400 text-center">Demo: <code>ucitel / tapir123</code></p>

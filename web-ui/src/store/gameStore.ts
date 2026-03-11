@@ -42,7 +42,7 @@ export interface GameState {
   checkpoint: SimCheckpoint | null;
   turnHistory: TurnHistoryEntry[];
 
-  // Student's current action draft
+  // Player's current action draft
   activeMeasureIds: string[];
   vaccinationPriority: VaccinationPriority | null;
 
@@ -63,6 +63,7 @@ export interface GameState {
   oppositionBriefings: number; // count of opposition meetings held
   mediaSupport: number; // count of media support actions
   premierTakeoverDone: boolean; // premier already took over (one-time)
+  requestFinancialSupport: boolean; // player requested financial support this turn
 
   // Actions
   loadScenario: (encoded: string) => void;
@@ -83,6 +84,7 @@ export interface GameState {
   markIntroPopupShown: () => void;
   enqueuePopup: (popup: CrisisPopup) => void;
   dequeuePopup: () => void;
+  setRequestFinancialSupport: (v: boolean) => void;
   doOppositionBriefing: () => void;
   doMediaSupport: () => void;
 
@@ -144,6 +146,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   oppositionBriefings: 0,
   mediaSupport: 0,
   premierTakeoverDone: false,
+  requestFinancialSupport: false,
 
   loadScenario: (encoded: string) => {
     try {
@@ -179,6 +182,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       oppositionBriefings: 0,
       mediaSupport: 0,
       premierTakeoverDone: false,
+      requestFinancialSupport: false,
       popupQueue: [
         {
           id: 'intro-news',
@@ -207,6 +211,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       activeMeasureIds: effectiveMeasures,
       vaccinationPriority: effectiveVax,
       oppositionBriefings: state.oppositionBriefings,
+      requestFinancialSupport: state.requestFinancialSupport,
     };
 
     const result = stepTurn(checkpoint, gameScenario, action, nextTurn);
@@ -368,6 +373,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       // Crisis updates
       trust: newTrust,
       governmentDownRounds: newGovDown,
+      requestFinancialSupport: false,
       premierTakeoverDone: state.premierTakeoverDone || cumulativeDeaths >= premierThreshold,
       crisisLeader: cumulativeDeaths >= premierThreshold ? 'premier' : state.crisisLeader,
       popupQueue: [...state.popupQueue, ...newPopups],
@@ -399,6 +405,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     oppositionBriefings: 0,
     mediaSupport: 0,
     premierTakeoverDone: false,
+    requestFinancialSupport: false,
   }),
 
   toggleMeasure: (measureId: string) => set((s) => {
@@ -412,6 +419,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   setActiveMeasures: (ids) => set({ activeMeasureIds: ids }),
 
   setVaccinationPriority: (priority) => set({ vaccinationPriority: priority }),
+
+  setRequestFinancialSupport: (v: boolean) => set({ requestFinancialSupport: v }),
 
   // Crisis actions
   enterCrisisStaff: () => set({ crisisStaffEntered: true }),

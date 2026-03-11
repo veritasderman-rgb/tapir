@@ -30,7 +30,9 @@ const COLORS = {
 };
 
 export default function Dashboard() {
-  const { result, showTrue, showObserved, resultB, comparisonMode } = useAppStore();
+  const { result, viewMode, resultB, comparisonMode } = useAppStore();
+  const showTrue = viewMode === 'true' || viewMode === 'both';
+  const showObserved = viewMode === 'observed' || viewMode === 'both';
 
   const data = useMemo(() => {
     if (!result) return [];

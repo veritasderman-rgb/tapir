@@ -50,10 +50,12 @@ import { generateHeadlines } from './headlines';
 /**
  * Convert a GameMeasure to an NPIConfig for the engine.
  */
-function measureToNPI(measure: GameMeasure, startDay: number, endDay: number, turnsSinceActivation: number, crisisLeader: 'hygienik' | 'premier' = 'hygienik'): NPIConfig {
+function measureToNPI(measure: GameMeasure, startDay: number, endDay: number, turnsSinceActivation: number, crisisLeader: 'hygienik' | 'premier' = 'hygienik', legislativeDelay: number = 0): NPIConfig {
   // When hygienik leads, measures need +7 days for government approval
   const leaderDelay = crisisLeader === 'hygienik' ? 7 : 0;
-  const effectiveRampUp = measure.rampUpDays + leaderDelay;
+  // Legislative delay: government-approved premier measures need extra time (14-28 days)
+  const legislativeDays = legislativeDelay * 14;
+  const effectiveRampUp = measure.rampUpDays + leaderDelay + legislativeDays;
   const daysActive = turnsSinceActivation * 14;
   const rampFraction = effectiveRampUp > 0
     ? Math.min(1, daysActive / effectiveRampUp)
@@ -339,8 +341,9 @@ export function stepTurn(
     }
 
     const crisisLeader = turnAction.crisisLeader ?? 'hygienik';
+    const legislativeDelays = turnAction.legislativeDelays ?? {};
     const npiResult = applyNPIs(
-      activeMeasures.map(m => measureToNPI(m, startDay, startDay + daysPerTurn, 1, crisisLeader)),
+      activeMeasures.map(m => measureToNPI(m, startDay, startDay + daysPerTurn, 1, crisisLeader, legislativeDelays[m.id] ?? 0)),
       currentDay,
       scenario.contactMatrix,
       socialCapital

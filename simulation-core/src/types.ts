@@ -484,6 +484,8 @@ export interface TurnAction {
   requestFinancialSupport?: boolean;
   /** Who is leading the crisis staff ('hygienik' or 'premier') */
   crisisLeader?: 'hygienik' | 'premier';
+  /** Legislative delays for government-approved measures (measureId → turns remaining) */
+  legislativeDelays?: Record<string, number>;
 }
 
 /** Turn report shown to the student at end of turn. */

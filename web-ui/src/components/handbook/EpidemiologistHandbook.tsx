@@ -548,7 +548,7 @@ function TrasovaniSection() {
         <li><strong>Bezpříznakový přenos</strong> — nakažený neví, že je nakažený, a nikdo ho nehledá.</li>
         <li><strong>Neúplné údaje</strong> — lidé si nepamatují všechny kontakty, nebo je nechtějí uvést.</li>
         <li><strong>Zpoždění</strong> — od nákazy k testu uplyne 3-7 dní. Za tu dobu nakažený potkával další lidi.</li>
-        <li><strong>Kapacita</strong> — jedna hygienická stanice zvládne 20-50 případů denně. Při explozi nestíhá.</li>
+        <li><strong>Kapacita</strong> — jeden hygienik/hygienička zvládne vytrasovat 5–50 případů denně v závislosti na IT podpoře, náročnosti trasování a předpokládaném způsobu přenosu nákazy. Při explozivním nárůstu počet případů rychle přeroste kapacitu trasovacích týmů.</li>
       </ul>
     </>
   );

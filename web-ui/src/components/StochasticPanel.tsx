@@ -23,7 +23,7 @@ export default function StochasticPanel() {
         >
           <option value={SimulationMode.Deterministic}>Deterministický</option>
           <option value={SimulationMode.StochasticSingle}>Stochastický (jeden běh)</option>
-          <option value={SimulationMode.StochasticMonteCarlo}>Monte Carlo</option>
+          <option value={SimulationMode.MonteCarlo}>Monte Carlo</option>
         </select>
       </div>
 
@@ -37,7 +37,7 @@ export default function StochasticPanel() {
         />
       </div>
 
-      {stoch.mode === SimulationMode.StochasticMonteCarlo && (
+      {stoch.mode === SimulationMode.MonteCarlo && (
         <div>
           <label className="block text-xs text-gray-500">Počet MC běhů</label>
           <input
@@ -54,7 +54,7 @@ export default function StochasticPanel() {
       <div className="text-xs text-gray-400 mt-2">
         {stoch.mode === SimulationMode.Deterministic && 'Přechody počítány spojitě (rate × pool).'}
         {stoch.mode === SimulationMode.StochasticSingle && 'Přechody jako binomický výběr (seedovaný).'}
-        {stoch.mode === SimulationMode.StochasticMonteCarlo && `${stoch.monteCarloRuns} nezávislých běhů, výstup: medián + p5/p95.`}
+        {stoch.mode === SimulationMode.MonteCarlo && `${stoch.monteCarloRuns} nezávislých běhů, výstup: medián + p5/p95.`}
       </div>
     </div>
   );

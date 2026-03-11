@@ -2,6 +2,8 @@
  * Core Types for @tapir/core
  */
 
+export type { ReportingConfig } from './reporting';
+
 // ---- Basic Epidemiological Parameters ----
 
 export enum SimulationMode {

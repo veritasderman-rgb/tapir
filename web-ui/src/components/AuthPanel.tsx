@@ -163,6 +163,32 @@ export default function AuthPanel() {
           </div>
         </div>
 
+        {/* Educational materials */}
+        <div className="pt-2">
+          <p className="text-center text-xs text-gray-400 mb-3 uppercase tracking-wider font-semibold">Vzdělávací materiály</p>
+          <div className="grid md:grid-cols-1 gap-4 max-w-lg mx-auto">
+            <div className="bg-white border border-blue-200 rounded-lg p-4 flex items-center gap-4">
+              <div className="text-3xl">📖</div>
+              <div className="flex-1">
+                <h2 className="font-semibold text-gray-900 text-sm">Příručka epidemiologa</h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Školení o trasování, krizovém řízení, infekčních onemocněních a epidemiologických modelech.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setAuth({ role: 'guest', username: 'handbook', classId: null });
+                  setAppMode(AppMode.Handbook);
+                  setError(null);
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded text-xs font-bold hover:bg-blue-700 transition-colors flex-shrink-0"
+              >
+                Otevřít
+              </button>
+            </div>
+          </div>
+        </div>
+
         {error && (
           <div className="bg-red-100 border border-red-300 text-red-800 px-4 py-2 rounded text-sm text-center">
             {error}

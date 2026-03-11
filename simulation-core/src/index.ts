@@ -72,3 +72,7 @@ export { generateAdvisorMessages, ADVISOR_BACKGROUNDS } from './advisors';
 
 // Headlines
 export { generateHeadlines } from './headlines';
+
+// Preset scenarios
+export { PRESET_SCENARIOS } from './preset-scenarios';
+export type { PresetScenario } from './preset-scenarios';

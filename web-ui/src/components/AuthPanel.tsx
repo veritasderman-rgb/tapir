@@ -115,6 +115,54 @@ export default function AuthPanel() {
           </div>
         </div>
 
+        {/* Didaktikon games */}
+        <div className="pt-2">
+          <p className="text-center text-xs text-gray-400 mb-3 uppercase tracking-wider font-semibold">Didaktikon — epidemiologické hry</p>
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* Ósacká horečka */}
+            <div className="bg-white border-2 border-amber-300 rounded-lg p-5 space-y-3">
+              <div className="text-center">
+                <div className="text-2xl mb-2">🦠</div>
+                <h2 className="font-semibold text-gray-900">Ósacká horečka</h2>
+                <p className="text-xs text-gray-500 mt-1">
+                  Telefonní trasování kontaktů ve Springfieldu. Identifikujte nakažené, najděte ohniska nákazy a sestavte epidemiologickou křivku.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setAuth({ role: 'guest', username: 'didaktikon', classId: null });
+                  setAppMode(AppMode.OsackaHorecka);
+                  setError(null);
+                }}
+                className="w-full bg-amber-600 text-white rounded py-2.5 text-sm font-bold hover:bg-amber-700 transition-colors"
+              >
+                Hrát Ósackou horečku
+              </button>
+            </div>
+
+            {/* Tyfová Mary */}
+            <div className="bg-white border-2 border-emerald-300 rounded-lg p-5 space-y-3">
+              <div className="text-center">
+                <div className="text-2xl mb-2">🔍</div>
+                <h2 className="font-semibold text-gray-900">Tyfová Mary</h2>
+                <p className="text-xs text-gray-500 mt-1">
+                  Historická detektivka z roku 1906. Prozkoumejte dokumenty, analyzujte důkazy a odhalte první známou asymptomatickou přenašečku tyfu.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setAuth({ role: 'guest', username: 'didaktikon', classId: null });
+                  setAppMode(AppMode.TyfovaMary);
+                  setError(null);
+                }}
+                className="w-full bg-emerald-600 text-white rounded py-2.5 text-sm font-bold hover:bg-emerald-700 transition-colors"
+              >
+                Hrát Tyfovou Mary
+              </button>
+            </div>
+          </div>
+        </div>
+
         {error && (
           <div className="bg-red-100 border border-red-300 text-red-800 px-4 py-2 rounded text-sm text-center">
             {error}

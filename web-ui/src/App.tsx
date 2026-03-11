@@ -24,6 +24,10 @@ import TurnDashboard from './components/student/TurnDashboard';
 import GameOverScreen from './components/student/GameOverScreen';
 import ScenarioLoader from './components/student/ScenarioLoader';
 
+// Didaktikon games
+import OsackaGame from './components/osacka/OsackaGame';
+import TyfovaGame from './components/tyfova/TyfovaGame';
+
 const TABS = [
   { id: 'parameters' as const, label: 'Parametry' },
   { id: 'npis' as const, label: 'NPIs' },
@@ -104,6 +108,10 @@ export default function App() {
 
   // No auth and no game URL → show login
   if (!auth.role && !hasGameParam) return <AuthPanel />;
+
+  // Didaktikon games
+  if (appMode === AppMode.OsackaHorecka) return <OsackaGame />;
+  if (appMode === AppMode.TyfovaMary) return <TyfovaGame />;
 
   // Instructor mode → show Scenario Builder
   if (auth.role === 'teacher' && appMode === AppMode.Instructor) {

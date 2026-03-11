@@ -9,6 +9,8 @@ export default function Header() {
     [AppMode.Expert]: '🔬 Odborný',
     [AppMode.Instructor]: '🎓 Učitel',
     [AppMode.CrisisStaff]: '🏛️ Krizový štáb',
+    [AppMode.OsackaHorecka]: '🦠 Ósacká horečka',
+    [AppMode.TyfovaMary]: '🔍 Tyfová Mary',
   };
 
   return (

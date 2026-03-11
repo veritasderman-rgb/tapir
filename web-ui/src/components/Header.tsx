@@ -10,7 +10,7 @@ export default function Header() {
     [AppMode.Instructor]: '🎓 Učitel',
     [AppMode.CrisisStaff]: '🏛️ Krizový štáb',
     [AppMode.OsackaHorecka]: '🦠 Ósacká horečka',
-    [AppMode.TyfovaMary]: '🔍 Tyfová Mary',
+    [AppMode.TyfovaMary]: '🔍 Záhada z Oyster Bay',
   };
 
   return (

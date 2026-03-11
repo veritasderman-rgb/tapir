@@ -55,7 +55,7 @@ const DOCUMENT_CONTENTS: Record<string, { title: string; content: string; hasTab
     content: `<h3 class="text-lg font-semibold mb-3">Výpovědi a stravovací návyky</h3>
 <p class="mb-3">George Soper provedl podrobné rozhovory se všemi členy domácnosti Warrenových. Zaměřil se na to, <strong>co kdo jedl</strong> v období před propuknutím nemoci.</p>
 
-<p class="mb-4">Klíčovým zjištěním bylo, že kuchařka Mary Mallon krátce před propuknutím nemoci připravila svůj <strong>slavný broskvový dezert</strong> (peach ice cream) — studený, tepelně nezpracovaný pokrm, který je ideálním médiem pro přenos bakterií.</p>`,
+<p class="mb-4">Přečtěte si pozorně výpovědi jednotlivých členů domácnosti. Hledejte <strong>společný jmenovatel</strong> — co mají všichni nemocní společného a co je odlišuje od zdravých? Zaměřte se na <strong>konkrétní potraviny</strong> a na to, <strong>kdo je připravoval</strong>.</p>`,
   },
   'water-report': {
     title: 'Zpráva o kvalitě vody',
@@ -90,9 +90,9 @@ const DOCUMENT_CONTENTS: Record<string, { title: string; content: string; hasTab
 <p class="bg-yellow-50 border border-yellow-300 rounded p-3 text-sm"><strong>Pozn. vyšetřovatele:</strong> Pokud není zdrojem voda ani mléko, musím hledat jinde. Zaměřím se na osoby v domácnosti — zejména na ty, kdo manipulovali s jídlem.</p>`,
   },
   'historical-cases': {
-    title: 'Pracovní historie Mary Mallon (1900–1907)',
-    content: `<h3 class="text-lg font-semibold mb-3">Soperovo pátrání po pracovní historii</h3>
-<p class="mb-3">George Soper vystopoval předchozí zaměstnání Mary Mallon u bohatých newyorských rodin. Výsledky byly šokující:</p>
+    title: 'Historické případy — podezřelý vzorec',
+    content: `<h3 class="text-lg font-semibold mb-3">Soperovo pátrání v archivech</h3>
+<p class="mb-3">George Soper se rozhodl prověřit, zda se podobné záhadné případy břišního tyfu nevyskytly i jinde. Prohledal zdravotní záznamy z celého státu New York. Výsledky byly překvapivé:</p>
 
 <table class="w-full text-sm border-collapse mb-4">
   <thead>
@@ -104,20 +104,19 @@ const DOCUMENT_CONTENTS: Record<string, { title: string; content: string; hasTab
     </tr>
   </thead>
   <tbody>
-    <tr><td class="border p-2">1900–01</td><td class="border p-2">Rodina Drayton, Mamaroneck</td><td class="border p-2">1 případ</td><td class="border p-2">Mary odešla po propuknutí</td></tr>
-    <tr><td class="border p-2">1901–02</td><td class="border p-2">Rodina v New Yorku</td><td class="border p-2">Prádelna onemocněla</td><td class="border p-2">Mary odešla</td></tr>
-    <tr><td class="border p-2">1902–03</td><td class="border p-2">Advokát Coleman Drayton, Dark Harbor</td><td class="border p-2">7 případů z 9 osob</td><td class="border p-2">Mary pomáhala s ošetřováním nemocných</td></tr>
-    <tr><td class="border p-2">1904</td><td class="border p-2">Rodina Gilsey, Sands Point</td><td class="border p-2">4 případy</td><td class="border p-2">Služebnictvo i rodina</td></tr>
+    <tr><td class="border p-2">1900–01</td><td class="border p-2">Rodina Drayton, Mamaroneck</td><td class="border p-2">1 případ</td><td class="border p-2">Nová kuchařka odešla po propuknutí</td></tr>
+    <tr><td class="border p-2">1901–02</td><td class="border p-2">Rodina v New Yorku</td><td class="border p-2">Prádelna onemocněla</td><td class="border p-2">Kuchařka odešla</td></tr>
+    <tr><td class="border p-2">1902–03</td><td class="border p-2">Advokát Coleman Drayton, Dark Harbor</td><td class="border p-2">7 případů z 9 osob</td><td class="border p-2">Kuchařka pomáhala s ošetřováním nemocných</td></tr>
+    <tr><td class="border p-2">1904</td><td class="border p-2">Rodina Gilsey, Sands Point</td><td class="border p-2">4 případy</td><td class="border p-2">Služebnictvo i rodina; kuchařka jménem „Mary"</td></tr>
     <tr><td class="border p-2">1906</td><td class="border p-2">Rodina Warrenových, Oyster Bay</td><td class="border p-2">6 z 11 osob</td><td class="border p-2">Současný vyšetřovaný případ</td></tr>
-    <tr><td class="border p-2">1907</td><td class="border p-2">Rodina Bowena, Tuxedo Park</td><td class="border p-2">2 služebné</td><td class="border p-2">Poslední případ před dopadením</td></tr>
   </tbody>
 </table>
 
 <h4 class="font-semibold mt-4 mb-2">Vzorec</h4>
-<p class="mb-3 bg-red-50 border border-red-200 rounded p-3"><strong>Všude, kam Mary přišla jako kuchařka, propukl břišní tyfus.</strong> Za období 1900–1907 lze s její osobou spojit přibližně <strong>22 případů</strong> břišního tyfu a <strong>1 úmrtí</strong>.</p>
+<p class="mb-3 bg-red-50 border border-red-200 rounded p-3"><strong>Ve všech případech se tyfus objevil krátce po příchodu nové kuchařky.</strong> Kuchařka nikdy sama neonemocněla a vždy odešla před nebo během vyšetřování. Popis kuchařky v záznamech z roku 1904 odpovídá osobě z domácnosti Warrenových.</p>
 
 <h4 class="font-semibold mt-4 mb-2">Soperův závěr</h4>
-<p>Mary Mallon je s vysokou pravděpodobností asymptomatickým nosičem břišního tyfu. Je nutné provést bakteriologické vyšetření.</p>`,
+<p>Je třeba zjistit, zda kuchařka z domácnosti Warrenových pracovala i u těchto dalších rodin. Pokud ano, jedná se s vysokou pravděpodobností o asymptomatického nosiče břišního tyfu.</p>`,
   },
   'newspapers': {
     title: 'Novinové články — „Typhoid Mary"',

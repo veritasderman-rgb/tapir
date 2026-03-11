@@ -140,13 +140,13 @@ export default function AuthPanel() {
               </button>
             </div>
 
-            {/* Tyfová Mary */}
+            {/* Záhada z Oyster Bay */}
             <div className="bg-white border-2 border-emerald-300 rounded-lg p-5 space-y-3">
               <div className="text-center">
                 <div className="text-2xl mb-2">🔍</div>
-                <h2 className="font-semibold text-gray-900">Tyfová Mary</h2>
+                <h2 className="font-semibold text-gray-900">Záhada z Oyster Bay</h2>
                 <p className="text-xs text-gray-500 mt-1">
-                  Historická detektivka z roku 1906. Prozkoumejte dokumenty, analyzujte důkazy a odhalte první známou asymptomatickou přenašečku tyfu.
+                  Historická detektivka z roku 1906. Prozkoumejte dokumenty, analyzujte důkazy a odhalte zdroj záhadné epidemie břišního tyfu.
                 </p>
               </div>
               <button
@@ -157,7 +157,7 @@ export default function AuthPanel() {
                 }}
                 className="w-full bg-emerald-600 text-white rounded py-2.5 text-sm font-bold hover:bg-emerald-700 transition-colors"
               >
-                Hrát Tyfovou Mary
+                Hrát Záhadu z Oyster Bay
               </button>
             </div>
           </div>

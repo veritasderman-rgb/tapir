@@ -86,11 +86,20 @@ export default function ActionPanel() {
     return result;
   }, [unlockedIds]);
 
-  /** Whether a measure is available to the current leader */
-  const isMeasureAvailable = (m: GameMeasure): boolean => {
-    const auth = m.authority ?? 'both';
-    if (auth === 'both' || auth === 'hygienik') return true;
-    return crisisLeader === 'premier';
+  const govApprovedMeasures = useGameStore((s) => s.govApprovedMeasures);
+
+  /** Whether a measure is a premier-only measure that hygienist must request */
+  const isPremierRequest = (m: GameMeasure): boolean => {
+    if (crisisLeader === 'premier') return false;
+    return (m.authority ?? 'both') === 'premier';
+  };
+
+  /** Get status of a government-requested measure */
+  const getGovStatus = (measureId: string): string | null => {
+    if (!(measureId in govApprovedMeasures)) return null;
+    const turnsLeft = govApprovedMeasures[measureId];
+    if (turnsLeft === 0) return 'schváleno';
+    return `legislativa: ${turnsLeft} ${turnsLeft === 1 ? 'kolo' : 'kola'}`;
   };
 
   const hasVaxCapacity = activeMeasureIds.some(id => id.startsWith('vaccination_'));
@@ -159,8 +168,8 @@ export default function ActionPanel() {
             {cat.measures.map(m => {
               const isActive = activeMeasureIds.includes(m.id);
               const isHovered = hoveredMeasure === m.id;
-              const available = isMeasureAvailable(m);
-              const disabled = isFinished || !available;
+              const isRequest = isPremierRequest(m);
+              const govStatus = getGovStatus(m.id);
               return (
                 <div
                   key={m.id}
@@ -168,11 +177,13 @@ export default function ActionPanel() {
                   onMouseLeave={() => setHoveredMeasure(null)}
                 >
                   <button
-                    onClick={() => available && toggleMeasure(m.id)}
-                    disabled={disabled}
+                    onClick={() => !isFinished && toggleMeasure(m.id)}
+                    disabled={isFinished}
                     className={`w-full text-left px-3 py-2 rounded-lg border text-xs transition-all ${
-                      !available
-                        ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed opacity-60'
+                      isRequest
+                        ? isActive
+                          ? 'bg-amber-50 border-amber-300 text-amber-800 ring-1 ring-amber-300'
+                          : 'bg-white border-amber-200 text-amber-700 hover:border-amber-300 hover:bg-amber-50'
                         : isActive
                         ? 'bg-blue-50 border-blue-300 text-blue-700 ring-1 ring-blue-300'
                         : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
@@ -180,8 +191,21 @@ export default function ActionPanel() {
                   >
                     <div className="font-bold flex justify-between items-center">
                       <span>{m.name}</span>
-                      {!available && <span className="text-[9px] text-gray-400">🔒 Premiér</span>}
-                      {available && isActive && <span className="text-[10px]">✓</span>}
+                      <span className="flex items-center gap-1">
+                        {isRequest && !isActive && !govStatus && (
+                          <span className="text-[9px] text-amber-500 font-normal">🏛 Požádat vládu</span>
+                        )}
+                        {isRequest && isActive && !govStatus && (
+                          <span className="text-[9px] text-amber-600">🏛 Žádost k odeslání</span>
+                        )}
+                        {govStatus === 'schváleno' && (
+                          <span className="text-[9px] text-green-600">✓ Schváleno</span>
+                        )}
+                        {govStatus && govStatus !== 'schváleno' && (
+                          <span className="text-[9px] text-amber-600">⏳ {govStatus}</span>
+                        )}
+                        {!isRequest && isActive && <span className="text-[10px]">✓</span>}
+                      </span>
                     </div>
                   </button>
                   {isHovered && (

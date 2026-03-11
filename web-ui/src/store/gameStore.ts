@@ -8,7 +8,7 @@ import {
   type PopulationState,
   type VaccinationPriority,
 } from '@tapir/core';
-import { initGame, stepTurn, decodeGameScenario } from '@tapir/core';
+import { initGame, stepTurn, decodeGameScenario, getMeasureById } from '@tapir/core';
 
 export interface TurnHistoryEntry {
   turnNumber: number;
@@ -64,6 +64,13 @@ export interface GameState {
   mediaSupport: number; // count of media support actions
   premierTakeoverDone: boolean; // premier already took over (one-time)
   requestFinancialSupport: boolean; // player requested financial support this turn
+
+  /**
+   * Tracks government requests for premier-only measures by hygienist.
+   * Key = measure ID. Value = number of legislative turns remaining before full effect.
+   * 0 = fully active (legislation passed), >0 = still in legislative process.
+   */
+  govApprovedMeasures: Record<string, number>;
 
   // Actions
   loadScenario: (encoded: string) => void;
@@ -147,6 +154,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   mediaSupport: 0,
   premierTakeoverDone: false,
   requestFinancialSupport: false,
+  govApprovedMeasures: {},
 
   loadScenario: (encoded: string) => {
     try {
@@ -183,6 +191,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       mediaSupport: 0,
       premierTakeoverDone: false,
       requestFinancialSupport: false,
+      govApprovedMeasures: {},
       popupQueue: [
         {
           id: 'intro-news',
@@ -203,16 +212,105 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     // If government is down, disable all measures for this turn
     const isGovDown = state.governmentDownRounds > 0;
-    const effectiveMeasures = isGovDown ? [] : activeMeasureIds;
     const effectiveVax = isGovDown ? null : vaccinationPriority;
 
     const nextTurn = currentTurn + 1;
+    const earlyPopups: CrisisPopup[] = [];
+
+    // ─── Auto-increment opposition briefings when measure is active ───
+    let newOppositionBriefings = state.oppositionBriefings;
+    if (activeMeasureIds.includes('opposition_briefing')) {
+      newOppositionBriefings += 1;
+    }
+
+    // ─── Government request system for premier-only measures ───
+    // When hygienist, premier measures need government approval
+    let effectiveMeasures = isGovDown ? [] : [...activeMeasureIds];
+    const newGovApproved = { ...state.govApprovedMeasures };
+
+    // Decrement legislative timers for previously approved measures
+    for (const [mid, turnsLeft] of Object.entries(newGovApproved)) {
+      if (turnsLeft > 0) {
+        newGovApproved[mid] = turnsLeft - 1;
+        if (turnsLeft - 1 === 0) {
+          earlyPopups.push({
+            id: `gov-legislation-done-${mid}-${nextTurn}`,
+            title: 'Legislativní proces dokončen',
+            body: `Opatření "${getMeasureById(mid)?.name ?? mid}" prošlo legislativním procesem a nabývá plné účinnosti.`,
+            variant: 'success',
+          });
+        }
+      }
+    }
+
+    if (state.crisisLeader === 'hygienik' && !isGovDown) {
+      // Get current observed infections for approval probability
+      const lastReport = state.lastTurnReport;
+      const observedInfections = lastReport?.observedInfections ?? 0;
+
+      for (const mid of activeMeasureIds) {
+        const measure = getMeasureById(mid);
+        if (!measure) continue;
+        const auth = measure.authority ?? 'both';
+        if (auth !== 'premier') continue;
+
+        // Already approved in a previous turn?
+        if (mid in newGovApproved) continue;
+
+        // Calculate approval probability based on current infections
+        let approvalChance: number;
+        if (observedInfections < 2000) {
+          approvalChance = 0.10;
+        } else if (observedInfections < 3000) {
+          approvalChance = 0.10 + (observedInfections - 2000) / 1000 * 0.65; // 10% → 75%
+        } else if (observedInfections < 6000) {
+          approvalChance = 0.75 + (observedInfections - 3000) / 3000 * 0.25; // 75% → 100%
+        } else {
+          approvalChance = 1.0;
+        }
+
+        const roll = Math.random();
+        if (roll < approvalChance) {
+          // Approved — but needs 1-2 turns for legislative process
+          const legislativeDelay = observedInfections >= 6000 ? 1 : 2;
+          newGovApproved[mid] = legislativeDelay;
+          earlyPopups.push({
+            id: `gov-approved-${mid}-${nextTurn}`,
+            title: 'Vláda schválila opatření',
+            body: `Vláda schválila vaši žádost o opatření "${measure.name}".\n\nLegislativní proces (projednání v parlamentu, podpis prezidenta) potrvá přibližně ${legislativeDelay === 1 ? '2 týdny' : '4 týdny'} (${legislativeDelay} ${legislativeDelay === 1 ? 'kolo' : 'kola'}).\n\nPoté opatření nabude plné účinnosti.`,
+            variant: 'success',
+          });
+        } else {
+          // Denied — remove from effective measures
+          effectiveMeasures = effectiveMeasures.filter(id => id !== mid);
+          const reason = observedInfections < 2000
+            ? 'Vláda považuje situaci za zvládnutelnou stávajícími prostředky.'
+            : observedInfections < 3000
+              ? 'Koaliční partneři nesouhlasí s tak razantním krokem.'
+              : 'Vláda chce ještě vyčkat na vývoj situace.';
+          earlyPopups.push({
+            id: `gov-denied-${mid}-${nextTurn}`,
+            title: 'Vláda zamítla žádost',
+            body: `Vaše žádost o opatření "${measure.name}" byla zamítnuta.\n\n${reason}\n\nMůžete žádost podat znovu v dalším kole.`,
+            variant: 'warning',
+          });
+        }
+      }
+
+      // Remove denied premier measures from effective list
+      // (already handled above by filtering)
+
+      // For approved measures still in legislative process, they are active
+      // but with extra ramp-up delay handled by the legislativeDelay field
+    }
+
     const action: TurnAction = {
       activeMeasureIds: effectiveMeasures,
       vaccinationPriority: effectiveVax,
-      oppositionBriefings: state.oppositionBriefings,
+      oppositionBriefings: newOppositionBriefings,
       requestFinancialSupport: state.requestFinancialSupport,
       crisisLeader: state.crisisLeader,
+      legislativeDelays: newGovApproved,
     };
 
     const result = stepTurn(checkpoint, gameScenario, action, nextTurn);
@@ -377,7 +475,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       requestFinancialSupport: false,
       premierTakeoverDone: state.premierTakeoverDone || cumulativeDeaths >= premierThreshold,
       crisisLeader: cumulativeDeaths >= premierThreshold ? 'premier' : state.crisisLeader,
-      popupQueue: [...state.popupQueue, ...newPopups],
+      oppositionBriefings: newOppositionBriefings,
+      govApprovedMeasures: newGovApproved,
+      popupQueue: [...state.popupQueue, ...earlyPopups, ...newPopups],
     });
   },
 
@@ -407,6 +507,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     mediaSupport: 0,
     premierTakeoverDone: false,
     requestFinancialSupport: false,
+    govApprovedMeasures: {},
   }),
 
   toggleMeasure: (measureId: string) => set((s) => {

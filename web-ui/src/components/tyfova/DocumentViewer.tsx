@@ -12,6 +12,9 @@ const DOCUMENT_CONTENTS: Record<string, { title: string; content: string; hasTab
 <h4 class="font-semibold mt-4 mb-2">Přenos</h4>
 <p class="mb-3">Nemoc se přenáší <strong>fekálně-orální cestou</strong> — tedy kontaminovanou vodou nebo potravinami. Bakterie se dostávají do prostředí z výkalů nebo moči infikované osoby.</p>
 
+<h4 class="font-semibold mt-4 mb-2">Inkubační doba</h4>
+<p class="mb-3">Typická inkubační doba břišního tyfu je <strong>7–14 dní</strong> (rozmezí 3–60 dní v závislosti na infekční dávce). Čím větší množství bakterií člověk pozře, tím kratší je inkubační doba. Tato informace je klíčová pro zpětné dohledání zdroje nákazy — pokud víme, kdy se příznaky objevily, můžeme odhadnout, kdy k nákaze došlo.</p>
+
 <h4 class="font-semibold mt-4 mb-2">Příznaky</h4>
 <ul class="list-disc list-inside mb-3 space-y-1">
   <li>Vysoká horečka (až 40 °C)</li>

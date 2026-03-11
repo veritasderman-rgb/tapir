@@ -78,18 +78,20 @@ export default function ActionPanel() {
     const result: { category: string; label: string; measures: GameMeasure[] }[] = [];
     for (const cat of CATEGORY_ORDER) {
       const measures = getMeasuresByCategory(cat as GameMeasure['category'])
-        .filter(m => unlockedIds.includes(m.id))
-        .filter(m => {
-          const auth = m.authority ?? 'both';
-          if (auth === 'both' || auth === 'hygienik') return true;
-          return crisisLeader === 'premier';
-        });
+        .filter(m => unlockedIds.includes(m.id));
       if (measures.length > 0) {
         result.push({ category: cat, label: CATEGORY_LABELS[cat] || cat, measures });
       }
     }
     return result;
-  }, [unlockedIds, crisisLeader]);
+  }, [unlockedIds]);
+
+  /** Whether a measure is available to the current leader */
+  const isMeasureAvailable = (m: GameMeasure): boolean => {
+    const auth = m.authority ?? 'both';
+    if (auth === 'both' || auth === 'hygienik') return true;
+    return crisisLeader === 'premier';
+  };
 
   const hasVaxCapacity = activeMeasureIds.some(id => id.startsWith('vaccination_'));
   const [hoveredMeasure, setHoveredMeasure] = useState<string | null>(null);
@@ -157,6 +159,8 @@ export default function ActionPanel() {
             {cat.measures.map(m => {
               const isActive = activeMeasureIds.includes(m.id);
               const isHovered = hoveredMeasure === m.id;
+              const available = isMeasureAvailable(m);
+              const disabled = isFinished || !available;
               return (
                 <div
                   key={m.id}
@@ -164,17 +168,20 @@ export default function ActionPanel() {
                   onMouseLeave={() => setHoveredMeasure(null)}
                 >
                   <button
-                    onClick={() => toggleMeasure(m.id)}
-                    disabled={isFinished}
+                    onClick={() => available && toggleMeasure(m.id)}
+                    disabled={disabled}
                     className={`w-full text-left px-3 py-2 rounded-lg border text-xs transition-all ${
-                      isActive
+                      !available
+                        ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed opacity-60'
+                        : isActive
                         ? 'bg-blue-50 border-blue-300 text-blue-700 ring-1 ring-blue-300'
                         : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
                     }`}
                   >
                     <div className="font-bold flex justify-between items-center">
                       <span>{m.name}</span>
-                      {isActive && <span className="text-[10px]">✓</span>}
+                      {!available && <span className="text-[9px] text-gray-400">🔒 Premiér</span>}
+                      {available && isActive && <span className="text-[10px]">✓</span>}
                     </div>
                   </button>
                   {isHovered && (

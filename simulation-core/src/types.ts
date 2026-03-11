@@ -27,6 +27,8 @@ export enum AppMode {
   Expert = 'expert',
   Instructor = 'instructor',
   CrisisStaff = 'crisis_staff',
+  OsackaHorecka = 'osacka_horecka',
+  TyfovaMary = 'tyfova_mary',
 }
 
 export enum AgeGroup {

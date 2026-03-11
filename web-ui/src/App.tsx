@@ -28,6 +28,9 @@ import ScenarioLoader from './components/student/ScenarioLoader';
 import OsackaGame from './components/osacka/OsackaGame';
 import TyfovaGame from './components/tyfova/TyfovaGame';
 
+// Educational
+import EpidemiologistHandbook from './components/handbook/EpidemiologistHandbook';
+
 const TABS = [
   { id: 'parameters' as const, label: 'Parametry' },
   { id: 'npis' as const, label: 'NPIs' },
@@ -112,6 +115,9 @@ export default function App() {
   // Didaktikon games
   if (appMode === AppMode.OsackaHorecka) return <OsackaGame />;
   if (appMode === AppMode.TyfovaMary) return <TyfovaGame />;
+
+  // Educational handbook
+  if (appMode === AppMode.Handbook) return <EpidemiologistHandbook />;
 
   // Instructor mode → show Scenario Builder
   if (auth.role === 'teacher' && appMode === AppMode.Instructor) {

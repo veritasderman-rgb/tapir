@@ -50,10 +50,13 @@ import { generateHeadlines } from './headlines';
 /**
  * Convert a GameMeasure to an NPIConfig for the engine.
  */
-function measureToNPI(measure: GameMeasure, startDay: number, endDay: number, turnsSinceActivation: number): NPIConfig {
+function measureToNPI(measure: GameMeasure, startDay: number, endDay: number, turnsSinceActivation: number, crisisLeader: 'hygienik' | 'premier' = 'hygienik'): NPIConfig {
+  // When hygienik leads, measures need +7 days for government approval
+  const leaderDelay = crisisLeader === 'hygienik' ? 7 : 0;
+  const effectiveRampUp = measure.rampUpDays + leaderDelay;
   const daysActive = turnsSinceActivation * 14;
-  const rampFraction = measure.rampUpDays > 0
-    ? Math.min(1, daysActive / measure.rampUpDays)
+  const rampFraction = effectiveRampUp > 0
+    ? Math.min(1, daysActive / effectiveRampUp)
     : 1;
 
   const effectiveValue = 1 - (1 - measure.npiEffect.value) * rampFraction;
@@ -335,8 +338,9 @@ export function stepTurn(
       }
     }
 
+    const crisisLeader = turnAction.crisisLeader ?? 'hygienik';
     const npiResult = applyNPIs(
-      activeMeasures.map(m => measureToNPI(m, startDay, startDay + daysPerTurn, 1)),
+      activeMeasures.map(m => measureToNPI(m, startDay, startDay + daysPerTurn, 1, crisisLeader)),
       currentDay,
       scenario.contactMatrix,
       socialCapital
@@ -476,6 +480,8 @@ export function stepTurn(
     observedInfections: Math.round(totalObservedInfections),
     whoConsultationActive,
     oppositionBriefings: turnAction.oppositionBriefings ?? 0,
+    crisisLeader: turnAction.crisisLeader ?? 'hygienik',
+    daysPerTurn,
   });
 
   const headlines = generateHeadlines({

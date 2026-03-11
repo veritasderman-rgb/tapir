@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import type { TurnReport, AdvisorMessage } from '@tapir/core';
 
@@ -122,20 +123,64 @@ const URGENCY_BADGE: Record<string, string> = {
   critical: 'bg-red-600 text-white shadow-lg',
 };
 
+const ADVISOR_ICONS: Record<string, string> = {
+  epidemiologist: '🔬',
+  economist: '📊',
+  politician: '🏛',
+  military: '⭐',
+  opposition: '📢',
+};
+
 function AdvisorCard({ advisor }: { advisor: AdvisorMessage }) {
+  const [showBio, setShowBio] = useState(false);
+
   return (
     <div className={`border-l-4 rounded-r-3xl p-5 shadow-sm transition-all hover:shadow-md ${ADVISOR_COLORS[advisor.role] || 'border-gray-200 bg-gray-50'}`}>
       <div className="flex items-center justify-between mb-3">
-        <span className="text-[11px] font-black uppercase tracking-wider">{advisor.name}</span>
+        <button
+          onClick={() => setShowBio(!showBio)}
+          className="text-[11px] font-black uppercase tracking-wider hover:underline cursor-pointer flex items-center gap-1.5"
+          title="Klikněte pro profil poradce"
+        >
+          <span>{ADVISOR_ICONS[advisor.role] || '👤'}</span>
+          <span>{advisor.name}</span>
+          <span className="text-[8px] opacity-40">{showBio ? '▲' : '▼'}</span>
+        </button>
         <span className={`text-[8px] px-2 py-1 rounded-full font-black uppercase tracking-[0.1em] ${URGENCY_BADGE[advisor.urgency] || 'bg-gray-100'}`}>
           {advisor.urgency}
         </span>
       </div>
+
+      {/* Background story / bio panel */}
+      {showBio && advisor.background && (
+        <div className="mb-4 p-3 bg-white/60 rounded-2xl border border-current/10 text-[10px] leading-relaxed text-gray-600 whitespace-pre-line">
+          {advisor.background}
+        </div>
+      )}
+
       <p className="text-xs leading-relaxed font-bold italic">"{advisor.message}"</p>
+
       {advisor.suggestion && (
         <div className="mt-4 pt-3 border-t border-current/10">
            <span className="text-[8px] font-black uppercase opacity-50 block mb-1">Doporučení:</span>
            <span className="text-[11px] font-black uppercase tracking-tight">{advisor.suggestion}</span>
+        </div>
+      )}
+
+      {/* Gen. Vlk predictions */}
+      {(advisor.prediction14d || advisor.prediction1m) && (
+        <div className="mt-4 pt-3 border-t border-current/10 space-y-2">
+          <span className="text-[8px] font-black uppercase opacity-50 block">Predikce Gen. Vlka:</span>
+          {advisor.prediction14d && (
+            <div className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-2.5">
+              <span className="text-[9px] font-bold text-amber-800 leading-relaxed">{advisor.prediction14d}</span>
+            </div>
+          )}
+          {advisor.prediction1m && (
+            <div className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-2.5">
+              <span className="text-[9px] font-bold text-amber-800 leading-relaxed">{advisor.prediction1m}</span>
+            </div>
+          )}
         </div>
       )}
     </div>

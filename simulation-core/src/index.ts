@@ -68,7 +68,7 @@ export { MEASURE_CATALOG, getMeasureById, getMeasuresByCategory, getAllMeasureId
 export { stepEconomics, defaultEconomicState, unemploymentSocialCapitalDrain } from './economics';
 
 // Advisors
-export { generateAdvisorMessages } from './advisors';
+export { generateAdvisorMessages, ADVISOR_BACKGROUNDS } from './advisors';
 
 // Headlines
 export { generateHeadlines } from './headlines';

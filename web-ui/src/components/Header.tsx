@@ -14,12 +14,12 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between">
-      <div className="flex items-center gap-3">
+    <header className="bg-white border-b border-gray-200 px-2 md:px-4 py-2 flex items-center justify-between gap-2">
+      <div className="flex items-center gap-1.5 md:gap-3 min-w-0">
         {appMode === AppMode.Expert && (
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-1 rounded hover:bg-gray-100 lg:hidden"
+            className="p-1 rounded hover:bg-gray-100 lg:hidden flex-shrink-0"
             aria-label={sidebarOpen ? 'Zavřít panel' : 'Otevřít panel'}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -27,17 +27,18 @@ export default function Header() {
             </svg>
           </button>
         )}
-        <h1 className="text-lg font-bold text-gray-900">
-          Nedovařený tapír
+        <h1 className="text-sm md:text-lg font-bold text-gray-900 truncate">
+          <span className="hidden sm:inline">Nedovařený tapír</span>
+          <span className="sm:hidden">Tapír</span>
         </h1>
-        <span className="text-xs text-gray-400">v{VERSION}</span>
-        <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded font-medium">
+        <span className="hidden sm:inline text-xs text-gray-400">v{VERSION}</span>
+        <span className="hidden sm:inline bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded font-medium">
           SIMULACE
         </span>
       </div>
 
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-500">
+      <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+        <span className="hidden sm:inline text-xs text-gray-500">
           {modeLabel[appMode] ?? appMode}
         </span>
         {auth.role === 'teacher' && (

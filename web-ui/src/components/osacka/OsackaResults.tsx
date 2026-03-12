@@ -177,7 +177,7 @@ const OsackaResults: React.FC = () => {
         <h2 className="text-lg font-bold text-gray-800 mb-4">
           Epi křivka — porovnání
         </h2>
-        <div className="grid grid-cols-7 gap-1 text-xs">
+        <div className="grid grid-cols-4 sm:grid-cols-7 gap-1 text-xs">
           {epiCurveData.map((entry) => {
             const actualCases = actualInfected.filter(
               (c) => c.symptomsDay === entry.day

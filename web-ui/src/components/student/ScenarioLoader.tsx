@@ -69,7 +69,7 @@ export default function ScenarioLoader() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-3xl">
         {/* Header */}
-        <div className="bg-gray-900 rounded-t-[2rem] px-8 py-10 text-center">
+        <div className="bg-gray-900 rounded-t-[2rem] px-4 md:px-8 py-6 md:py-10 text-center">
           <div className="text-4xl mb-4">🏛️</div>
           <h1 className="text-2xl font-black text-white uppercase tracking-tighter italic">Krizový štáb</h1>
           <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-2">
@@ -78,7 +78,7 @@ export default function ScenarioLoader() {
         </div>
 
         {/* Scenario cards */}
-        <div className="bg-white px-8 py-6 border-x border-gray-200">
+        <div className="bg-white px-4 md:px-8 py-6 border-x border-gray-200">
           <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Vyberte scénář epidemie</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {PRESET_SCENARIOS.map((preset) => (
@@ -112,7 +112,7 @@ export default function ScenarioLoader() {
         </div>
 
         {/* Teacher code section */}
-        <div className="bg-white px-8 py-4 border-x border-b border-gray-200 rounded-b-[2rem]">
+        <div className="bg-white px-4 md:px-8 py-4 border-x border-b border-gray-200 rounded-b-[2rem]">
           {!showTeacherInput ? (
             <button
               onClick={() => setShowTeacherInput(true)}

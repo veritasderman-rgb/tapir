@@ -478,12 +478,42 @@ function OpatreniSection() {
         />
       </div>
 
+      <WarningBox title="Hodnoty platí pro naši hru, ne pro skutečnou epidemii">
+        Čísla uvedená výše (např. „snížení přenosu ~15 %") jsou <strong>zjednodušené herní parametry</strong> navržené
+        tak, aby simulace byla hratelná a přitom zachycovala relativní účinnost jednotlivých opatření.
+        Ve skutečnosti závisí efekt každého opatření na konkrétním patogenu (způsob přenosu, virulence,
+        velikost infekční dávky), populaci (věková struktura, hustota osídlení, kulturní zvyklosti)
+        a kvalitě implementace. Reálné epidemiologické modely tyto parametry kalibrují na míru
+        konkrétní situaci pomocí dat z terénu — což je přesně to, co dělá práci epidemiologa tak náročnou.
+        Pokud vás zajímají skutečné odhady účinnosti NPI, doporučujeme odbornou literaturu a systematické
+        přehledy (např. Cochrane reviews).
+      </WarningBox>
+
+      <h3 className="text-lg font-bold mt-6">Právní rámec a demokratická kontrola</h3>
+      <p className="text-gray-700 leading-relaxed">
+        Každé epidemiologické opatření je zároveň <strong>zásahem do základních práv a svobod</strong> —
+        svobody pohybu, shromažďování, podnikání či práva na vzdělání. Demokratický právní stát
+        vyžaduje, aby takové zásahy byly <strong>přiměřené, časově omezené a podložené zákonem</strong>.
+        Proto v běžném režimu procházejí opatření politickou kontrolou: vláda je schvaluje,
+        parlament je může přezkoumat a opozice plní nezastupitelnou roli kritického hlasu,
+        který brání zneužití mimořádných pravomocí.
+      </p>
+      <p className="text-gray-700 leading-relaxed mt-3">
+        V praxi to znamená, že i epidemiologicky správné rozhodnutí musí projít <strong>testem
+        proporcionality</strong> — je opatření nezbytné? Existuje mírnější alternativa se srovnatelným
+        účinkem? Nepřináší více škody než užitku? Toto napětí mezi ochranou veřejného zdraví
+        a ochranou individuálních práv není slabinou systému, ale jeho <strong>pojistkou</strong>.
+        Právě proto je krizové řízení epidemie tak obtížné — a proto potřebuje nejen epidemiology,
+        ale i právníky, politiky a informovanou veřejnost.
+      </p>
+
       <h3 className="text-lg font-bold mt-6">Načasování a náběh</h3>
       <p className="text-gray-700 leading-relaxed">
         Opatření nezačnou fungovat ihned. Každé má <strong>dobu náběhu</strong> (ramp-up):
         čas potřebný k plné implementaci. Roušky: 1 den. Trasování: 7 dní.
         Vakcinační centra: 21 dní. Navíc, když rozhoduje <strong>hlavní hygienik</strong>
-        místo premiéra, přidává se +7 dní na schválení vládou.
+        místo premiéra, přidává se +7 dní na schválení vládou — což v modelu odráží právě
+        tento proces demokratické kontroly.
       </p>
 
       <InfoBox title="Provázanost opatření">

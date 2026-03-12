@@ -478,6 +478,17 @@ function OpatreniSection() {
         />
       </div>
 
+      <WarningBox title="Hodnoty platí pro naši hru, ne pro skutečnou epidemii">
+        Čísla uvedená výše (např. „snížení přenosu ~15 %") jsou <strong>zjednodušené herní parametry</strong> navržené
+        tak, aby simulace byla hratelná a přitom zachycovala relativní účinnost jednotlivých opatření.
+        Ve skutečnosti závisí efekt každého opatření na konkrétním patogenu (způsob přenosu, virulence,
+        velikost infekční dávky), populaci (věková struktura, hustota osídlení, kulturní zvyklosti)
+        a kvalitě implementace. Reálné epidemiologické modely tyto parametry kalibrují na míru
+        konkrétní situaci pomocí dat z terénu — což je přesně to, co dělá práci epidemiologa tak náročnou.
+        Pokud vás zajímají skutečné odhady účinnosti NPI, doporučujeme odbornou literaturu a systematické
+        přehledy (např. Cochrane reviews).
+      </WarningBox>
+
       <h3 className="text-lg font-bold mt-6">Načasování a náběh</h3>
       <p className="text-gray-700 leading-relaxed">
         Opatření nezačnou fungovat ihned. Každé má <strong>dobu náběhu</strong> (ramp-up):

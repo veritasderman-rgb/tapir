@@ -150,7 +150,10 @@ export default function TurnDashboard() {
              <div className="text-5xl mb-6 grayscale opacity-20">🏛️</div>
              <p className="text-xs font-black uppercase tracking-[0.3em] mb-2">Ústřední krizový štáb</p>
              <p className="text-[10px] font-bold italic">Zatím neproběhlo žádné jednání štábu.</p>
-             <p className="text-[10px] mt-8 text-gray-400">Nastavte první opatření vpravo a klikněte na tlačítko.</p>
+             <p className="text-[10px] mt-8 text-gray-400">
+               <span className="hidden lg:inline">Nastavte první opatření vpravo a klikněte na tlačítko.</span>
+               <span className="lg:hidden">Scrollujte dolů pro nastavení opatření.</span>
+             </p>
           </div>
         )}
       </div>

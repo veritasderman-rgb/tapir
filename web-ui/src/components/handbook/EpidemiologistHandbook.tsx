@@ -27,23 +27,43 @@ export default function EpidemiologistHandbook() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button onClick={handleBack} className="text-gray-400 hover:text-gray-600 text-sm">
+        <div className="max-w-6xl mx-auto px-3 md:px-4 py-3 md:py-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 md:gap-3 min-w-0">
+            <button onClick={handleBack} className="text-gray-400 hover:text-gray-600 text-sm flex-shrink-0">
               ← Zpět
             </button>
-            <div>
-              <h1 className="text-xl font-black text-gray-900">Příručka epidemiologa</h1>
-              <p className="text-xs text-gray-500">Školení pro krizový štáb — zjednodušený přehled klíčových konceptů</p>
+            <div className="min-w-0">
+              <h1 className="text-base md:text-xl font-black text-gray-900 truncate">Příručka epidemiologa</h1>
+              <p className="text-[10px] md:text-xs text-gray-500 hidden sm:block">Školení pro krizový štáb — zjednodušený přehled klíčových konceptů</p>
             </div>
           </div>
-          <div className="text-xs text-gray-400 italic">Nedovařený tapír — vzdělávací materiály</div>
+          <div className="hidden md:block text-xs text-gray-400 italic flex-shrink-0">Nedovařený tapír — vzdělávací materiály</div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-6 flex gap-6">
-        {/* Sidebar navigation */}
-        <nav className="w-56 flex-shrink-0">
+      {/* Mobile section navigation (horizontal scroll) */}
+      <div className="md:hidden overflow-x-auto border-b border-gray-200 bg-white">
+        <div className="flex px-2 gap-1 py-2 min-w-max">
+          {SECTIONS.map(s => (
+            <button
+              key={s.id}
+              onClick={() => setActiveSection(s.id)}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                activeSection === s.id
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-gray-500 hover:bg-gray-100'
+              }`}
+            >
+              <span className="mr-1">{s.icon}</span>
+              {s.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-3 md:px-4 py-4 md:py-6 md:flex gap-6">
+        {/* Sidebar navigation (desktop only) */}
+        <nav className="hidden md:block w-56 flex-shrink-0">
           <div className="sticky top-6 space-y-1">
             {SECTIONS.map(s => (
               <button
@@ -64,7 +84,7 @@ export default function EpidemiologistHandbook() {
 
         {/* Content */}
         <main className="flex-1 min-w-0">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 prose prose-sm max-w-none">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-8 prose prose-sm max-w-none">
             {activeSection === 'intro' && <IntroSection />}
             {activeSection === 'sireni' && <SireniSection />}
             {activeSection === 'modely' && <ModelySection />}

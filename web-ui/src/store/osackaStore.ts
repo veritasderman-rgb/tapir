@@ -34,8 +34,8 @@ const initialEpiCurve: EpiCurveEntry[] = Array.from({ length: 14 }, (_, i) => ({
 export const useOsackaStore = create<OsackaStore>((set, get) => ({
   // State
   phase: 'intro',
-  budget: 200,
-  maxBudget: 200,
+  budget: 550,
+  maxBudget: 550,
   calledContacts: [],
   selectedContact: null,
   playerNotes: {},

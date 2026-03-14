@@ -39,15 +39,15 @@ export const SUPERSPREADER_EVENT_NAMES = [
 ];
 
 /** Maximální rozpočet */
-export const MAX_BUDGET = 200;
+export const MAX_BUDGET = 550;
 
 /** Maximální teoretické skóre:
  *  23 * 5 = 115 (nakažení)
  *  + 3 * 10 = 30 (superspreader)
  *  + 10 (pacient nula)
  *  + 23 * 3 = 69 (přenosové linky)
- *  + 200 * 0.5 = 100 (max budget bonus, theoretical)
- *  = 324 theoretical max
+ *  + 550 * 0.5 = 275 (max budget bonus, theoretical)
+ *  = 499 theoretical max
  */
 export const THEORETICAL_MAX_SCORE =
   TOTAL_INFECTED * POINTS_PER_CORRECT_INFECTED +

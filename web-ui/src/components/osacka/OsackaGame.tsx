@@ -83,7 +83,7 @@ const OsackaGame: React.FC = () => {
           </div>
 
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6 text-sm text-amber-800">
-            Pocatecni rozpocet: <strong>200 bodu</strong>. Kazdy hovor stoji
+            Pocatecni rozpocet: <strong>550 bodu</strong>. Kazdy hovor stoji
             ruzne mnozstvi bodu. Hospodarete rozumne!
           </div>
 

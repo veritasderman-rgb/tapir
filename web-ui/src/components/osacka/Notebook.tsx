@@ -20,7 +20,7 @@ const Notebook: React.FC = () => {
   const identifiedInfected = useOsackaStore((s) => s.identifiedInfected);
   const updateNote = useOsackaStore((s) => s.updateNote);
   const selectContact = useOsackaStore((s) => s.selectContact);
-  const finishGame = useOsackaStore((s) => s.finishGame);
+  const goToTransmissionTree = useOsackaStore((s) => s.goToTransmissionTree);
 
   const calledContactData = calledContacts
     .map((id) => {
@@ -130,10 +130,10 @@ const Notebook: React.FC = () => {
           <span className="font-bold text-red-600">{identifiedInfected.length}</span>
         </div>
         <button
-          onClick={finishGame}
+          onClick={goToTransmissionTree}
           className="w-full px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
         >
-          Uzavrit vysetrovani
+          Sestavit retezec nakazy
         </button>
       </div>
     </div>

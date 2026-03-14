@@ -34,8 +34,13 @@ export interface EpiCurveEntry {
   contactIds: string[];
 }
 
+export interface TransmissionLink {
+  targetId: string;
+  sourceId: string;
+}
+
 export interface OsackaGameState {
-  phase: 'intro' | 'playing' | 'results';
+  phase: 'intro' | 'playing' | 'transmission_tree' | 'results';
   budget: number;
   maxBudget: number;
   calledContacts: string[];
@@ -44,6 +49,7 @@ export interface OsackaGameState {
   epiCurveData: EpiCurveEntry[];
   identifiedInfected: string[];
   identifiedSuperspreaders: string[];
+  transmissionLinks: TransmissionLink[];
   startTime: number;
   endTime?: number;
 }

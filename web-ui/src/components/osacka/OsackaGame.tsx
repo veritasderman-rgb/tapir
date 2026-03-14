@@ -34,9 +34,9 @@ const OsackaGame: React.FC = () => {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-sm md:text-base">
             <p className="text-gray-700 leading-relaxed">
               Jste epidemiolog KHS. Prave vam zavolali ze Springfieldu — hlaseno
-              nekolik pripadu zahadne horecky po navsteve skupiny cestovatelu
-              z Osaky. Vasi ulohou je identifikovat nakazene osoby, zjistit
-              retezec prenosu a sestavit epidemickou krivku.
+              nekolik pripadu zahadne horecky. Podezreni pada na kontaminovane
+              zasilky od kuryrni sluzby SKS. Vasi ulohou je identifikovat
+              nakazene osoby, zjistit retezec prenosu a sestavit epidemickou krivku.
             </p>
           </div>
 

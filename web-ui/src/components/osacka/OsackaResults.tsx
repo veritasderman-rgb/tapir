@@ -16,7 +16,7 @@ const OsackaResults: React.FC = () => {
   const score = calculateScore(
     identifiedInfected,
     identifiedSuperspreaders,
-    identifiedInfected.includes('homer') ? 'homer' : null,
+    identifiedInfected.includes('skinner') ? 'skinner' : null,
     budget,
   );
 

@@ -20,19 +20,19 @@ export const BONUS_PATIENT_ZERO = 10;
 export const BUDGET_EFFICIENCY_COEFFICIENT = 0.5;
 
 /** Celkový počet skutečně nakažených */
-export const TOTAL_INFECTED = 22;
+export const TOTAL_INFECTED = 23;
 
 /** Počet superspreader událostí k identifikaci */
 export const TOTAL_SUPERSPREADER_EVENTS = 3;
 
 /** ID pacienta nula */
-export const PATIENT_ZERO_ID = 'homer';
+export const PATIENT_ZERO_ID = 'skinner';
 
 /** Názvy superspreader událostí */
 export const SUPERSPREADER_EVENT_NAMES = [
   'Springfieldská jaderná elektrárna',
-  'Springfieldská základní škola',
   'Bi-Mon-Sci-Fi-Con',
+  'Spucklerova farma (zoonóza)',
 ];
 
 /** Maximální rozpočet */

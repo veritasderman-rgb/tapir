@@ -8,86 +8,80 @@ export interface Location {
 
 export const locations: Location[] = [
   {
+    id: 'sks_packages',
+    name: 'SKS Kurýrní služba (zásilky)',
+    description:
+      'Primární zdroj nákazy. Kontaminované zásilky od SKS kurýrní služby infikovaly nezávisle na sobě ' +
+      'několik obyvatel Springfieldu: Seymour Skinner (vyzvedl balík středa 1.11), Homer Simpson ' +
+      '(doručeno domů středa 1.11), Joe Quimby (vyzvedl čtvrtek 2.11), Selma a Patty Bouvier ' +
+      '(doručeno pátek 3.11) a Cletus Spuckler (vyzvedl pátek 3.11). ' +
+      'SKS zásilky jsou společným jmenovatelem všech primárních případů.',
+    isSuperspreaderSite: true,
+    relatedContactIds: ['skinner', 'homer', 'quimby', 'selma', 'patty', 'cletus'],
+  },
+  {
     id: 'nuclear_plant',
     name: 'Springfieldská jaderná elektrárna',
     description:
-      'Primární ohnisko nákazy. Zásilka od SKS kurýrní služby z Ósaky dorazila 1. listopadu. ' +
-      'Homer Simpson balík rozbaloval a nakazil se. Následně infikoval kolegy v kantýně — ' +
-      'Lennyho Leonarda a Carla Carlsona. Pan Burns se nakazil při kontaktu s Homerem v kanceláři. ' +
-      'Elektrárna je hlavním zdrojem šíření do komunity.',
+      'Ohnisko nákazy. Homer Simpson a Lenny Leonard pracují v sektoru 7-G. ' +
+      'Homer dostal SKS zásilku domů 1.11 a chodil do práce. Lenny se nakazil v Moe\'s hospodě v sobotu. ' +
+      'Carl Carlson je očkovaný a zdravý. Bezpečnostní předpisy nejsou dodržovány — ' +
+      'zaměstnanci nenosí roušky ani helmy, Homer snídá nad jaderným ovladačem.',
     isSuperspreaderSite: true,
     relatedContactIds: ['homer', 'lenny', 'carl', 'burns', 'smithers', 'nuclear_plant'],
-  },
-  {
-    id: 'elementary_school',
-    name: 'Springfieldská základní škola',
-    description:
-      'Sekundární ohnisko nákazy. Bart Simpson přišel do školy 4. listopadu již infekční ' +
-      'a nakazil spolužáky Milhouse Van Houtena, Nelsona Muntze a Ralpha Wigguma. ' +
-      'Ředitel Skinner se nakazil při kontaktu s Bartem a následně infikoval paní Krabappelovou. ' +
-      'Ta dále šířila nákazu mezi učitele (Largo, Hooverová).',
-    isSuperspreaderSite: true,
-    relatedContactIds: [
-      'bart', 'milhouse', 'nelson', 'ralph', 'skinner', 'edna',
-      'dewey_largo', 'hoover', 'otto', 'groundskeeper_willie',
-      'lunchlady_doris', 'martin', 'springfield_elementary',
-    ],
   },
   {
     id: 'bimonscificon',
     name: 'Bi-Mon-Sci-Fi-Con',
     description:
-      'Superspreader událost. Konvence sci-fi a komiksových fanoušků konaná 6. listopadu. ' +
-      'Organizátor Jeff Albertson (Comic Book Guy). Milhouse Van Houten, již infekční, ' +
-      'přišel na konvenci a nakazil minimálně 5 dalších lidí: Comic Book Guy, profesora Frinka, ' +
-      'Database, Kirka Van Houtena a Snakea Jailbirda. Uzavřený prostor s nedostatečnou ventilací.',
+      'Sobotní sci-fi festival 4.11. Starosta Quimby (presymptomatický, příznaky v neděli) ' +
+      'doprovázel Miss Springfield. Byli tam i Carl (očkovaný) a Lenny. ' +
+      'Miss Springfield se nakazila od Quimbyho a následně šířila nákazu dál ' +
+      '(Kent Brockman a Dave Shutton na pondělní gala akci v komunitním centru).',
     isSuperspreaderSite: true,
-    relatedContactIds: [
-      'comic_book_guy', 'milhouse', 'frink', 'database', 'kirk', 'snake',
-    ],
-  },
-  {
-    id: 'spuckler_farm',
-    name: 'Spucklerova farma',
-    description:
-      'Červený sleď (red herring). Cletus Spuckler hlásí nemocná zvířata od 7. listopadu — ' +
-      'kozy a prasata s kašlem a horečkou. Zvěrolékař potvrdil zvířecí chřipku, ' +
-      'nesouvisející s ósackou horečkou. Cletus se nakazil od Homera Simpsona ' +
-      'při jeho návštěvě farmy, ne od zvířat. Zoonóza je vyloučena.',
-    isSuperspreaderSite: false,
-    relatedContactIds: ['cletus', 'brandine'],
-  },
-  {
-    id: 'kwik_e_mart',
-    name: 'Rychlý Apu (Kwik-E-Mart)',
-    description:
-      'Obchod s potravinami otevřený 24/7. Vlastník Apu Nahasapeemapetilon. ' +
-      'Několik nakažených osob navštívilo obchod (Homer 4. listopadu, Marge 4. listopadu, ' +
-      'Snake, Jimbo, Nelson), ale Apu zůstává zdravý díky ochranným rukavicím. ' +
-      'Obchod není významným ohniskem nákazy.',
-    isSuperspreaderSite: false,
-    relatedContactIds: ['apu', 'homer', 'marge', 'snake', 'jimbo', 'nelson'],
+    relatedContactIds: ['quimby', 'miss_springfield', 'carl', 'lenny', 'bimonscificon'],
   },
   {
     id: 'moes_tavern',
     name: 'U Vočka (Moe\'s Tavern)',
     description:
-      'Hospoda Moe Szyslaka. Homer, Lenny a Carl přišli 5. listopadu — všichni tři ' +
-      'již infekční. Moe se nakazil a začal mít příznaky 7. listopadu. ' +
-      'Barney Gumble byl přítomen, ale zůstal zdravý (anomálie). ' +
-      'Hospoda musela být uzavřena kvůli nemoci majitele.',
+      'Homer přišel v sobotu 4.11 presymptomatický (příznaky v neděli). Barney tam byl od pátku. ' +
+      'Lenny a Carl přišli také v sobotu. Homer nakazil Vočka (příznaky úterý), ' +
+      'Barneyho (příznaky středa) a Lennyho (příznaky středa). ' +
+      'Carl je očkovaný a zůstal zdravý. Hospoda musela zavřít.',
     isSuperspreaderSite: false,
-    relatedContactIds: ['moe', 'homer', 'lenny', 'carl', 'barney'],
+    relatedContactIds: ['vocko', 'homer', 'lenny', 'carl', 'barney'],
   },
   {
-    id: 'springfield_hospital',
-    name: 'Springfieldská nemocnice (Springfield General Hospital)',
+    id: 'marge_house',
+    name: 'Dům Simpsonových',
     description:
-      'Hlavní nemocnice ve Springfieldu. Doktor Julius Hibbert léčí pacienty s ósackou horečkou. ' +
-      'První hlášený případ: Homer Simpson (5. listopadu). K 7. listopadu evidováno 18 potvrzených případů. ' +
-      'Nemocnice poskytuje klíčové souhrnné informace o průběhu epidemie. ' +
-      'Doktor Hibbert je naočkovaný a zdravý.',
+      'Homer přinesl nákazu domů přes SKS zásilku 1.11. Postupně nakazil Barta (neděle), ' +
+      'Marge (úterý). Lisa je očkovaná. V neděli hostí Marge Dámský knižní klub ' +
+      '(Agnes Skinner, Helena Lovejoy, Edna Krabappel). V pondělí Klub maminek ' +
+      '(Selma, Manjula, paní Samsonová). Oba kluby se staly šiřiteli nákazy.',
     isSuperspreaderSite: false,
-    relatedContactIds: ['hibbert', 'springfield_hospital'],
+    relatedContactIds: ['homer', 'marge', 'bart', 'lisa', 'agnes', 'helena', 'edna', 'selma', 'manjula', 'samsonova'],
+  },
+  {
+    id: 'elementary_school',
+    name: 'Springfieldská základní škola',
+    description:
+      'Ředitel Skinner onemocněl jako první (ze SKS zásilky 1.11). Na páteční schůzce 3.11 ' +
+      'nakazil Ednu Krabappelovou. Edna pak v neděli šířila nákazu přes knižní klub a kávičku ' +
+      's Hooverovou. Ned Flanders se nakazil při návštěvě nemocné Edny v úterý. ' +
+      'Škola jako instituce problém nereportuje.',
+    isSuperspreaderSite: false,
+    relatedContactIds: ['skinner', 'edna', 'hoover', 'willie', 'elementary'],
+  },
+  {
+    id: 'spuckler_farm',
+    name: 'Spucklerova farma',
+    description:
+      'Cletus Spuckler vyzvedl SKS zásilku v pátek 3.11 a onemocněl. Stará se o prasata ' +
+      'a slepice i když je nakažený — riziko zoonózy! Lidské nemoci se mohou přenášet ' +
+      'na zvířata (zejména prasata) a je to jeden ze způsobů, jak vznikají nové patogeny.',
+    isSuperspreaderSite: false,
+    relatedContactIds: ['cletus'],
   },
 ];

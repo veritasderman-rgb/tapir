@@ -11,6 +11,7 @@ const OsackaResults: React.FC = () => {
   const maxBudget = useOsackaStore((s) => s.maxBudget);
   const startTime = useOsackaStore((s) => s.startTime);
   const endTime = useOsackaStore((s) => s.endTime);
+  const transmissionLinks = useOsackaStore((s) => s.transmissionLinks);
   const resetGame = useOsackaStore((s) => s.resetGame);
 
   const score = calculateScore(
@@ -18,6 +19,7 @@ const OsackaResults: React.FC = () => {
     identifiedSuperspreaders,
     identifiedInfected.includes('skinner') ? 'skinner' : null,
     budget,
+    transmissionLinks,
   );
 
   const actualInfected = contacts.filter((c) => c.infected);
@@ -93,6 +95,12 @@ const OsackaResults: React.FC = () => {
             <span>Pacient nula {score.patientZeroCorrect ? '✓' : '✗'}</span>
             <span className="font-bold text-blue-600">
               +{score.patientZeroPoints}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span>Přenosové linky ({score.correctLinksCount}/{score.totalLinksCount} správně)</span>
+            <span className="font-bold text-indigo-600">
+              +{score.transmissionLinkPoints}
             </span>
           </div>
           <div className="flex justify-between">
@@ -227,6 +235,51 @@ const OsackaResults: React.FC = () => {
           </span>
         </div>
       </div>
+
+      {/* Transmission links comparison */}
+      {transmissionLinks.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <h2 className="text-lg font-bold text-gray-800 mb-4">
+            Přenosový strom — porovnání
+          </h2>
+          <div className="space-y-1 text-sm">
+            {transmissionLinks.map((link) => {
+              const target = contacts.find((c) => c.id === link.targetId);
+              const isCorrect =
+                target?.infected && target.infectionSource === link.sourceId;
+              const actualSource = target?.infectionSource;
+              return (
+                <div
+                  key={link.targetId}
+                  className={`flex items-center gap-2 p-2 rounded ${
+                    isCorrect ? 'bg-green-50' : 'bg-red-50'
+                  }`}
+                >
+                  <span className={`text-xs font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                    {isCorrect ? '\u2713' : '\u2717'}
+                  </span>
+                  <span className="text-gray-500">
+                    {link.sourceId === 'sks_package'
+                      ? 'Zásilka SKS'
+                      : getContactName(link.sourceId)}
+                  </span>
+                  <span className="text-gray-400">&rarr;</span>
+                  <span className="font-medium">{getContactName(link.targetId)}</span>
+                  {!isCorrect && actualSource && (
+                    <span className="text-xs text-gray-400 ml-auto">
+                      (správně:{' '}
+                      {actualSource === 'sks_package'
+                        ? 'Zásilka SKS'
+                        : getContactName(actualSource)}
+                      )
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Infection chain narrative */}
       <div className="bg-white border border-gray-200 rounded-lg p-6">

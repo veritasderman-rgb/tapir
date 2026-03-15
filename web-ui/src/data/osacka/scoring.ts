@@ -19,6 +19,9 @@ export const BONUS_PATIENT_ZERO = 10;
 /** Koeficient pro bonus za zbývající rozpočet */
 export const BUDGET_EFFICIENCY_COEFFICIENT = 0.5;
 
+/** Body za správný přenosový link (kdo koho nakazil) */
+export const POINTS_PER_CORRECT_LINK = 3;
+
 /** Celkový počet skutečně nakažených */
 export const TOTAL_INFECTED = 23;
 
@@ -36,19 +39,21 @@ export const SUPERSPREADER_EVENT_NAMES = [
 ];
 
 /** Maximální rozpočet */
-export const MAX_BUDGET = 100;
+export const MAX_BUDGET = 550;
 
 /** Maximální teoretické skóre:
- *  22 * 5 = 110 (nakažení)
+ *  23 * 5 = 115 (nakažení)
  *  + 3 * 10 = 30 (superspreader)
  *  + 10 (pacient nula)
- *  + 100 * 0.5 = 50 (max budget bonus, theoretical)
- *  = 200 theoretical max, realistic ~185
+ *  + 23 * 3 = 69 (přenosové linky)
+ *  + 550 * 0.5 = 275 (max budget bonus, theoretical)
+ *  = 499 theoretical max
  */
 export const THEORETICAL_MAX_SCORE =
   TOTAL_INFECTED * POINTS_PER_CORRECT_INFECTED +
   TOTAL_SUPERSPREADER_EVENTS * BONUS_PER_SUPERSPREADER +
   BONUS_PATIENT_ZERO +
+  TOTAL_INFECTED * POINTS_PER_CORRECT_LINK +
   Math.floor(MAX_BUDGET * BUDGET_EFFICIENCY_COEFFICIENT);
 
 // ============================================================
@@ -93,6 +98,12 @@ export interface ScoreResult {
   patientZeroPoints: number;
   /** Zda byl pacient nula správně identifikován */
   patientZeroCorrect: boolean;
+  /** Body za správné přenosové linky */
+  transmissionLinkPoints: number;
+  /** Počet správných přenosových linků */
+  correctLinksCount: number;
+  /** Celkový počet linků zadaných hráčem */
+  totalLinksCount: number;
   /** Bonus za efektivitu rozpočtu */
   budgetBonus: number;
   /** Zbývající rozpočet */
@@ -118,13 +129,15 @@ export interface ScoreResult {
  * @param identifiedSuperspreaderNames - Názvy superspreader událostí identifikovaných hráčem
  * @param patientZeroId - ID osoby, kterou hráč označil jako pacienta nula (nebo null)
  * @param budgetRemaining - Zbývající rozpočet hráče
+ * @param transmissionLinks - Přenosové linky zadané hráčem
  * @returns Objekt s detailním rozpisem skóre
  */
 export function calculateScore(
   identifiedInfectedIds: string[],
   identifiedSuperspreaderNames: string[],
   patientZeroId: string | null,
-  budgetRemaining: number
+  budgetRemaining: number,
+  transmissionLinks: { targetId: string; sourceId: string }[] = []
 ): ScoreResult {
   // --- Správně identifikovaní nakažení ---
   const correctInfected = identifiedInfectedIds.filter((id) =>
@@ -154,6 +167,15 @@ export function calculateScore(
   const patientZeroCorrect = patientZeroId === PATIENT_ZERO_ID;
   const patientZeroPoints = patientZeroCorrect ? BONUS_PATIENT_ZERO : 0;
 
+  // --- Přenosové linky ---
+  const correctLinksCount = transmissionLinks.filter((link) => {
+    const contact = contacts.find((c) => c.id === link.targetId);
+    if (!contact?.infected) return false;
+    return contact.infectionSource === link.sourceId;
+  }).length;
+  const totalLinksCount = transmissionLinks.length;
+  const transmissionLinkPoints = correctLinksCount * POINTS_PER_CORRECT_LINK;
+
   // --- Bonus za rozpočet ---
   const budgetBonus = Math.floor(
     Math.max(0, budgetRemaining) * BUDGET_EFFICIENCY_COEFFICIENT
@@ -166,6 +188,7 @@ export function calculateScore(
       falsePositivePenalty +
       superspreaderPoints +
       patientZeroPoints +
+      transmissionLinkPoints +
       budgetBonus
   );
 
@@ -183,6 +206,9 @@ export function calculateScore(
     superspreaderCount,
     patientZeroPoints,
     patientZeroCorrect,
+    transmissionLinkPoints,
+    correctLinksCount,
+    totalLinksCount,
     budgetBonus,
     budgetRemaining,
     totalScore,

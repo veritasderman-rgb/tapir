@@ -3,6 +3,7 @@ import type {
   OsackaGameState,
   PlayerNote,
   EpiCurveEntry,
+  TransmissionLink,
 } from '../types/didaktikon';
 import { contacts } from '../data/osacka/contacts';
 
@@ -16,6 +17,9 @@ interface OsackaActions {
   toggleSuperspreader: (name: string) => void;
   addToEpiCurve: (day: number, contactId: string) => void;
   removeFromEpiCurve: (day: number, contactId: string) => void;
+  setTransmissionSource: (targetId: string, sourceId: string) => void;
+  removeTransmissionLink: (targetId: string) => void;
+  goToTransmissionTree: () => void;
   finishGame: () => void;
   resetGame: () => void;
 }
@@ -30,14 +34,15 @@ const initialEpiCurve: EpiCurveEntry[] = Array.from({ length: 14 }, (_, i) => ({
 export const useOsackaStore = create<OsackaStore>((set, get) => ({
   // State
   phase: 'intro',
-  budget: 100,
-  maxBudget: 100,
+  budget: 550,
+  maxBudget: 550,
   calledContacts: [],
   selectedContact: null,
   playerNotes: {},
   epiCurveData: initialEpiCurve.map((e) => ({ ...e, contactIds: [...e.contactIds] })),
   identifiedInfected: [],
   identifiedSuperspreaders: [],
+  transmissionLinks: [],
   startTime: 0,
   endTime: undefined,
 
@@ -45,14 +50,15 @@ export const useOsackaStore = create<OsackaStore>((set, get) => ({
   startGame: () =>
     set({
       phase: 'playing',
-      budget: 100,
-      maxBudget: 100,
+      budget: 200,
+      maxBudget: 200,
       calledContacts: [],
       selectedContact: null,
       playerNotes: {},
       epiCurveData: initialEpiCurve.map((e) => ({ ...e, contactIds: [...e.contactIds] })),
       identifiedInfected: [],
       identifiedSuperspreaders: [],
+      transmissionLinks: [],
       startTime: Date.now(),
       endTime: undefined,
     }),
@@ -164,6 +170,26 @@ export const useOsackaStore = create<OsackaStore>((set, get) => ({
     }));
   },
 
+  setTransmissionSource: (targetId: string, sourceId: string) => {
+    set((s) => {
+      const filtered = s.transmissionLinks.filter((l) => l.targetId !== targetId);
+      return {
+        transmissionLinks: [...filtered, { targetId, sourceId }],
+      };
+    });
+  },
+
+  removeTransmissionLink: (targetId: string) => {
+    set((s) => ({
+      transmissionLinks: s.transmissionLinks.filter((l) => l.targetId !== targetId),
+    }));
+  },
+
+  goToTransmissionTree: () =>
+    set({
+      phase: 'transmission_tree',
+    }),
+
   finishGame: () =>
     set({
       phase: 'results',
@@ -173,14 +199,15 @@ export const useOsackaStore = create<OsackaStore>((set, get) => ({
   resetGame: () =>
     set({
       phase: 'intro',
-      budget: 100,
-      maxBudget: 100,
+      budget: 200,
+      maxBudget: 200,
       calledContacts: [],
       selectedContact: null,
       playerNotes: {},
       epiCurveData: initialEpiCurve.map((e) => ({ ...e, contactIds: [...e.contactIds] })),
       identifiedInfected: [],
       identifiedSuperspreaders: [],
+      transmissionLinks: [],
       startTime: 0,
       endTime: undefined,
     }),

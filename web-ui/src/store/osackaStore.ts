@@ -6,6 +6,7 @@ import type {
   TransmissionLink,
 } from '../types/didaktikon';
 import { contacts } from '../data/osacka/contacts';
+import { MAX_BUDGET } from '../data/osacka/scoring';
 
 interface OsackaActions {
   startGame: () => void;
@@ -50,8 +51,8 @@ export const useOsackaStore = create<OsackaStore>((set, get) => ({
   startGame: () =>
     set({
       phase: 'playing',
-      budget: 200,
-      maxBudget: 200,
+      budget: MAX_BUDGET,
+      maxBudget: MAX_BUDGET,
       calledContacts: [],
       selectedContact: null,
       playerNotes: {},
@@ -199,8 +200,8 @@ export const useOsackaStore = create<OsackaStore>((set, get) => ({
   resetGame: () =>
     set({
       phase: 'intro',
-      budget: 200,
-      maxBudget: 200,
+      budget: MAX_BUDGET,
+      maxBudget: MAX_BUDGET,
       calledContacts: [],
       selectedContact: null,
       playerNotes: {},

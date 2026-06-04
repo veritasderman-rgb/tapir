@@ -116,3 +116,70 @@ export function IconTeacher({ className, ...props }: IconProps) {
     </Line>
   );
 }
+
+/** Trofej (žebříček / výsledky). */
+export function IconTrophy({ className, ...props }: IconProps) {
+  return (
+    <Line className={className} {...props}>
+      <path d="M7 4h10v4a5 5 0 0 1-10 0z" />
+      <path d="M7 5.5H4.5V7a2.5 2.5 0 0 0 2.5 2.5M17 5.5h2.5V7a2.5 2.5 0 0 1-2.5 2.5" />
+      <path d="M12 13v3" />
+      <path d="M9 19h6M9.5 19l.5-3h4l.5 3" />
+    </Line>
+  );
+}
+
+/** QR kód. */
+export function IconQr({ className, ...props }: IconProps) {
+  return (
+    <Line className={className} {...props}>
+      <rect x="4" y="4" width="6" height="6" rx="1" />
+      <rect x="14" y="4" width="6" height="6" rx="1" />
+      <rect x="4" y="14" width="6" height="6" rx="1" />
+      <path d="M14 14h2v2M20 14v2M14 18h2v2M18 18h2v2" />
+    </Line>
+  );
+}
+
+/** Kopírovat. */
+export function IconCopy({ className, ...props }: IconProps) {
+  return (
+    <Line className={className} {...props}>
+      <rect x="9" y="9" width="11" height="11" rx="2" />
+      <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+    </Line>
+  );
+}
+
+/**
+ * Medaile pro top 3 v žebříčku — plochá, geometrická (zlato/stříbro/bronz).
+ */
+const METALS: Record<1 | 2 | 3, [string, string]> = {
+  1: ['#e8b84b', '#c9972f'],
+  2: ['#c7ccd4', '#9aa1ab'],
+  3: ['#cf9366', '#a96f44'],
+};
+
+export function Medal({ place, className = 'w-6 h-6' }: { place: 1 | 2 | 3; className?: string }) {
+  const [metal, dark] = METALS[place];
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M8.2 2.5l3.2 7.5-2.6 1.1L5.4 3.6z" fill="#0e7c7b" />
+      <path d="M15.8 2.5l2.8 1.1-3.4 7.5-2.6-1.1z" fill="#0a5b5a" />
+      <circle cx="12" cy="16" r="6.2" fill={metal} />
+      <circle cx="12" cy="16" r="6.2" fill="none" stroke={dark} strokeWidth="1" />
+      <circle cx="12" cy="16" r="3.4" fill="none" stroke={dark} strokeWidth="1" opacity="0.7" />
+      <text
+        x="12"
+        y="18.6"
+        fontFamily="'Space Grotesk', sans-serif"
+        fontSize="5.5"
+        fontWeight="700"
+        fill={dark}
+        textAnchor="middle"
+      >
+        {place}
+      </text>
+    </svg>
+  );
+}

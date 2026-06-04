@@ -5,6 +5,7 @@ import { createRoom } from '../../lib/classroom';
 import { isClassroomEnabled } from '../../lib/supabase';
 import { gameLink, navigate, type Screen } from '../../lib/route';
 import type { ClassroomGameId } from '../../lib/scoring-shared';
+import { IconCopy } from '../brand/BrandIcons';
 
 const GAMES: { id: ClassroomGameId; screen: Screen; label: string }[] = [
   { id: 'osacka', screen: AppMode.OsackaHorecka, label: 'Ósacká horečka' },
@@ -120,8 +121,9 @@ export default function RoomCreator({ teacherName }: { teacherName?: string }) {
                 />
                 <button
                   onClick={copyLink}
-                  className="min-h-[44px] px-4 rounded-lg bg-brand-charcoal text-white text-sm font-bold hover:bg-brand-charcoal/90 transition-colors"
+                  className="min-h-[44px] px-4 rounded-lg bg-brand-charcoal text-white text-sm font-bold hover:bg-brand-charcoal/90 transition-colors inline-flex items-center gap-1.5"
                 >
+                  <IconCopy className="w-4 h-4" />
                   {copied ? 'Zkopírováno' : 'Kopírovat'}
                 </button>
               </div>

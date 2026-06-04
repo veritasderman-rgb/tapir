@@ -4,8 +4,7 @@ import { fetchScores, subscribeToRoom, getRoom, type ScoreRow, type RoomRow } fr
 import { GAME_LABELS } from '../../lib/scoring-shared';
 import { isClassroomEnabled } from '../../lib/supabase';
 import HomeButton from '../HomeButton';
-
-const MEDALS = ['🥇', '🥈', '🥉'];
+import { Medal, IconTrophy, TapirMark } from '../brand/BrandIcons';
 
 function median(nums: number[]): number {
   if (nums.length === 0) return 0;
@@ -59,7 +58,10 @@ export default function Leaderboard() {
       <div className="max-w-3xl mx-auto px-4 py-6 md:py-10">
         <div className="flex items-center justify-between mb-6">
           <HomeButton className="-ml-2" />
-          <div className="eyebrow">Žebříček třídy</div>
+          <div className="flex items-center gap-1.5 text-brand-slate">
+            <IconTrophy className="w-4 h-4" />
+            <span className="eyebrow">Žebříček třídy</span>
+          </div>
         </div>
 
         <header className="text-center mb-8">
@@ -100,8 +102,8 @@ export default function Leaderboard() {
                         i < 3 ? 'bg-brand-teal-soft/40' : ''
                       }`}
                     >
-                      <span className="w-8 text-center text-lg font-bold tabular-nums text-brand-slate">
-                        {i < 3 ? MEDALS[i] : i + 1}
+                      <span className="w-8 flex items-center justify-center text-lg font-bold tabular-nums text-brand-slate">
+                        {i < 3 ? <Medal place={(i + 1) as 1 | 2 | 3} className="w-7 h-7" /> : i + 1}
                       </span>
                       <span className="flex-1 font-semibold text-brand-charcoal truncate">
                         {s.player_name}
@@ -139,10 +141,11 @@ function Stat({ label, value }: { label: string; value: string | number }) {
 function Empty({ children, embedded }: { children: React.ReactNode; embedded?: boolean }) {
   return (
     <div
-      className={`text-center text-sm text-brand-slate ${
+      className={`flex flex-col items-center text-center text-sm text-brand-slate ${
         embedded ? 'p-10' : 'bg-white border-2 border-dashed border-gray-200 rounded-2xl p-10'
       }`}
     >
+      <TapirMark className="w-14 h-14 text-brand-teal/30 mb-3" />
       {children}
     </div>
   );

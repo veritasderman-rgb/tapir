@@ -6,15 +6,19 @@
    ───────────────────────────────────────────────────────────── */
 @theme {
   --color-brand-teal: #0e7c7b;
-  --color-brand-teal-dark: #0a5d5c;
-  --color-brand-teal-soft: #d7eceb;
+  --color-brand-teal-dark: #0a5b5a;
+  --color-brand-teal-soft: #d6eae9;
   --color-brand-mustard: #e0a458;
-  --color-brand-mustard-soft: #f6e6cf;
+  --color-brand-mustard-soft: #f6e6ce;
   --color-brand-red: #c44536;
-  --color-brand-red-soft: #f3d9d4;
+  --color-brand-red-dark: #a8392c;
+  --color-brand-red-soft: #f2d7d2;
+  --color-brand-mustard-dark: #c5862f;
   --color-brand-cream: #f4efe6;
   --color-brand-charcoal: #22303a;
   --color-brand-slate: #5b6b73;
+  --color-brand-ok: #5a8f69;
+  --color-brand-info: #6b8595;
 
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
 }
@@ -29,6 +33,15 @@
 .font-display {
   font-family: var(--font-display);
   letter-spacing: -0.01em;
+}
+
+/* Signature micro-label: 10px, black, uppercase, wide tracking (DESIGN-BRIEF). */
+.eyebrow {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-brand-slate);
 }
 
 /* Print styles */

@@ -50,16 +50,14 @@ export function TapirMark({ className = 'w-8 h-8', ...props }: IconProps) {
   );
 }
 
-/** Krizový štáb — štábní stůl / situační velín. */
+/** Krizový štáb — vládní budova (landmark). */
 export function IconCrisisStaff({ className, ...props }: IconProps) {
   return (
     <Line className={className} {...props}>
-      <path d="M4 19h16" />
-      <path d="M7 19l1.5-7h7L17 19" />
-      <path d="M12 8.5V5" />
-      <path d="M12 5l4 1.4-4 1.4z" />
-      <circle cx="6" cy="9" r="1.3" />
-      <circle cx="18" cy="9" r="1.3" />
+      <path d="M3 9.5l9-5 9 5" />
+      <path d="M4 9.5h16" />
+      <path d="M5 20h14" />
+      <path d="M6.5 12v6M10 12v6M14 12v6M17.5 12v6" />
     </Line>
   );
 }

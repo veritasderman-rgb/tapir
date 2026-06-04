@@ -23,17 +23,19 @@ import { AppMode } from '@tapir/core';
  * a normalizují na `#/hra/krizovy-stab?s=<b64>`.
  */
 
-export type Screen = 'hub' | AppMode;
+export type Screen = 'hub' | 'leaderboard' | AppMode;
 
 export interface Route {
   screen: Screen;
   /** Base64 GameScenario pro Krizový štáb (odkaz od učitele). */
   scenarioParam?: string;
-  /** Kód třídní místnosti (?room=) pro živý leaderboard (F4). */
+  /** Kód třídní místnosti (?room= u her, /vysledky/<KÓD> u leaderboardu). */
   roomCode?: string;
   /** True, pokud odkaz pochází ze staré podoby (#game= / ?game=). */
   legacy?: boolean;
 }
+
+const LEADERBOARD_SLUG = 'vysledky';
 
 const SCREEN_TO_SLUG: Record<AppMode, string> = {
   [AppMode.CrisisStaff]: 'hra/krizovy-stab',
@@ -85,6 +87,12 @@ export function parseLocation(rawHash: string, rawSearch = ''): Route {
 
   if (path === '') return { screen: 'hub', roomCode };
 
+  // ── Leaderboard místnosti: #/vysledky/<KÓD> ──
+  if (path === LEADERBOARD_SLUG || path.startsWith(`${LEADERBOARD_SLUG}/`)) {
+    const code = path.slice(LEADERBOARD_SLUG.length).replace(/^\/+/, '');
+    return { screen: 'leaderboard', roomCode: code || roomCode };
+  }
+
   const screen = SLUG_TO_SCREEN[path];
   if (!screen) return { screen: 'hub', roomCode };
 
@@ -104,6 +112,9 @@ export function parseRoute(): Route {
 /** Sestaví hash cestu (bez vedoucího '#') pro danou route. */
 export function buildPath(route: Route): string {
   if (route.screen === 'hub') return '/';
+  if (route.screen === 'leaderboard') {
+    return route.roomCode ? `/${LEADERBOARD_SLUG}/${route.roomCode}` : `/${LEADERBOARD_SLUG}`;
+  }
   const slug = SCREEN_TO_SLUG[route.screen];
   const query = new URLSearchParams();
   if (route.scenarioParam) query.set('s', route.scenarioParam);

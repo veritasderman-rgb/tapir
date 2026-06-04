@@ -45,6 +45,21 @@ Parametrický sandbox pro kontrolu epidemiologických modelů. Přímé nastaven
 
 ### 🎓 Učitelský režim
 Tvorba vlastních scénářů pro Krizový štáb s generováním odkazů pro studenty.
+Učitel zde také **spustí hru pro třídu**: vybere hru, vznikne místnost s kódem,
+získá odkaz + QR pro studenty a odkaz na živý žebříček.
+
+## Třídní leaderboard (živé porovnání)
+
+Pro 20–50 studentů najednou. Učitel založí **místnost** (kód `TAPIR-XXXX`),
+rozešle odkaz `#/hra/<hra>?room=KÓD` (nebo QR), studenti hrají a po dohrání
+odešlou skóre pod přezdívkou. Žebříček `#/vysledky/KÓD` se plní **živě**
+(Supabase Realtime). Podporované hry: Ósacká horečka, Záhada z Oyster Bay.
+
+- Backend: Supabase (tabulky `rooms` + `scores`, RLS, Realtime).
+- Konfigurace je **veřejná** a zabudovaná v `web-ui/src/lib/supabase.ts`
+  (publishable klíč, data chrání RLS); lze přepsat přes `VITE_SUPABASE_URL`
+  a `VITE_SUPABASE_ANON_KEY` — viz `web-ui/.env.example`.
+- Bez konfigurace appka funguje normálně, jen se leaderboard skryje.
 
 ## Architektura
 

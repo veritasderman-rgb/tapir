@@ -3,6 +3,8 @@ import { useOsackaStore } from '../../store/osackaStore';
 import { contacts } from '../../data/osacka/contacts';
 import { calculateScore } from '../../data/osacka/scoring';
 import HomeButton from '../HomeButton';
+import ScoreSubmit from '../classroom/ScoreSubmit';
+import { osackaToShared } from '../../lib/scoring-shared';
 
 const OsackaResults: React.FC = () => {
   const identifiedInfected = useOsackaStore((s) => s.identifiedInfected);
@@ -317,6 +319,9 @@ const OsackaResults: React.FC = () => {
             ))}
         </div>
       </div>
+
+      {/* Třídní žebříček (jen když je aktivní místnost) */}
+      <ScoreSubmit score={osackaToShared(score)} />
 
       {/* Reset button */}
       <div className="flex flex-wrap items-center justify-center gap-3">

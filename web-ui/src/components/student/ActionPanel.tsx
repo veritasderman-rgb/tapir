@@ -103,139 +103,143 @@ export default function ActionPanel() {
   };
 
   const hasVaxCapacity = activeMeasureIds.some(id => id.startsWith('vaccination_'));
-  const [hoveredMeasure, setHoveredMeasure] = useState<string | null>(null);
-  // Tap-to-expand detail (tablety/dotyk, kde hover není k dispozici).
+  // Tap-to-expand detail opatření.
   const [expandedMeasure, setExpandedMeasure] = useState<string | null>(null);
 
+  const activeCount = activeMeasureIds.length;
+
   return (
-    <div className="space-y-4">
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-        <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Stav společnosti</h3>
-        <div className="space-y-3">
-          <TrustBar label="Důvěra veřejnosti" value={trust} />
-          <div>
-            <div className="flex justify-between text-[10px] font-bold text-gray-400 uppercase mb-1">
-              <span>Sociální kapitál</span>
-              <span>{Math.round(socialCapital)} %</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-              <div
-                className={`h-full transition-all duration-1000 ${socialCapital < 30 ? 'bg-red-500' : 'bg-green-500'}`}
-                style={{ width: `${socialCapital}%` }}
-              />
-            </div>
+    <div className="space-y-5 pb-4">
+      {/* Stav společnosti */}
+      <div className="bg-white border-2 border-gray-200 rounded-2xl p-4 grid gap-4 sm:grid-cols-2">
+        <TrustBar label="Důvěra veřejnosti" value={trust} />
+        <div>
+          <div className="flex justify-between text-[10px] font-bold text-gray-400 uppercase mb-1">
+            <span>Sociální kapitál</span>
+            <span>{Math.round(socialCapital)} %</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+            <div
+              className={`h-full transition-all duration-1000 ${socialCapital < 30 ? 'bg-brand-red' : 'bg-brand-ok'}`}
+              style={{ width: `${socialCapital}%` }}
+            />
           </div>
           {economicState && (
-            <div className="grid grid-cols-2 gap-2 text-[10px]">
-              <div>
-                <span className="text-gray-400 uppercase">HDP:</span>
-                <span className={`ml-1 font-bold ${economicState.gdpImpact < 0 ? 'text-red-500' : 'text-gray-700'}`}>
+            <div className="flex gap-4 text-[11px] mt-2">
+              <span className="text-gray-400 uppercase">
+                HDP:
+                <span className={`ml-1 font-bold ${economicState.gdpImpact < 0 ? 'text-brand-red' : 'text-gray-700'}`}>
                   {economicState.gdpImpact.toFixed(1)} %
                 </span>
-              </div>
-              <div>
-                <span className="text-gray-400 uppercase">Nezaměst.:</span>
+              </span>
+              <span className="text-gray-400 uppercase">
+                Nezaměst.:
                 <span className="ml-1 font-bold text-gray-700">+{economicState.unemploymentDelta.toFixed(1)} %</span>
-              </div>
+              </span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Government Support Request */}
+      {/* Vládní podpora */}
       {!isFinished && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <h3 className="text-[10px] font-bold text-blue-500 uppercase tracking-wider mb-2">Vládní podpora</h3>
+        <div className="bg-brand-teal-soft/50 border-2 border-brand-teal/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1">
+            <h3 className="eyebrow text-brand-teal-dark">Vládní podpora</h3>
+            <p className="text-xs text-brand-slate mt-1">Snižuje ekonomické škody a pnutí, vyžaduje schválení MF.</p>
+          </div>
           <button
             onClick={() => setRequestFinancialSupport(true)}
             disabled={requestFinancialSupport}
-            className={`w-full py-2 text-xs font-bold rounded border transition-colors ${
-                requestFinancialSupport
-                ? 'bg-blue-100 text-blue-400 border-blue-200 cursor-not-allowed'
-                : 'bg-white text-blue-600 border-blue-300 hover:bg-blue-100'
+            className={`min-h-[44px] px-5 text-sm font-bold rounded-xl border-2 transition-colors flex-shrink-0 ${
+              requestFinancialSupport
+                ? 'bg-white text-brand-slate border-gray-200 cursor-not-allowed'
+                : 'bg-brand-teal text-white border-brand-teal hover:bg-brand-teal-dark'
             }`}
           >
-            {requestFinancialSupport ? '⏳ Žádost odeslána' : '💰 Žádat o finanční podporu'}
+            {requestFinancialSupport ? 'Žádost odeslána' : 'Žádat o finanční podporu'}
           </button>
-          <p className="text-[9px] text-blue-400 mt-1 italic leading-tight">
-            Snižuje ekonomické škody a pnutí, ale vyžaduje schválení MF.
-          </p>
         </div>
       )}
 
+      {/* Opatření po kategoriích — velké karty */}
       {categorizedMeasures.map(cat => (
-        <div key={cat.category} className="space-y-1.5">
-          <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider px-1">{cat.label}</h3>
-          <div className="space-y-1">
+        <div key={cat.category}>
+          <h3 className="eyebrow mb-2 px-1">{cat.label}</h3>
+          <div className="grid gap-3 sm:grid-cols-2">
             {cat.measures.map(m => {
               const isActive = activeMeasureIds.includes(m.id);
-              const isExpanded = hoveredMeasure === m.id || expandedMeasure === m.id;
+              const isExpanded = expandedMeasure === m.id;
               const isRequest = isPremierRequest(m);
               const govStatus = getGovStatus(m.id);
               return (
                 <div
                   key={m.id}
-                  onMouseEnter={() => setHoveredMeasure(m.id)}
-                  onMouseLeave={() => setHoveredMeasure(null)}
+                  className={`rounded-2xl border-2 transition-all overflow-hidden ${
+                    isRequest
+                      ? isActive
+                        ? 'border-brand-mustard bg-brand-mustard-soft/50'
+                        : 'border-brand-mustard/40 bg-white'
+                      : isActive
+                      ? 'border-brand-teal bg-brand-teal-soft/50'
+                      : 'border-gray-200 bg-white'
+                  }`}
                 >
-                  <div className="flex items-stretch gap-1">
-                    <button
-                      onClick={() => !isFinished && toggleMeasure(m.id)}
-                      disabled={isFinished}
-                      className={`flex-1 text-left px-3 py-2 rounded-lg border text-xs transition-all ${
-                        isRequest
-                          ? isActive
-                            ? 'bg-amber-50 border-amber-300 text-amber-800 ring-1 ring-amber-300'
-                            : 'bg-white border-amber-200 text-amber-700 hover:border-amber-300 hover:bg-amber-50'
-                          : isActive
-                          ? 'bg-blue-50 border-blue-300 text-blue-700 ring-1 ring-blue-300'
-                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="font-bold flex justify-between items-center">
-                        <span>{m.name}</span>
-                        <span className="flex items-center gap-1">
-                          {isRequest && !isActive && !govStatus && (
-                            <span className="text-[9px] text-amber-500 font-normal">🏛 Požádat vládu</span>
-                          )}
-                          {isRequest && isActive && !govStatus && (
-                            <span className="text-[9px] text-amber-600">🏛 Žádost k odeslání</span>
-                          )}
-                          {govStatus === 'schváleno' && (
-                            <span className="text-[9px] text-green-600">✓ Schváleno</span>
-                          )}
-                          {govStatus && govStatus !== 'schváleno' && (
-                            <span className="text-[9px] text-amber-600">⏳ {govStatus}</span>
-                          )}
-                          {!isRequest && isActive && <span className="text-[10px]">✓</span>}
-                        </span>
+                  <button
+                    onClick={() => !isFinished && toggleMeasure(m.id)}
+                    disabled={isFinished}
+                    className="w-full text-left p-4 disabled:opacity-70"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="font-bold text-sm text-brand-charcoal leading-snug">{m.name}</span>
+                      <span
+                        className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                          isActive
+                            ? isRequest
+                              ? 'bg-brand-mustard border-brand-mustard text-white'
+                              : 'bg-brand-teal border-brand-teal text-white'
+                            : 'border-gray-300'
+                        }`}
+                      >
+                        {isActive && (
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-2 text-[11px] font-medium text-brand-slate">
+                      <span><span className="text-gray-400">Účinnost:</span> <span className="font-bold text-brand-teal-dark">{effectivenessLabel(m)}</span></span>
+                      <span><span className="text-gray-400">Cena:</span> {costLabel(m.economicCostPerTurn)}</span>
+                    </div>
+                    {(isRequest || govStatus) && (
+                      <div className="mt-2 text-[11px] font-bold">
+                        {isRequest && !isActive && !govStatus && <span className="text-brand-mustard-dark">🏛 Vyžaduje žádost vládě</span>}
+                        {isRequest && isActive && !govStatus && <span className="text-brand-mustard-dark">🏛 Žádost k odeslání</span>}
+                        {govStatus === 'schváleno' && <span className="text-brand-ok">✓ Schváleno</span>}
+                        {govStatus && govStatus !== 'schváleno' && <span className="text-brand-mustard-dark">⏳ {govStatus}</span>}
                       </div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setExpandedMeasure(isExpanded ? null : m.id)}
-                      aria-label={isExpanded ? 'Skrýt detaily opatření' : 'Zobrazit detaily opatření'}
-                      aria-expanded={isExpanded}
-                      className={`flex-shrink-0 w-10 rounded-lg border text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center ${
-                        isExpanded ? 'bg-gray-50 border-gray-300' : 'bg-white border-gray-200'
-                      }`}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="9" strokeWidth={1.6} />
-                        <path strokeWidth={1.8} strokeLinecap="round" d="M12 11v5M12 8h.01" />
-                      </svg>
-                    </button>
-                  </div>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedMeasure(isExpanded ? null : m.id)}
+                    aria-expanded={isExpanded}
+                    className="w-full text-left px-4 py-2 border-t border-gray-100 text-[11px] font-semibold text-brand-slate hover:bg-gray-50 transition-colors flex items-center justify-between"
+                  >
+                    <span>Detaily</span>
+                    <svg className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
                   {isExpanded && (
-                    <div className="mx-1 mt-0.5 mb-1 px-2.5 py-2 bg-gray-50 border border-gray-200 rounded-md text-[10px] text-gray-600 leading-relaxed space-y-1.5 animate-in fade-in">
+                    <div className="px-4 pb-3 text-xs text-brand-slate leading-relaxed space-y-2 animate-in fade-in">
                       <p>{m.description}</p>
-                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[9px] font-medium text-gray-500">
-                        <span title="Účinnost">⚕ {effectivenessLabel(m)}</span>
-                        <span title="Ekonomická cena">💰 {costLabel(m.economicCostPerTurn)}</span>
-                        <span title="Politická cena">🏛 {politicalLabel(m.politicalCostPerTurn)}</span>
-                        {m.rampUpDays > 0 && <span title="Náběh">⏱ {m.rampUpDays} dní náběh</span>}
-                        {m.detectionRateBonus && <span title="Záchyt">🔍 +{Math.round(m.detectionRateBonus * 100)} % záchyt</span>}
-                        {m.hospitalCapacityMultiplier && m.hospitalCapacityMultiplier > 1 && <span title="Kapacita">🏥 ×{m.hospitalCapacityMultiplier} lůžek</span>}
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-gray-500">
+                        <span>🏛 Politicky: {politicalLabel(m.politicalCostPerTurn)}</span>
+                        {m.rampUpDays > 0 && <span>⏱ {m.rampUpDays} dní náběh</span>}
+                        {m.detectionRateBonus && <span>🔍 +{Math.round(m.detectionRateBonus * 100)} % záchyt</span>}
+                        {m.hospitalCapacityMultiplier && m.hospitalCapacityMultiplier > 1 && <span>🏥 ×{m.hospitalCapacityMultiplier} lůžek</span>}
                       </div>
                     </div>
                   )}
@@ -247,8 +251,8 @@ export default function ActionPanel() {
       ))}
 
       {hasVaxCapacity && (
-        <div className="bg-white border border-gray-200 rounded-lg p-2">
-          <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Priorita očkování</h3>
+        <div className="bg-white border-2 border-gray-200 rounded-2xl p-4">
+          <h3 className="eyebrow mb-2">Priorita očkování</h3>
           <select
             value={vaccinationPriority?.stratumOrder[0] ?? -1}
             onChange={(e) => {
@@ -265,7 +269,7 @@ export default function ActionPanel() {
                 setVaccinationPriority({ stratumOrder: order, dailyCapacity: capacity });
               }
             }}
-            className="w-full text-xs border rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full text-sm border border-gray-300 rounded-lg px-3 min-h-[44px] focus:ring-2 focus:ring-brand-teal outline-none"
             disabled={isFinished}
           >
             <option value={-1}>Vypnout očkování</option>
@@ -280,12 +284,17 @@ export default function ActionPanel() {
       )}
 
       {!isFinished && (
-        <button
-          onClick={submitTurn}
-          className="w-full py-3 bg-blue-600 text-white text-sm font-black uppercase tracking-tighter rounded-xl hover:bg-blue-700 transition-all shadow-lg active:scale-95"
-        >
-          Zasedání štábu — kolo {currentTurn + 1}
-        </button>
+        <div className="sticky bottom-0 -mx-4 px-4 pt-3 pb-4 bg-gradient-to-t from-brand-cream via-brand-cream to-transparent">
+          <button
+            onClick={submitTurn}
+            className="w-full min-h-[56px] bg-brand-teal text-white text-base font-black uppercase tracking-tight rounded-2xl hover:bg-brand-teal-dark transition-all shadow-lg active:scale-[0.98]"
+          >
+            Zasedání štábu — kolo {currentTurn + 1}
+            <span className="block text-[11px] font-semibold normal-case tracking-normal opacity-90 mt-0.5">
+              {activeCount} {activeCount === 1 ? 'opatření aktivní' : activeCount >= 2 && activeCount <= 4 ? 'opatření aktivní' : 'opatření aktivních'}
+            </span>
+          </button>
+        </div>
       )}
     </div>
   );

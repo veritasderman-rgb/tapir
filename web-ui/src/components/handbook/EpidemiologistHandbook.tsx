@@ -130,6 +130,8 @@ function BlockView({ block }: { block: Block }) {
           dangerouslySetInnerHTML={{ __html: block.html }}
         />
       );
+    case 'html':
+      return <div className="my-4 text-sm text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: block.html }} />;
     case 'refs':
       return <ReferencesBox items={block.items} />;
   }

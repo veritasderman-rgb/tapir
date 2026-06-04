@@ -32,11 +32,13 @@ export default function Leaderboard() {
       setLoading(false);
     });
     const unsub = subscribeToRoom(code, (row) => {
-      setScores((prev) =>
-        [...prev, row].sort(
+      setScores((prev) => {
+        // Dedup: úvodní fetch a realtime mohou doručit týž řádek (race).
+        if (prev.some((r) => r.id === row.id)) return prev;
+        return [...prev, row].sort(
           (a, b) => b.percentage - a.percentage || a.created_at.localeCompare(b.created_at)
-        )
-      );
+        );
+      });
     });
     return () => {
       active = false;

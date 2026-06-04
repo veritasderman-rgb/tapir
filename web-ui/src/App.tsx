@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useAppStore } from './store/useAppStore';
 import { useGameStore } from './store/gameStore';
-import { validateScenario, type SimulationResult, AppMode } from '@tapir/core';
+import { validateScenario, AppMode } from '@tapir/core';
 import { runSimulation } from '@tapir/core';
+import { useRoute, buildPath } from './lib/route';
 
 import DisclaimerBanner from './components/DisclaimerBanner';
 import Header from './components/Header';
@@ -43,7 +44,6 @@ const TABS = [
 export default function App() {
   const {
     scenario,
-    result,
     setResult,
     simStatus,
     setSimStatus,
@@ -54,33 +54,45 @@ export default function App() {
     sidebarOpen,
     appMode,
     setAppMode,
-    hiddenEvents,
     auth,
     setAuth,
   } = useAppStore();
 
   const { gamePhase, loadScenario } = useGameStore();
 
+  const route = useRoute();
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const gameAutoLoadRef = useRef(false);
+  const loadedParamRef = useRef<string | null>(null);
 
-  // Check if URL has #game= or ?game= parameter
-  const hasGameParam = typeof window !== 'undefined' && (
-    window.location.hash.startsWith('#game=') ||
-    new URLSearchParams(window.location.search).has('game')
-  );
-
-  // Auto-load game from URL: skip auth entirely and go straight to crisis staff
+  // Synchronizace store podle URL (router je zdroj pravdy).
   useEffect(() => {
-    if (hasGameParam && !gameAutoLoadRef.current) {
-      gameAutoLoadRef.current = true;
-      // Auto-authenticate as crisis staff
-      if (!auth.role) {
-        setAuth({ role: 'guest', username: 'odkaz-krizovy-stab', classId: null });
-        setAppMode(AppMode.CrisisStaff);
+    const { screen, scenarioParam, legacy } = route;
+    if (screen === 'hub') return;
+    // Učitelský režim vyžaduje přihlášení; jinak zůstaneme na rozcestníku.
+    if (screen === AppMode.Instructor && auth.role !== 'teacher') return;
+
+    // Studentské/odbornické režimy: stačí hostovská relace.
+    if (!auth.role) {
+      setAuth({ role: 'guest', username: 'host', classId: null });
+    }
+    if (appMode !== screen) setAppMode(screen);
+
+    // Krizový štáb: načti scénář z odkazu (jen jednou, dokud hra neběží).
+    if (
+      screen === AppMode.CrisisStaff &&
+      scenarioParam &&
+      gamePhase === 'idle' &&
+      loadedParamRef.current !== scenarioParam
+    ) {
+      loadedParamRef.current = scenarioParam;
+      loadScenario(scenarioParam);
+      // Normalizace starého odkazu (#game=) na nové schéma (s korektním URL kódováním).
+      if (legacy && typeof window !== 'undefined') {
+        const path = buildPath({ screen: AppMode.CrisisStaff, scenarioParam });
+        window.history.replaceState(null, '', `#${path}`);
       }
     }
-  }, [hasGameParam, auth.role, setAuth, setAppMode]);
+  }, [route, auth.role, appMode, gamePhase, setAuth, setAppMode, loadScenario]);
 
   const handleRun = useCallback(() => {
     const errors = validateScenario(scenario);
@@ -109,18 +121,20 @@ export default function App() {
     return () => clearTimeout(debounceRef.current);
   }, [scenario, setValidationErrors]);
 
-  // No auth and no game URL → show login
-  if (!auth.role && !hasGameParam) return <AuthPanel />;
+  // Rozcestník (hub) — nebo učitelský odkaz bez přihlášení → přihlašovací stránka
+  if (route.screen === 'hub' || (route.screen === AppMode.Instructor && auth.role !== 'teacher')) {
+    return <AuthPanel />;
+  }
 
   // Didaktikon games
-  if (appMode === AppMode.OsackaHorecka) return <OsackaGame />;
-  if (appMode === AppMode.TyfovaMary) return <TyfovaGame />;
+  if (route.screen === AppMode.OsackaHorecka) return <OsackaGame />;
+  if (route.screen === AppMode.TyfovaMary) return <TyfovaGame />;
 
   // Educational handbook
-  if (appMode === AppMode.Handbook) return <EpidemiologistHandbook />;
+  if (route.screen === AppMode.Handbook) return <EpidemiologistHandbook />;
 
   // Instructor mode → show Scenario Builder
-  if (auth.role === 'teacher' && appMode === AppMode.Instructor) {
+  if (route.screen === AppMode.Instructor) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <DisclaimerBanner />
@@ -132,8 +146,8 @@ export default function App() {
     );
   }
 
-  // Crisis Staff mode (or game URL): game screens
-  if (appMode === AppMode.CrisisStaff || hasGameParam || gamePhase !== 'idle') {
+  // Crisis Staff mode: game screens
+  if (route.screen === AppMode.CrisisStaff) {
     // Game: scenario loader (waiting for URL or manual input)
     if (gamePhase === 'idle') {
       return (

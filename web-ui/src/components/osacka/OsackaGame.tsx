@@ -7,6 +7,7 @@ import BudgetBar from './BudgetBar';
 import EpiCurve from './EpiCurve';
 import OsackaResults from './OsackaResults';
 import TransmissionTree from './TransmissionTree';
+import HomeButton from '../HomeButton';
 
 const MOBILE_TABS = [
   { id: 'phone', label: 'Kontakty', icon: '📞' },
@@ -25,6 +26,9 @@ const OsackaGame: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
         <div className="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-5 md:p-8">
+          <div className="mb-2">
+            <HomeButton className="-ml-2" />
+          </div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 text-center">
             Osacka horecka
           </h1>

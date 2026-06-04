@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTyfovaStore } from '../../store/tyfovaStore';
 import { getTotalQuestionCount } from '../../data/tyfova/questions';
+import HomeButton from '../HomeButton';
 
 export const TyfovaResults: React.FC = () => {
   const correctAnswers = useTyfovaStore((s) => s.correctAnswers);
@@ -148,13 +149,14 @@ export const TyfovaResults: React.FC = () => {
           </div>
         </div>
 
-        <div className="text-center pt-4">
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
           <button
             onClick={resetGame}
             className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
           >
             Zpět na úvodní obrazovku
           </button>
+          <HomeButton className="bg-gray-100" />
         </div>
       </div>
     </div>

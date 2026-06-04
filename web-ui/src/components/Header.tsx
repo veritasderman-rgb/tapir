@@ -1,9 +1,13 @@
 import { useAppStore } from '../store/useAppStore';
+import { useGameStore } from '../store/gameStore';
 import { AppMode } from '@tapir/core';
 import { VERSION } from '@tapir/core';
+import { useRoute, navigate } from '../lib/route';
 
 export default function Header() {
-  const { appMode, setAppMode, sidebarOpen, setSidebarOpen, auth, logout } = useAppStore();
+  const { appMode, sidebarOpen, setSidebarOpen, auth, logout } = useAppStore();
+  const { gamePhase } = useGameStore();
+  const route = useRoute();
 
   const modeLabel: Record<string, string> = {
     [AppMode.Expert]: '🔬 Odborný',
@@ -13,13 +17,31 @@ export default function Header() {
     [AppMode.TyfovaMary]: '🔍 Záhada z Oyster Bay',
   };
 
+  // Je hráč uprostřed rozehrané aktivity? Pokud ano, návrat na rozcestník potvrdíme.
+  const inActiveGame =
+    route.screen === AppMode.OsackaHorecka ||
+    route.screen === AppMode.TyfovaMary ||
+    (route.screen === AppMode.CrisisStaff && (gamePhase === 'playing' || gamePhase === 'finished'));
+
+  const goHome = () => {
+    if (inActiveGame && !window.confirm('Vrátit se na rozcestník? Rozehraná hra zůstane uložená v tomto okně.')) {
+      return;
+    }
+    navigate({ screen: 'hub' });
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate({ screen: 'hub' });
+  };
+
   return (
     <header className="bg-white border-b border-gray-200 px-2 md:px-4 py-2 flex items-center justify-between gap-2">
       <div className="flex items-center gap-1.5 md:gap-3 min-w-0">
         {appMode === AppMode.Expert && (
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-1 rounded hover:bg-gray-100 lg:hidden flex-shrink-0"
+            className="p-2 rounded hover:bg-gray-100 lg:hidden flex-shrink-0"
             aria-label={sidebarOpen ? 'Zavřít panel' : 'Otevřít panel'}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -27,10 +49,23 @@ export default function Header() {
             </svg>
           </button>
         )}
-        <h1 className="text-sm md:text-lg font-bold text-gray-900 truncate">
-          <span className="hidden sm:inline">Nedovařený tapír</span>
-          <span className="sm:hidden">Tapír</span>
-        </h1>
+
+        {/* Home / rozcestník */}
+        <button
+          onClick={goHome}
+          className="flex items-center gap-1.5 p-1.5 -ml-1 rounded hover:bg-gray-100 flex-shrink-0"
+          aria-label="Zpět na rozcestník"
+          title="Zpět na rozcestník"
+        >
+          <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10" />
+          </svg>
+          <h1 className="text-sm md:text-lg font-bold text-gray-900 truncate">
+            <span className="hidden sm:inline">Nedovařený tapír</span>
+            <span className="sm:hidden">Tapír</span>
+          </h1>
+        </button>
+
         <span className="hidden sm:inline text-xs text-gray-400">v{VERSION}</span>
         <span className="hidden sm:inline bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded font-medium">
           SIMULACE
@@ -44,8 +79,11 @@ export default function Header() {
         {auth.role === 'teacher' && (
           <select
             value={appMode}
-            onChange={(e) => setAppMode(e.target.value as AppMode)}
-            className="text-sm border border-gray-300 rounded px-2 py-1"
+            onChange={(e) => {
+              const mode = e.target.value as AppMode;
+              navigate({ screen: mode });
+            }}
+            className="text-sm border border-gray-300 rounded px-2 py-1.5"
             aria-label="Režim aplikace"
           >
             <option value={AppMode.Instructor}>Učitel</option>
@@ -54,8 +92,8 @@ export default function Header() {
           </select>
         )}
         <button
-          onClick={logout}
-          className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1"
+          onClick={handleLogout}
+          className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1.5"
         >
           Odhlásit
         </button>

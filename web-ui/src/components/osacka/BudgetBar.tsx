@@ -1,5 +1,6 @@
 import React from 'react';
 import { useOsackaStore } from '../../store/osackaStore';
+import HomeButton from '../HomeButton';
 
 const BudgetBar: React.FC = () => {
   const budget = useOsackaStore((s) => s.budget);
@@ -14,6 +15,7 @@ const BudgetBar: React.FC = () => {
 
   return (
     <div className="flex items-center gap-4 px-4 py-2 bg-white border-b border-gray-200">
+      <HomeButton iconOnly className="flex-shrink-0 -ml-2" confirm />
       <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
         Zbyvajici rozpocet:
       </span>

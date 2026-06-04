@@ -4,6 +4,7 @@ import { DocumentList } from './DocumentList';
 import { DocumentViewer } from './DocumentViewer';
 import { QuizPanel } from './QuizPanel';
 import { TyfovaResults } from './TyfovaResults';
+import HomeButton from '../HomeButton';
 
 const STEP_TITLES = [
   'Základní informace',
@@ -42,10 +43,13 @@ const TyfovaGame: React.FC = () => {
     <div className="flex flex-col h-full min-h-screen bg-gray-50">
       {/* Top bar */}
       <div className="bg-white border-b border-gray-200 px-3 md:px-4 py-2 md:py-3 flex items-center justify-between shadow-sm gap-2">
-        <h1 className="text-sm md:text-lg font-bold text-gray-800 truncate min-w-0">
-          <span className="hidden sm:inline">Záhada z Oyster Bay — Epidemiologické vyšetřování</span>
-          <span className="sm:hidden">Záhada z Oyster Bay</span>
-        </h1>
+        <div className="flex items-center gap-1 min-w-0">
+          <HomeButton iconOnly className="flex-shrink-0 -ml-2" confirm />
+          <h1 className="text-sm md:text-lg font-bold text-gray-800 truncate min-w-0">
+            <span className="hidden sm:inline">Záhada z Oyster Bay — Epidemiologické vyšetřování</span>
+            <span className="sm:hidden">Záhada z Oyster Bay</span>
+          </h1>
+        </div>
         <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
           <span className="text-xs md:text-sm font-medium text-gray-500">
             <span className="hidden sm:inline">Krok </span>{currentStep + 1}/7
@@ -107,6 +111,7 @@ const TyfovaGame: React.FC = () => {
 const IntroScreen: React.FC<{ onStart: () => void }> = ({ onStart }) => (
   <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center p-4 md:p-6">
     <div className="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-5 md:p-8 space-y-5 md:space-y-6">
+      <HomeButton className="-ml-2" />
       <div className="text-center">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
           Záhada z Oyster Bay

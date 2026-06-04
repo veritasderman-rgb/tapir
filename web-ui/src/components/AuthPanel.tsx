@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { AppMode, defaultScenario } from '@tapir/core';
+import { AppMode } from '@tapir/core';
 import { verifyTeacher } from '../lib/classroom-db';
 import { useAppStore } from '../store/useAppStore';
-import { useGameStore } from '../store/gameStore';
+import { navigate } from '../lib/route';
 
 export default function AuthPanel() {
-  const { setAuth, setAppMode, setScenario } = useAppStore();
+  const { setAuth } = useAppStore();
   const [teacherUsername, setTeacherUsername] = useState('');
   const [teacherPassword, setTeacherPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -17,24 +17,18 @@ export default function AuthPanel() {
     }
 
     setAuth({ role: 'teacher', username: teacherUsername.trim(), classId: null });
-    setAppMode(AppMode.Instructor);
     setError(null);
+    navigate({ screen: AppMode.Instructor });
   };
 
   const handleExpertMode = () => {
-    setAuth({ role: 'guest', username: 'expert', classId: null });
-    setAppMode(AppMode.Expert);
     setError(null);
+    navigate({ screen: AppMode.Expert });
   };
 
   const handleCrisisStaff = () => {
-    setAuth({ role: 'guest', username: 'krizovy-stab', classId: null });
-    setAppMode(AppMode.CrisisStaff);
-    setScenario(defaultScenario());
     setError(null);
-    // Load default game scenario
-    const { loadScenario } = useGameStore.getState();
-    // Will start with ScenarioLoader where user can paste a link or use default
+    navigate({ screen: AppMode.CrisisStaff });
   };
 
   return (
@@ -130,9 +124,8 @@ export default function AuthPanel() {
               </div>
               <button
                 onClick={() => {
-                  setAuth({ role: 'guest', username: 'didaktikon', classId: null });
-                  setAppMode(AppMode.OsackaHorecka);
                   setError(null);
+                  navigate({ screen: AppMode.OsackaHorecka });
                 }}
                 className="w-full bg-amber-600 text-white rounded py-2.5 text-sm font-bold hover:bg-amber-700 transition-colors"
               >
@@ -151,9 +144,8 @@ export default function AuthPanel() {
               </div>
               <button
                 onClick={() => {
-                  setAuth({ role: 'guest', username: 'didaktikon', classId: null });
-                  setAppMode(AppMode.TyfovaMary);
                   setError(null);
+                  navigate({ screen: AppMode.TyfovaMary });
                 }}
                 className="w-full bg-emerald-600 text-white rounded py-2.5 text-sm font-bold hover:bg-emerald-700 transition-colors"
               >
@@ -177,9 +169,8 @@ export default function AuthPanel() {
               </div>
               <button
                 onClick={() => {
-                  setAuth({ role: 'guest', username: 'handbook', classId: null });
-                  setAppMode(AppMode.Handbook);
                   setError(null);
+                  navigate({ screen: AppMode.Handbook });
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded text-xs font-bold hover:bg-blue-700 transition-colors flex-shrink-0"
               >

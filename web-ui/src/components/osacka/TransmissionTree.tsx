@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useOsackaStore } from '../../store/osackaStore';
 import { contacts } from '../../data/osacka/contacts';
+import HomeButton from '../HomeButton';
 
 const TransmissionTree: React.FC = () => {
   const identifiedInfected = useOsackaStore((s) => s.identifiedInfected);
@@ -110,6 +111,7 @@ const TransmissionTree: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 py-4 md:py-8">
       <div className="max-w-4xl mx-auto px-4 space-y-6">
+        <HomeButton confirm />
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900">
             Retezec nakazy

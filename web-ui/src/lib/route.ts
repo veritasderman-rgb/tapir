@@ -23,7 +23,7 @@ import { AppMode } from '@tapir/core';
  * a normalizují na `#/hra/krizovy-stab?s=<b64>`.
  */
 
-export type Screen = 'hub' | 'leaderboard' | AppMode;
+export type Screen = 'hub' | 'leaderboard' | 'admin' | AppMode;
 
 export interface Route {
   screen: Screen;
@@ -87,6 +87,9 @@ export function parseLocation(rawHash: string, rawSearch = ''): Route {
 
   if (path === '') return { screen: 'hub', roomCode };
 
+  // ── Admin (Odborný režim + Učitelský režim): #/admin ──
+  if (path === 'admin') return { screen: 'admin', roomCode };
+
   // ── Leaderboard místnosti: #/vysledky/<KÓD> ──
   if (path === LEADERBOARD_SLUG || path.startsWith(`${LEADERBOARD_SLUG}/`)) {
     const code = path.slice(LEADERBOARD_SLUG.length).replace(/^\/+/, '');
@@ -112,6 +115,7 @@ export function parseRoute(): Route {
 /** Sestaví hash cestu (bez vedoucího '#') pro danou route. */
 export function buildPath(route: Route): string {
   if (route.screen === 'hub') return '/';
+  if (route.screen === 'admin') return '/admin';
   if (route.screen === 'leaderboard') {
     return route.roomCode ? `/${LEADERBOARD_SLUG}/${route.roomCode}` : `/${LEADERBOARD_SLUG}`;
   }

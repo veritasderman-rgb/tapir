@@ -18,6 +18,7 @@ import Dashboard from './components/Dashboard';
 import AssumptionsInspector from './components/AssumptionsInspector';
 import InstructorPanel from './components/InstructorPanel';
 import HubScreen from './components/hub/HubScreen';
+import AdminScreen from './components/admin/AdminScreen';
 import Leaderboard from './components/classroom/Leaderboard';
 import RoomCreator from './components/classroom/RoomCreator';
 
@@ -78,8 +79,8 @@ export default function App() {
   // Synchronizace store podle URL (router je zdroj pravdy).
   useEffect(() => {
     const { screen, scenarioParam, legacy } = route;
-    // Rozcestník a leaderboard si vystačí samy (leaderboard nepotřebuje store ani auth).
-    if (screen === 'hub' || screen === 'leaderboard') return;
+    // Rozcestník, admin a leaderboard si vystačí samy (nepotřebují store sync ani auth).
+    if (screen === 'hub' || screen === 'leaderboard' || screen === 'admin') return;
     // Učitelský režim vyžaduje přihlášení; jinak zůstaneme na rozcestníku.
     if (screen === AppMode.Instructor && auth.role !== 'teacher') return;
 
@@ -137,6 +138,9 @@ export default function App() {
 
   // Živý žebříček třídy (veřejný odkaz, bez přihlášení)
   if (route.screen === 'leaderboard') return <Leaderboard />;
+
+  // Pokročilé / admin (Odborný + Učitelský režim)
+  if (route.screen === 'admin') return <AdminScreen />;
 
   // Rozcestník (hub) — nebo učitelský odkaz bez přihlášení → přihlašovací stránka
   if (route.screen === 'hub' || (route.screen === AppMode.Instructor && auth.role !== 'teacher')) {

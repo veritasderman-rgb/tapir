@@ -1,7 +1,76 @@
 import { useState } from 'react';
 import { navigate } from '../../lib/route';
+import HomeButton from '../HomeButton';
+import { IconHandbook } from '../brand/BrandIcons';
 
 type Section = 'intro' | 'sireni' | 'modely' | 'opatreni' | 'trasovani' | 'krizove' | 'pribeh';
+
+export type HandbookLevel = 'zs' | 'ss' | 'vs';
+
+const LEVELS: { id: HandbookLevel; title: string; sub: string; desc: string }[] = [
+  {
+    id: 'zs',
+    title: 'Základní škola',
+    sub: 'Jednoduše a názorně',
+    desc: 'Základní pojmy s příklady z běžného života, bez vzorců. Pro druhý stupeň ZŠ.',
+  },
+  {
+    id: 'ss',
+    title: 'Střední škola',
+    sub: 'Standardní úroveň',
+    desc: 'Souvislosti, jednoduché modely (SEIR, R₀, Rₑff) a praktické dopady opatření.',
+  },
+  {
+    id: 'vs',
+    title: 'Vysoká škola',
+    sub: 'Lékařská fakulta',
+    desc: 'Do hloubky — kompartmentové modely, parametry přenosu, intervence a jejich limity.',
+  },
+];
+
+export const LEVEL_LABEL: Record<HandbookLevel, string> = {
+  zs: 'ZŠ',
+  ss: 'SŠ',
+  vs: 'VŠ — lékařská fakulta',
+};
+
+function LevelSelect({ onPick }: { onPick: (l: HandbookLevel) => void }) {
+  return (
+    <div className="min-h-screen brand-grid-bg">
+      <div className="max-w-3xl mx-auto px-4 py-6 md:py-10">
+        <div className="flex items-center justify-between mb-6">
+          <HomeButton className="-ml-2" />
+          <div className="eyebrow">Příručka epidemiologa</div>
+        </div>
+        <header className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-brand-teal-soft text-brand-teal-dark mb-3">
+            <IconHandbook className="w-8 h-8" />
+          </div>
+          <h1 className="font-display text-3xl font-bold text-brand-charcoal">Vyberte úroveň</h1>
+          <p className="mt-2 text-sm text-brand-slate">
+            Stejná témata, tři hloubky výkladu. Úroveň lze kdykoli změnit.
+          </p>
+        </header>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {LEVELS.map((l) => (
+            <button
+              key={l.id}
+              onClick={() => onPick(l.id)}
+              className="flex flex-col items-center text-center bg-white border-2 border-gray-200 rounded-2xl p-5 gap-2 transition-all hover:border-brand-teal/40 hover:shadow-lg hover:-translate-y-0.5"
+            >
+              <div className="eyebrow text-brand-teal">{l.sub}</div>
+              <h2 className="font-display text-lg font-bold text-brand-charcoal">{l.title}</h2>
+              <p className="text-xs text-brand-slate leading-snug flex-1">{l.desc}</p>
+              <span className="w-full min-h-[44px] inline-flex items-center justify-center rounded-xl bg-brand-teal text-white text-sm font-bold">
+                Začít
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const SECTIONS: { id: Section; label: string; icon: string }[] = [
   { id: 'intro', label: 'Úvod', icon: '📖' },
@@ -15,10 +84,13 @@ const SECTIONS: { id: Section; label: string; icon: string }[] = [
 
 export default function EpidemiologistHandbook() {
   const [activeSection, setActiveSection] = useState<Section>('intro');
+  const [level, setLevel] = useState<HandbookLevel | null>(null);
 
   const handleBack = () => {
     navigate({ screen: 'hub' });
   };
+
+  if (!level) return <LevelSelect onPick={setLevel} />;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50">
@@ -34,7 +106,17 @@ export default function EpidemiologistHandbook() {
               <p className="text-[10px] md:text-xs text-gray-500 hidden sm:block">Školení pro krizový štáb — zjednodušený přehled klíčových konceptů</p>
             </div>
           </div>
-          <div className="hidden md:block text-xs text-gray-400 italic flex-shrink-0">Nedovařený tapír — vzdělávací materiály</div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="bg-brand-teal-soft text-brand-teal-dark text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded">
+              {LEVEL_LABEL[level]}
+            </span>
+            <button
+              onClick={() => setLevel(null)}
+              className="text-xs text-gray-400 hover:text-gray-600"
+            >
+              Změnit úroveň
+            </button>
+          </div>
         </div>
       </div>
 
@@ -82,7 +164,7 @@ export default function EpidemiologistHandbook() {
         {/* Content */}
         <main className="flex-1 min-w-0">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-8 prose prose-sm max-w-none">
-            {activeSection === 'intro' && <IntroSection />}
+            {activeSection === 'intro' && <IntroSection level={level} />}
             {activeSection === 'sireni' && <SireniSection />}
             {activeSection === 'modely' && <ModelySection />}
             {activeSection === 'opatreni' && <OpatreniSection />}
@@ -128,10 +210,23 @@ function Diagram({ children }: { children: React.ReactNode }) {
 
 // ── INTRO ──
 
-function IntroSection() {
+const LEVEL_INTRO: Record<HandbookLevel, string> = {
+  zs: 'Čteš verzi pro základní školu — vysvětlujeme jednoduše, na příkladech z běžného života a bez vzorců.',
+  ss: 'Čtete verzi pro střední školu — souvislosti, jednoduché modely a praktické dopady opatření.',
+  vs: 'Čtete verzi pro vysokou školu (úroveň lékařské fakulty) — kompartmentové modely a parametry přenosu do hloubky.',
+};
+
+function IntroSection({ level }: { level: HandbookLevel }) {
   return (
     <>
       <h2 className="text-2xl font-black text-gray-900 mb-4">Vítejte v Příručce epidemiologa</h2>
+
+      <div className="bg-brand-teal-soft border-l-4 border-brand-teal p-4 rounded-r-lg my-4">
+        <div className="text-xs font-black text-brand-teal-dark uppercase mb-1">
+          Úroveň: {LEVEL_LABEL[level]}
+        </div>
+        <div className="text-sm text-brand-teal-dark leading-relaxed">{LEVEL_INTRO[level]}</div>
+      </div>
 
       <p className="text-gray-700 leading-relaxed">
         Tato příručka je určena pro účastníky simulace <strong>Krizový štáb</strong> a dalších

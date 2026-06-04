@@ -21,6 +21,11 @@ describe('parseLocation', () => {
     expect(parseLocation('#/neexistuje').screen).toBe('hub');
   });
 
+  it('admin route', () => {
+    expect(parseLocation('#/admin').screen).toBe('admin');
+    expect(buildPath({ screen: 'admin' })).toBe('/admin');
+  });
+
   it('čte ?s= a ?room= z hashe', () => {
     const r = parseLocation('#/hra/krizovy-stab?s=ABC&room=TAPIR-1');
     expect(r.screen).toBe(AppMode.CrisisStaff);

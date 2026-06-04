@@ -1,7 +1,4 @@
-import { useState } from 'react';
 import { AppMode, VERSION } from '@tapir/core';
-import { verifyTeacher } from '../../lib/classroom-db';
-import { useAppStore } from '../../store/useAppStore';
 import { navigate, type Screen } from '../../lib/route';
 import {
   TapirMark,
@@ -9,8 +6,6 @@ import {
   IconOsacka,
   IconOysterBay,
   IconHandbook,
-  IconSandbox,
-  IconTeacher,
 } from '../brand/BrandIcons';
 
 interface Tile {
@@ -20,11 +15,8 @@ interface Tile {
   meta: string;
   cta: string;
   Icon: (p: { className?: string }) => React.ReactElement;
-  /** soft chip background + icon color */
   chip: string;
-  /** tile border tint */
   border: string;
-  /** solid CTA button classes */
   btn: string;
 }
 
@@ -64,31 +56,6 @@ const GAMES: Tile[] = [
   },
 ];
 
-const LEARN: Tile[] = [
-  {
-    screen: AppMode.Handbook,
-    title: 'Příručka epidemiologa',
-    desc: '7 kapitol o přenosu, SEIR modelech, trasování a krizovém řízení.',
-    meta: 'Samostudium',
-    cta: 'Otevřít',
-    Icon: IconHandbook,
-    chip: 'bg-brand-teal-soft text-brand-teal-dark',
-    border: 'border-gray-200',
-    btn: 'bg-brand-teal text-white hover:bg-brand-teal-dark',
-  },
-  {
-    screen: AppMode.Expert,
-    title: 'Odborný režim',
-    desc: 'Parametrický SEIRV sandbox — R₀, kontaktní matice, NPI, varianty.',
-    meta: 'Sandbox',
-    cta: 'Otevřít',
-    Icon: IconSandbox,
-    chip: 'bg-brand-charcoal/10 text-brand-charcoal',
-    border: 'border-gray-200',
-    btn: 'bg-brand-charcoal text-white hover:bg-brand-charcoal/90',
-  },
-];
-
 function TileCard({ tile }: { tile: Tile }) {
   return (
     <div
@@ -115,22 +82,6 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 export default function HubScreen() {
-  const { setAuth } = useAppStore();
-  const [showTeacher, setShowTeacher] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-
-  const handleTeacherLogin = () => {
-    if (!verifyTeacher(username.trim(), password)) {
-      setError('Neplatné učitelské přihlášení.');
-      return;
-    }
-    setAuth({ role: 'teacher', username: username.trim(), classId: null });
-    setError(null);
-    navigate({ screen: AppMode.Instructor });
-  };
-
   return (
     <div className="min-h-screen brand-grid-bg">
       <div className="max-w-5xl mx-auto px-4 py-8 md:py-12">
@@ -153,6 +104,27 @@ export default function HubScreen() {
           </div>
         </header>
 
+        {/* Featured: Příručka epidemiologa (na úvod jako první) */}
+        <SectionLabel>Začněte tady</SectionLabel>
+        <button
+          onClick={() => navigate({ screen: AppMode.Handbook })}
+          className="group w-full flex flex-col sm:flex-row items-center text-center sm:text-left gap-4 bg-white border-2 border-brand-teal/40 rounded-2xl p-5 md:p-6 transition-all hover:shadow-lg hover:-translate-y-0.5"
+        >
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-teal-soft text-brand-teal-dark flex-shrink-0">
+            <IconHandbook className="w-9 h-9" />
+          </div>
+          <div className="flex-1">
+            <h2 className="font-display text-xl font-bold text-brand-charcoal">Příručka epidemiologa</h2>
+            <p className="text-sm text-brand-slate mt-1">
+              Interaktivní školení o přenosu, SEIR modelech, trasování a krizovém řízení — ve třech
+              úrovních (ZŠ · SŠ · VŠ). Ideální start před hrami.
+            </p>
+          </div>
+          <span className="min-h-[44px] px-6 inline-flex items-center justify-center rounded-xl bg-brand-teal text-white text-sm font-bold group-hover:bg-brand-teal-dark transition-colors flex-shrink-0">
+            Otevřít příručku
+          </span>
+        </button>
+
         {/* Hry pro třídu */}
         <SectionLabel>Hry pro třídu</SectionLabel>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -161,76 +133,14 @@ export default function HubScreen() {
           ))}
         </div>
 
-        {/* Učení */}
-        <SectionLabel>Učení</SectionLabel>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {LEARN.map((t) => (
-            <TileCard key={t.title} tile={t} />
-          ))}
-        </div>
-
-        {/* Pro učitele */}
-        <SectionLabel>Pro učitele</SectionLabel>
-        <div className="bg-white border-2 border-gray-200 rounded-2xl p-5">
-          {!showTeacher ? (
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-brand-charcoal/10 text-brand-charcoal flex-shrink-0">
-                <IconTeacher className="w-7 h-7" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-display text-base font-bold text-brand-charcoal">Učitelský režim</h3>
-                <p className="text-xs text-brand-slate mt-1">
-                  Tvorba scénářů a generování odkazů pro třídu.{' '}
-                  <span className="font-mono text-[11px] text-gray-400">Demo: ucitel / tapir123</span>
-                </p>
-              </div>
-              <button
-                onClick={() => setShowTeacher(true)}
-                className="min-h-[44px] px-5 rounded-xl bg-brand-charcoal text-white text-sm font-bold hover:bg-brand-charcoal/90 transition-colors flex-shrink-0"
-              >
-                Učitelský režim
-              </button>
-            </div>
-          ) : (
-            <div className="max-w-sm space-y-3">
-              <input
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Uživatelské jméno"
-                className="w-full border border-gray-300 rounded-lg px-3 min-h-[44px] text-sm focus:ring-2 focus:ring-brand-teal outline-none"
-              />
-              <input
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleTeacherLogin()}
-                placeholder="Heslo"
-                type="password"
-                className="w-full border border-gray-300 rounded-lg px-3 min-h-[44px] text-sm focus:ring-2 focus:ring-brand-teal outline-none"
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={handleTeacherLogin}
-                  className="flex-1 min-h-[44px] rounded-lg bg-brand-teal text-white text-sm font-bold hover:bg-brand-teal-dark transition-colors"
-                >
-                  Přihlásit
-                </button>
-                <button
-                  onClick={() => {
-                    setShowTeacher(false);
-                    setError(null);
-                  }}
-                  className="min-h-[44px] px-4 text-sm text-brand-slate hover:text-brand-charcoal"
-                >
-                  Zpět
-                </button>
-              </div>
-            </div>
-          )}
-          {error && (
-            <div className="bg-brand-red-soft text-brand-red px-4 py-2 rounded-lg text-sm text-center mt-3">
-              {error}
-            </div>
-          )}
+        {/* Pokročilé / pro učitele */}
+        <div className="text-center mt-10">
+          <button
+            onClick={() => navigate({ screen: 'admin' })}
+            className="text-sm font-semibold text-brand-slate hover:text-brand-charcoal transition-colors min-h-[44px] px-4"
+          >
+            Pro učitele a pokročilé →
+          </button>
         </div>
       </div>
     </div>

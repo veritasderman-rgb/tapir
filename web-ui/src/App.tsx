@@ -17,7 +17,7 @@ import ExportPanel from './components/ExportPanel';
 import Dashboard from './components/Dashboard';
 import AssumptionsInspector from './components/AssumptionsInspector';
 import InstructorPanel from './components/InstructorPanel';
-import AuthPanel from './components/AuthPanel';
+import HubScreen from './components/hub/HubScreen';
 
 // Game components
 import ScenarioBuilder from './components/instructor/ScenarioBuilder';
@@ -52,6 +52,7 @@ export default function App() {
     validationErrors,
     setValidationErrors,
     sidebarOpen,
+    setSidebarOpen,
     appMode,
     setAppMode,
     auth,
@@ -63,6 +64,14 @@ export default function App() {
   const route = useRoute();
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const loadedParamRef = useRef<string | null>(null);
+
+  // Na úzkých obrazovkách (tablet/mobil) panel ve výchozím stavu skryjeme,
+  // aby výsuvný drawer nepřekrýval obsah hned po vstupu do Odborného režimu.
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setSidebarOpen(false);
+    }
+  }, [setSidebarOpen]);
 
   // Synchronizace store podle URL (router je zdroj pravdy).
   useEffect(() => {
@@ -125,7 +134,7 @@ export default function App() {
 
   // Rozcestník (hub) — nebo učitelský odkaz bez přihlášení → přihlašovací stránka
   if (route.screen === 'hub' || (route.screen === AppMode.Instructor && auth.role !== 'teacher')) {
-    return <AuthPanel />;
+    return <HubScreen />;
   }
 
   // Didaktikon games
@@ -197,14 +206,32 @@ export default function App() {
       <DisclaimerBanner />
       <Header />
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Backdrop pro výsuvný panel na tabletu/mobilu */}
+        {sidebarOpen && (
+          <div
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden fixed inset-0 bg-black/30 z-30"
+            aria-hidden="true"
+          />
+        )}
+        {/* Sidebar — výsuvný drawer pod lg, statický panel na lg+ */}
         <aside
-          className={`${
-            sidebarOpen ? 'w-80' : 'w-0'
-          } transition-all duration-200 overflow-y-auto border-r border-gray-200 bg-white flex-shrink-0`}
+          className={`fixed lg:static inset-y-0 left-0 z-40 w-80 lg:w-80 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0 shadow-xl lg:shadow-none transition-transform lg:transition-all duration-200 ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0 lg:w-0'
+          }`}
         >
           <div className="p-3 space-y-4">
+            {/* Zavřít panel (jen na tabletu/mobilu) */}
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden w-full flex items-center justify-end gap-1.5 text-xs text-gray-400 hover:text-gray-600 -mb-1"
+            >
+              Zavřít panel
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
             {/* Run button */}
             <button
               onClick={handleRun}

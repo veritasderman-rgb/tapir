@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nedovařený tapír — příručka pro učitele</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --teal: #0e7c7b; --teal-dark: #0a5b5a; --teal-soft: #d6eae9;
+    --mustard: #e0a458; --mustard-soft: #f6e6ce;
+    --red: #c44536; --red-soft: #f2d7d2;
+    --cream: #f4efe6; --charcoal: #22303a; --slate: #5b6b73;
+    --line: #e5e7eb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; color: var(--charcoal);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.6;
+    background-color: var(--cream);
+    background-image: radial-gradient(var(--teal-soft) 1.1px, transparent 1.1px);
+    background-size: 22px 22px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 32px 20px 80px; }
+  h1, h2, h3 { font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.01em; }
+  h1 { font-size: 2rem; margin: 0; }
+  h2 { font-size: 1.4rem; margin: 2.5rem 0 0.5rem; border-bottom: 2px solid var(--teal-soft); padding-bottom: 6px; }
+  h3 { font-size: 1.1rem; margin: 1.4rem 0 0.3rem; }
+  a { color: var(--teal-dark); }
+  code, .code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; font-size: 0.85em; }
+  .eyebrow { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.14em; color: var(--slate); }
+  header.head { text-align: center; margin-bottom: 8px; }
+  header.head .brand { display: inline-flex; align-items: center; gap: 12px; }
+  header.head svg { width: 44px; height: 44px; color: var(--teal); }
+  header.head p { color: var(--slate); margin: 8px 0 0; }
+  .chip { display: inline-block; background: var(--red-soft); color: var(--red); font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 5px; }
+  .card { background: #fff; border: 2px solid var(--line); border-radius: 16px; padding: 18px 20px; margin: 14px 0; }
+  .card.teal { border-color: rgba(14,124,123,.35); }
+  .card.red { border-color: rgba(196,69,54,.3); }
+  .card.mustard { border-color: rgba(224,164,88,.45); }
+  .card h3 { margin-top: 0; }
+  .meta { font-size: 12px; color: var(--slate); font-weight: 600; }
+  .btn { display: inline-block; background: var(--teal); color: #fff; text-decoration: none; font-weight: 700; font-size: 14px; padding: 9px 16px; border-radius: 10px; margin-top: 8px; }
+  .btn.red { background: var(--red); } .btn.mustard { background: var(--mustard); color: var(--charcoal); } .btn.ink { background: var(--charcoal); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 10px 0; background: #fff; }
+  th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: #faf7f1; }
+  ol, ul { padding-left: 22px; }
+  ol li, ul li { margin: 4px 0; }
+  .steps { counter-reset: step; list-style: none; padding-left: 0; }
+  .steps > li { position: relative; padding-left: 42px; margin: 14px 0; }
+  .steps > li::before { counter-increment: step; content: counter(step); position: absolute; left: 0; top: 0; width: 28px; height: 28px; background: var(--teal); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-family: "Space Grotesk", sans-serif; }
+  .note { background: var(--mustard-soft); border-left: 4px solid var(--mustard); border-radius: 0 10px 10px 0; padding: 12px 16px; margin: 16px 0; font-size: 14px; }
+  .warn { background: var(--red-soft); border-left: 4px solid var(--red); border-radius: 0 10px 10px 0; padding: 12px 16px; margin: 16px 0; font-size: 14px; color: #7a2a20; }
+  footer { text-align: center; color: var(--slate); font-size: 12px; margin-top: 40px; border-top: 1px solid var(--line); padding-top: 16px; }
+  .toc a { display: inline-block; margin: 2px 10px 2px 0; }
+  @media (max-width: 560px) { h1 { font-size: 1.6rem; } .wrap { padding: 20px 14px 60px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="head">
+    <div class="brand">
+      <svg viewBox="0 0 48 48" fill="currentColor" aria-hidden="true">
+        <path d="M6 30c0-7.2 5.6-12.5 13-12.5h5.5c3.4 0 6 .6 8.8 .6 1.8 0 3-.7 4.6-1.8.9-.6 2 .3 1.7 1.3-.5 1.7-1.6 3-3.2 3.9-.9 .5-1.4 1-1.7 1.8l-1.6 4 0 .2 0 3.7a3 3 0 0 1-3 3H10a4 4 0 0 1-4-4z"/>
+        <path d="M30 18.2c.5-2.2 1.6-3.7 3.2-4.4 .9-.4 1.8 .5 1.4 1.4-.6 1.5-.8 2.7-.6 3.9z"/>
+        <circle cx="33" cy="23" r="1.4" fill="#f4efe6"/>
+        <rect x="13" y="34.5" width="2.8" height="5" rx="1.3"/><rect x="25.5" y="34.5" width="2.8" height="5" rx="1.3"/>
+      </svg>
+      <h1>Nedovařený tapír</h1>
+    </div>
+    <p><strong>Rychlý kurz pro učitele</strong> — co kde najdete, jak to použít ve výuce a jak rozjet hru pro celou třídu.</p>
+    <p><span class="chip">SIMULACE</span> &nbsp;<span class="meta">Edukační model, ne klinická predikce.</span></p>
+  </header>
+
+  <div class="card">
+    <div class="eyebrow">Obsah</div>
+    <div class="toc">
+      <a href="#co-to-je">Co to je</a>
+      <a href="#orientace">Orientace</a>
+      <a href="#odkazy">Odkazy (URL)</a>
+      <a href="#aktivity">Aktivity</a>
+      <a href="#trida">Hra pro třídu</a>
+      <a href="#ucitel">Učitelský režim</a>
+      <a href="#tipy">Tipy</a>
+    </div>
+  </div>
+
+  <h2 id="co-to-je">Co to je</h2>
+  <p><strong>Nedovařený tapír</strong> je česká vzdělávací platforma pro výuku epidemiologie, krizového řízení a trasování kontaktů. Spojuje výukovou <em>příručku</em> se třemi <em>hrami</em> a odborným <em>simulátorem</em>. Cílová skupina jsou žáci a studenti SŠ a VŠ — typicky 20–50 najednou, každý na svém telefonu, tabletu nebo notebooku. Vše funguje v prohlížeči, nic se neinstaluje.</p>
+  <div class="warn"><strong>Důležité:</strong> jde o <strong>edukační simulátor</strong>. Výsledky a čísla neslouží jako predikce reality ani jako doporučení pro reálná rozhodnutí.</div>
+
+  <h2 id="orientace">Jak se v aplikaci pohybovat</h2>
+  <ul>
+    <li><strong>Rozcestník (úvodní stránka)</strong> — výchozí obrazovka s nabídkou aktivit. Nahoře je <strong>Příručka</strong> (doporučený start), pod ní hry pro třídu.</li>
+    <li><strong>Tlačítko Home</strong> — kdykoli se vrátíte na rozcestník přes značku tapíra / ikonu domečku vlevo nahoře (v rozehrané hře se appka zeptá, jestli opravdu odejít).</li>
+    <li><strong>Tablety a mobily</strong> — celé prostředí je přizpůsobené dotyku (velká tlačítka, přepínání obrazovek místo drobných panelů).</li>
+    <li><strong>Bez přihlašování</strong> — studenti jdou rovnou do aktivity. Přihlášení je potřeba jen pro učitelské funkce (viz níže).</li>
+  </ul>
+
+  <h2 id="odkazy">Odkazy (URL) — pošlete studentům jeden link</h2>
+  <p>Každá aktivita má vlastní adresu. Vznikne tak, že za adresu aplikace připojíte část začínající <code>#/</code>. Příklad: pokud aplikace běží na <code>https&#58;//vase-adresa/</code>, odkaz na Ósackou horečku je <code>https&#58;//vase-adresa/#/hra/osacka</code>.</p>
+  <table>
+    <thead><tr><th>Aktivita</th><th>Odkaz (připojte za adresu)</th></tr></thead>
+    <tbody>
+      <tr><td>Rozcestník (úvod)</td><td><code>#/</code></td></tr>
+      <tr><td>Příručka epidemiologa</td><td><code>#/prirucka</code></td></tr>
+      <tr><td>Krizový štáb</td><td><code>#/hra/krizovy-stab</code></td></tr>
+      <tr><td>Ósacká horečka</td><td><code>#/hra/osacka</code></td></tr>
+      <tr><td>Záhada z Oyster Bay</td><td><code>#/hra/oyster-bay</code></td></tr>
+      <tr><td>Odborný režim (sandbox)</td><td><code>#/sandbox</code></td></tr>
+      <tr><td>Pro učitele / pokročilé</td><td><code>#/admin</code></td></tr>
+      <tr><td>Žebříček třídy</td><td><code>#/vysledky/KÓD</code></td></tr>
+    </tbody>
+  </table>
+  <div class="note">Hru pro třídu nemusíte odkaz skládat ručně — appka vám vygeneruje hotový odkaz <strong>i QR kód</strong>. Viz <a href="#trida">Hra pro třídu</a>.</div>
+
+  <h2 id="aktivity">Aktivity — co kde a jak použít</h2>
+
+  <div class="card teal">
+    <div class="eyebrow">Začněte tady · samostudium</div>
+    <h3>📖 Příručka epidemiologa</h3>
+    <p>Interaktivní výklad v <strong>sedmi kapitolách</strong> (jak se šíří virus, modely SEIR, opatření, trasování, krizové řízení, příběh epidemioložky). Po otevření si student zvolí <strong>úroveň náročnosti</strong>:</p>
+    <ul>
+      <li><strong>ZŠ</strong> — pro 8.–9. třídu: jednoduše, na příkladech, bez vzorců.</li>
+      <li><strong>SŠ</strong> — pro 3.–4. ročník: pojmy, jednoduché modely, tabulky a grafy.</li>
+      <li><strong>VŠ / lékařská fakulta</strong> — do hloubky, s odkazy na odbornou literaturu (DOI).</li>
+    </ul>
+    <p class="meta">Tip: zadejte příručku jako přípravu <em>před</em> hrami — dá studentům slovník (R₀, R<sub>eff</sub>, opatření), který pak ve hrách využijí.</p>
+    <a class="btn" href="/#/prirucka">Otevřít příručku →</a>
+  </div>
+
+  <div class="card red">
+    <div class="eyebrow">30–45 min · tahová hra · pokročilé</div>
+    <h3>🏛️ Krizový štáb</h3>
+    <p>Student se ujme role hlavního hygienika a <strong>řídí epidemii</strong> — v každém kole vybírá opatření, sleduje grafy nákazy, nemocnic a úmrtí a vyvažuje zdraví, ekonomiku a důvěru veřejnosti. Hra se přepíná mezi dvěma obrazovkami: <strong>Vyhodnocení epidemie</strong> (grafy a stav) a <strong>Opatření</strong> (velké karty k zapnutí), takže se dobře ovládá i na tabletu.</p>
+    <p class="meta">Učitel může připravit vlastní scénář (viz Učitelský režim) nebo nechat studenty vybrat z přednastavených (chřipka, SARS-CoV-3, ptačí chřipka, ebola…).</p>
+    <a class="btn red" href="/#/hra/krizovy-stab">Otevřít Krizový štáb →</a>
+  </div>
+
+  <div class="card teal">
+    <div class="eyebrow">~20 min · detektivní · střední</div>
+    <h3>🦠 Ósacká horečka</h3>
+    <p>Telefonní <strong>trasování kontaktů</strong>. Student má omezený rozpočet, volá kontaktům, čte jejich výpovědi, označuje nakažené, hledá ohniska (superspreading) a sestavuje epidemickou křivku. Skvělé na procvičení logiky trasování.</p>
+    <a class="btn" href="/#/hra/osacka">Otevřit Ósackou →</a>
+  </div>
+
+  <div class="card mustard">
+    <div class="eyebrow">~25 min · vyšetřování · střední</div>
+    <h3>🔍 Záhada z Oyster Bay</h3>
+    <p>Historická detektivka z roku 1906. Student v roli sanitárního inženýra prochází dokumenty, výpovědi a kvízy v 7 krocích a odhaluje zdroj epidemie břišního tyfu (slavný případ „Tyfové Mary").</p>
+    <a class="btn mustard" href="/#/hra/oyster-bay">Otevřít Oyster Bay →</a>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Pokročilé · v sekci /admin</div>
+    <h3>🔬 Odborný režim (sandbox)</h3>
+    <p>Parametrický simulátor SEIRV pro pokročilé — přímé nastavení R₀, kontaktních matic, opatření, vakcinace, variant a stochastiky s vizualizací křivek. Vhodné na výklad „co se stane, když…". Najdete ho v sekci <a href="/#/admin">Pro učitele a pokročilé</a>.</p>
+    <a class="btn ink" href="/#/sandbox">Otevřít sandbox →</a>
+  </div>
+
+  <h2 id="trida">🏆 Hra pro celou třídu (živý žebříček)</h2>
+  <p>Nejsilnější funkce pro výuku: zadáte třídě jednu hru a výsledky se <strong>živě</strong> sčítají do společného žebříčku. Funguje pro <strong>Ósackou horečku</strong> a <strong>Záhadu z Oyster Bay</strong>.</p>
+  <ol class="steps">
+    <li>Otevřete <a href="/#/admin"><code>#/admin</code></a> → <strong>Přihlásit učitele</strong> (demo přístup <code>ucitel / tapir123</code>) → <strong>Učitelský režim</strong>.</li>
+    <li>Nahoře zvolte <strong>„Spustit hru pro třídu"</strong>, vyberte hru a klikněte <strong>Vytvořit místnost</strong>.</li>
+    <li>Dostanete <strong>kód místnosti</strong> (např. <code>TAPIR-7Q2K</code>), <strong>odkaz pro studenty</strong> a <strong>QR kód</strong> — promítněte ho na tabuli nebo rozešlete link.</li>
+    <li>Studenti otevřou odkaz, hru dohrají a odešlou výsledek pod <strong>přezdívkou</strong>.</li>
+    <li>Vy otevřete <strong>žebříček</strong> (<code>#/vysledky/KÓD</code>) — výsledky naskakují živě, s medailemi a průměrem/mediánem třídy. Ideální na projekci.</li>
+  </ol>
+  <div class="note"><strong>Soukromí:</strong> studenti zadávají jen přezdívku (ne skutečné jméno). Žádná osobní data se nesbírají.</div>
+
+  <h2 id="ucitel">🎓 Učitelský režim — vlastní scénáře</h2>
+  <p>Po přihlášení (<code>#/admin</code> → Přihlásit učitele) máte navíc <strong>tvorbu scénářů pro Krizový štáb</strong>: nastavíte obtížnost, počet kol, dostupná opatření a skryté události, a vygenerujete <strong>odkaz</strong>, který studentům spustí přesně váš scénář. Tady také vytváříte místnosti pro hru pro třídu.</p>
+
+  <h2 id="tipy">Tipy pro výuku</h2>
+  <ul>
+    <li><strong>Posloupnost:</strong> nejdřív Příručka (úroveň podle ročníku) → pak hra. Studenti tak mají pojmy, na které hra navazuje.</li>
+    <li><strong>Diferenciace:</strong> tři úrovně Příručky umožní stejné téma pro ZŠ i VŠ — vyberte úroveň podle třídy.</li>
+    <li><strong>Soutěž:</strong> hru pro třídu s žebříčkem nechte běžet a na konci hodiny společně rozeberte top výsledky a strategie.</li>
+    <li><strong>Reflexe:</strong> po Krizovém štábu diskutujte kompromisy (zdraví × ekonomika × důvěra) — hra je schválně staví proti sobě.</li>
+    <li><strong>Zařízení:</strong> ideální tablet nebo notebook; funguje i na mobilu.</li>
+  </ul>
+
+  <footer>
+    Nedovařený tapír — edukační epidemiologická platforma. SIMULACE: edukační model, ne klinická predikce.<br>
+    Tuto příručku si můžete uložit nebo vytisknout. Otevřete aplikaci kliknutím na kterýkoli odkaz výše.
+  </footer>
+
+</div>
+</body>
+</html>

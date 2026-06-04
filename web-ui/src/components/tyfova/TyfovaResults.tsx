@@ -2,6 +2,8 @@ import React from 'react';
 import { useTyfovaStore } from '../../store/tyfovaStore';
 import { getTotalQuestionCount } from '../../data/tyfova/questions';
 import HomeButton from '../HomeButton';
+import ScoreSubmit from '../classroom/ScoreSubmit';
+import { oysterToShared } from '../../lib/scoring-shared';
 
 export const TyfovaResults: React.FC = () => {
   const correctAnswers = useTyfovaStore((s) => s.correctAnswers);
@@ -148,6 +150,8 @@ export const TyfovaResults: React.FC = () => {
             </p>
           </div>
         </div>
+
+        <ScoreSubmit score={oysterToShared(correctAnswers, totalQuestions)} />
 
         <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
           <button

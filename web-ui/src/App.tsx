@@ -18,6 +18,8 @@ import Dashboard from './components/Dashboard';
 import AssumptionsInspector from './components/AssumptionsInspector';
 import InstructorPanel from './components/InstructorPanel';
 import HubScreen from './components/hub/HubScreen';
+import Leaderboard from './components/classroom/Leaderboard';
+import RoomCreator from './components/classroom/RoomCreator';
 
 // Game components
 import ScenarioBuilder from './components/instructor/ScenarioBuilder';
@@ -76,7 +78,8 @@ export default function App() {
   // Synchronizace store podle URL (router je zdroj pravdy).
   useEffect(() => {
     const { screen, scenarioParam, legacy } = route;
-    if (screen === 'hub') return;
+    // Rozcestník a leaderboard si vystačí samy (leaderboard nepotřebuje store ani auth).
+    if (screen === 'hub' || screen === 'leaderboard') return;
     // Učitelský režim vyžaduje přihlášení; jinak zůstaneme na rozcestníku.
     if (screen === AppMode.Instructor && auth.role !== 'teacher') return;
 
@@ -132,6 +135,9 @@ export default function App() {
     return () => clearTimeout(debounceRef.current);
   }, [scenario, setValidationErrors]);
 
+  // Živý žebříček třídy (veřejný odkaz, bez přihlášení)
+  if (route.screen === 'leaderboard') return <Leaderboard />;
+
   // Rozcestník (hub) — nebo učitelský odkaz bez přihlášení → přihlašovací stránka
   if (route.screen === 'hub' || (route.screen === AppMode.Instructor && auth.role !== 'teacher')) {
     return <HubScreen />;
@@ -151,6 +157,9 @@ export default function App() {
         <DisclaimerBanner />
         <Header />
         <main className="flex-1 overflow-y-auto">
+          <div className="max-w-5xl mx-auto px-4 pt-4">
+            <RoomCreator teacherName={auth.username ?? undefined} />
+          </div>
           <ScenarioBuilder />
         </main>
       </div>

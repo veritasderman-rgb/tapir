@@ -302,7 +302,7 @@ export const HANDBOOK: Chapter[] = [
         { t: 'p', html: 'Pro uzavřenou epidemii dává <strong>rovnice finální velikosti</strong> podíl nakažených z∞ implicitně: <strong>z∞ = 1 − e^(−R₀·z∞)</strong>. Ukazuje, že bez intervence prodělá nákazu výrazně víc lidí, než kolik činí práh H<sub>c</sub> (epidemiologický „overshoot").' },
         { t: 'h', text: 'Vazba na reálný čas a R<sub>t</sub>' },
         { t: 'p', html: 'Pro kompartmentové systémy platí ekvivalence R₀ > 1 ⇔ r > 0 (r = Malthusovský růstový parametr). Odhad R<sub>t</sub> v čase se provádí buď z renewal rovnice (Cori et al.), nebo z growth rate přes rozdělení generačního intervalu — což opět vyžaduje znalost g(τ).' },
-        { t: 'warn', title: 'Stochasticita při malých počtech', html: 'Deterministický model selhává v rané/koncové fázi (malé I). Tam je namístě stochastický proces (větvící proces): pravděpodobnost vyhasnutí zavlečení z jednoho případu je ≈ 1/R₀ (resp. řešení s(z)=0 PGF pro přerozptýlené rozdělení) — proto i při R₀ > 1 řada zavlečení samovolně vymře.' },
+        { t: 'warn', title: 'Stochasticita při malých počtech', html: 'Deterministický model selhává v rané/koncové fázi (malé I); tam je namístě <strong>větvící proces</strong> (Galton–Watson). Pravděpodobnost vyhasnutí z jednoho případu je <strong>nejmenší kořen q = G(q)</strong>, kde G je vytvořující funkce (PGF) rozdělení počtu potomků. Pro Poissonovo potomstvo se střední hodnotou R₀ řeší q = e^(R₀(q−1)) — např. pro R₀ = 2 vychází q ≈ 0,20. Jednoduchý vztah „pravděpodobnost velkého ohniska = 1 − 1/R₀" platí jen pro geometrické rozdělení potomků; při <strong>přerozptýlení</strong> (malé k) je vyhasnutí pravděpodobnější (q vyšší). Proto i při R₀ > 1 řada zavlečení samovolně vymře.' },
       ],
     },
   },

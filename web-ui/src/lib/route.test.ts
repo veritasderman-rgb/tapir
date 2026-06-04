@@ -33,11 +33,19 @@ describe('parseLocation', () => {
     expect(r).toEqual({ screen: AppMode.CrisisStaff, scenarioParam: 'XYZ', legacy: true });
   });
 
-  it('rozpozná legacy ?game= ze search', () => {
+  it('rozpozná legacy ?game= ze search (bez hash route)', () => {
     const r = parseLocation('', '?game=XYZ');
     expect(r.screen).toBe(AppMode.CrisisStaff);
     expect(r.scenarioParam).toBe('XYZ');
     expect(r.legacy).toBe(true);
+  });
+
+  it('explicitní hash route má přednost před legacy ?game= (žádné skákání zpět)', () => {
+    // Po normalizaci může v search dočasně zůstat ?game=; návrat na rozcestník
+    // ani jiná hash route se kvůli němu nesmí vracet do hry.
+    expect(parseLocation('#/', '?game=XYZ').screen).toBe('hub');
+    expect(parseLocation('#/hra/osacka', '?game=XYZ').screen).toBe(AppMode.OsackaHorecka);
+    expect(parseLocation('#/sandbox', '?game=XYZ').screen).toBe(AppMode.Expert);
   });
 });
 

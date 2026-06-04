@@ -86,10 +86,12 @@ export default function App() {
     ) {
       loadedParamRef.current = scenarioParam;
       loadScenario(scenarioParam);
-      // Normalizace starého odkazu (#game=) na nové schéma (s korektním URL kódováním).
+      // Normalizace starého odkazu na nové schéma. Přepíšeme i pathname, čímž
+      // se zahodí starý ?game= ze search stringu (jinak by trvale přebíjel
+      // navigaci a návrat na rozcestník by skákal zpět do hry).
       if (legacy && typeof window !== 'undefined') {
         const path = buildPath({ screen: AppMode.CrisisStaff, scenarioParam });
-        window.history.replaceState(null, '', `#${path}`);
+        window.history.replaceState(null, '', `${window.location.pathname}#${path}`);
       }
     }
   }, [route, auth.role, appMode, gamePhase, setAuth, setAppMode, loadScenario]);

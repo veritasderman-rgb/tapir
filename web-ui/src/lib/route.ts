@@ -60,22 +60,28 @@ const SLUG_TO_SCREEN: Record<string, AppMode> = Object.entries(SCREEN_TO_SLUG).r
 export function parseLocation(rawHash: string, rawSearch = ''): Route {
   const hash = rawHash.replace(/^#/, '');
   const search = new URLSearchParams(rawSearch.replace(/^\?/, ''));
-  const legacySearchRoom = search.get('room') ?? undefined;
 
-  // ── Zpětná kompatibilita: #game=<b64> nebo ?game=<b64> ──
+  // ── Zpětná kompatibilita: #game=<b64> (starý hash formát) ──
   if (hash.startsWith('game=')) {
     return { screen: AppMode.CrisisStaff, scenarioParam: hash.slice('game='.length), legacy: true };
   }
-  const legacySearchGame = search.get('game');
-  if (legacySearchGame) {
-    return { screen: AppMode.CrisisStaff, scenarioParam: legacySearchGame, legacy: true };
+
+  // ── Zpětná kompatibilita: ?game=<b64> (starý search formát) ──
+  // Ctíme jen když chybí jakýkoli hash fragment — jakákoli explicitní hash
+  // route (včetně `#/`) má přednost, jinak by ?game v search trvale přebíjelo
+  // navigaci (návrat na rozcestník by skákal zpět do hry).
+  if (hash === '') {
+    const legacySearchGame = search.get('game');
+    if (legacySearchGame) {
+      return { screen: AppMode.CrisisStaff, scenarioParam: legacySearchGame, legacy: true };
+    }
   }
 
   // ── Nové schéma: #/<slug>?<query> ──
   const [pathPart, queryPart] = hash.split('?');
   const path = pathPart.replace(/^\/+/, '').replace(/\/+$/, '');
   const query = new URLSearchParams(queryPart ?? '');
-  const roomCode = query.get('room') ?? legacySearchRoom;
+  const roomCode = query.get('room') ?? search.get('room') ?? undefined;
 
   if (path === '') return { screen: 'hub', roomCode };
 

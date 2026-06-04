@@ -48,7 +48,7 @@ function LevelSelect({ onPick }: { onPick: (l: HandbookLevel) => void }) {
           </div>
           <h1 className="font-display text-3xl font-bold text-brand-charcoal">Vyberte úroveň</h1>
           <p className="mt-2 text-sm text-brand-slate">
-            Stejná témata, tři hloubky výkladu. Úroveň lze kdykoli změnit.
+            Stejná témata, tři úrovně výkladu — text a důraz se přizpůsobí. Úroveň lze kdykoli změnit.
           </p>
         </header>
         <div className="grid gap-4 sm:grid-cols-3">
@@ -164,7 +164,8 @@ export default function EpidemiologistHandbook() {
         {/* Content */}
         <main className="flex-1 min-w-0">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-8 prose prose-sm max-w-none">
-            {activeSection === 'intro' && <IntroSection level={level} />}
+            <LevelBanner level={level} />
+            {activeSection === 'intro' && <IntroSection />}
             {activeSection === 'sireni' && <SireniSection />}
             {activeSection === 'modely' && <ModelySection />}
             {activeSection === 'opatreni' && <OpatreniSection />}
@@ -211,22 +212,27 @@ function Diagram({ children }: { children: React.ReactNode }) {
 // ── INTRO ──
 
 const LEVEL_INTRO: Record<HandbookLevel, string> = {
-  zs: 'Čteš verzi pro základní školu — vysvětlujeme jednoduše, na příkladech z běžného života a bez vzorců.',
-  ss: 'Čtete verzi pro střední školu — souvislosti, jednoduché modely a praktické dopady opatření.',
-  vs: 'Čtete verzi pro vysokou školu (úroveň lékařské fakulty) — kompartmentové modely a parametry přenosu do hloubky.',
+  zs: 'Verze pro základní školu — vysvětlujeme jednoduše, na příkladech z běžného života a bez vzorců. Pokročilejší detaily (vzorce, parametry modelů) berte jako nepovinné.',
+  ss: 'Verze pro střední školu — souvislosti, jednoduché modely (SEIR, R₀, Rₑff) a praktické dopady opatření.',
+  vs: 'Verze pro vysokou školu (úroveň lékařské fakulty) — kompartmentové modely a parametry přenosu čtěte do hloubky; v textu jsou pro vás i pokročilé poznámky.',
 };
 
-function IntroSection({ level }: { level: HandbookLevel }) {
+/** Per-úrovňový kontextový banner zobrazený nad obsahem každé kapitoly. */
+function LevelBanner({ level }: { level: HandbookLevel }) {
+  return (
+    <div className="not-prose bg-brand-teal-soft border-l-4 border-brand-teal p-3 md:p-4 rounded-r-lg mb-5">
+      <div className="text-[11px] font-black text-brand-teal-dark uppercase tracking-wide mb-0.5">
+        Úroveň: {LEVEL_LABEL[level]}
+      </div>
+      <div className="text-sm text-brand-teal-dark leading-relaxed">{LEVEL_INTRO[level]}</div>
+    </div>
+  );
+}
+
+function IntroSection() {
   return (
     <>
       <h2 className="text-2xl font-black text-gray-900 mb-4">Vítejte v Příručce epidemiologa</h2>
-
-      <div className="bg-brand-teal-soft border-l-4 border-brand-teal p-4 rounded-r-lg my-4">
-        <div className="text-xs font-black text-brand-teal-dark uppercase mb-1">
-          Úroveň: {LEVEL_LABEL[level]}
-        </div>
-        <div className="text-sm text-brand-teal-dark leading-relaxed">{LEVEL_INTRO[level]}</div>
-      </div>
 
       <p className="text-gray-700 leading-relaxed">
         Tato příručka je určena pro účastníky simulace <strong>Krizový štáb</strong> a dalších

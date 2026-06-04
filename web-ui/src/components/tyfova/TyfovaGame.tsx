@@ -54,7 +54,7 @@ const TyfovaGame: React.FC = () => {
           <span className="text-xs md:text-sm font-medium text-gray-500">
             <span className="hidden sm:inline">Krok </span>{currentStep + 1}/7
           </span>
-          <span className="hidden md:inline text-sm font-semibold text-indigo-600">
+          <span className="hidden md:inline text-sm font-semibold text-brand-teal-dark">
             {STEP_TITLES[currentStep]}
           </span>
           <div className="ml-1 md:ml-3 flex gap-0.5 md:gap-1">
@@ -63,9 +63,9 @@ const TyfovaGame: React.FC = () => {
                 key={i}
                 className={`w-2 h-2 md:w-3 md:h-3 rounded-full ${
                   i < currentStep
-                    ? 'bg-green-500'
+                    ? 'bg-brand-ok'
                     : i === currentStep
-                      ? 'bg-indigo-500'
+                      ? 'bg-brand-teal'
                       : 'bg-gray-300'
                 }`}
               />
@@ -80,9 +80,9 @@ const TyfovaGame: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setMobileTab(tab.id)}
-            className={`flex-1 py-2.5 text-xs font-bold text-center transition-colors ${
+            className={`flex-1 min-h-[44px] py-2.5 text-xs font-bold text-center transition-colors ${
               mobileTab === tab.id
-                ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50/50'
+                ? 'text-brand-teal-dark border-b-2 border-brand-teal bg-brand-teal-soft/50'
                 : 'text-gray-400 hover:text-gray-600'
             }`}
           >
@@ -153,7 +153,7 @@ const IntroScreen: React.FC<{ onStart: () => void }> = ({ onStart }) => (
       <div className="text-center">
         <button
           onClick={onStart}
-          className="w-full sm:w-auto px-8 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors shadow-md hover:shadow-lg"
+          className="w-full sm:w-auto px-8 min-h-[52px] bg-brand-teal text-white font-bold rounded-xl hover:bg-brand-teal-dark transition-colors shadow-md hover:shadow-lg"
         >
           Zahájit vyšetřování
         </button>

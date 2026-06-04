@@ -103,7 +103,14 @@ export default function Leaderboard() {
                       }`}
                     >
                       <span className="w-8 flex items-center justify-center text-lg font-bold tabular-nums text-brand-slate">
-                        {i < 3 ? <Medal place={(i + 1) as 1 | 2 | 3} className="w-7 h-7" /> : i + 1}
+                        {i < 3 ? (
+                          <>
+                            <Medal place={(i + 1) as 1 | 2 | 3} className="w-7 h-7" />
+                            <span className="sr-only">{i + 1}. místo</span>
+                          </>
+                        ) : (
+                          i + 1
+                        )}
                       </span>
                       <span className="flex-1 font-semibold text-brand-charcoal truncate">
                         {s.player_name}

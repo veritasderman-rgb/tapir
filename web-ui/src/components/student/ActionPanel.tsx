@@ -104,6 +104,8 @@ export default function ActionPanel() {
 
   const hasVaxCapacity = activeMeasureIds.some(id => id.startsWith('vaccination_'));
   const [hoveredMeasure, setHoveredMeasure] = useState<string | null>(null);
+  // Tap-to-expand detail (tablety/dotyk, kde hover není k dispozici).
+  const [expandedMeasure, setExpandedMeasure] = useState<string | null>(null);
 
   return (
     <div className="space-y-4">
@@ -167,7 +169,7 @@ export default function ActionPanel() {
           <div className="space-y-1">
             {cat.measures.map(m => {
               const isActive = activeMeasureIds.includes(m.id);
-              const isHovered = hoveredMeasure === m.id;
+              const isExpanded = hoveredMeasure === m.id || expandedMeasure === m.id;
               const isRequest = isPremierRequest(m);
               const govStatus = getGovStatus(m.id);
               return (
@@ -176,39 +178,55 @@ export default function ActionPanel() {
                   onMouseEnter={() => setHoveredMeasure(m.id)}
                   onMouseLeave={() => setHoveredMeasure(null)}
                 >
-                  <button
-                    onClick={() => !isFinished && toggleMeasure(m.id)}
-                    disabled={isFinished}
-                    className={`w-full text-left px-3 py-2 rounded-lg border text-xs transition-all ${
-                      isRequest
-                        ? isActive
-                          ? 'bg-amber-50 border-amber-300 text-amber-800 ring-1 ring-amber-300'
-                          : 'bg-white border-amber-200 text-amber-700 hover:border-amber-300 hover:bg-amber-50'
-                        : isActive
-                        ? 'bg-blue-50 border-blue-300 text-blue-700 ring-1 ring-blue-300'
-                        : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="font-bold flex justify-between items-center">
-                      <span>{m.name}</span>
-                      <span className="flex items-center gap-1">
-                        {isRequest && !isActive && !govStatus && (
-                          <span className="text-[9px] text-amber-500 font-normal">🏛 Požádat vládu</span>
-                        )}
-                        {isRequest && isActive && !govStatus && (
-                          <span className="text-[9px] text-amber-600">🏛 Žádost k odeslání</span>
-                        )}
-                        {govStatus === 'schváleno' && (
-                          <span className="text-[9px] text-green-600">✓ Schváleno</span>
-                        )}
-                        {govStatus && govStatus !== 'schváleno' && (
-                          <span className="text-[9px] text-amber-600">⏳ {govStatus}</span>
-                        )}
-                        {!isRequest && isActive && <span className="text-[10px]">✓</span>}
-                      </span>
-                    </div>
-                  </button>
-                  {isHovered && (
+                  <div className="flex items-stretch gap-1">
+                    <button
+                      onClick={() => !isFinished && toggleMeasure(m.id)}
+                      disabled={isFinished}
+                      className={`flex-1 text-left px-3 py-2 rounded-lg border text-xs transition-all ${
+                        isRequest
+                          ? isActive
+                            ? 'bg-amber-50 border-amber-300 text-amber-800 ring-1 ring-amber-300'
+                            : 'bg-white border-amber-200 text-amber-700 hover:border-amber-300 hover:bg-amber-50'
+                          : isActive
+                          ? 'bg-blue-50 border-blue-300 text-blue-700 ring-1 ring-blue-300'
+                          : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="font-bold flex justify-between items-center">
+                        <span>{m.name}</span>
+                        <span className="flex items-center gap-1">
+                          {isRequest && !isActive && !govStatus && (
+                            <span className="text-[9px] text-amber-500 font-normal">🏛 Požádat vládu</span>
+                          )}
+                          {isRequest && isActive && !govStatus && (
+                            <span className="text-[9px] text-amber-600">🏛 Žádost k odeslání</span>
+                          )}
+                          {govStatus === 'schváleno' && (
+                            <span className="text-[9px] text-green-600">✓ Schváleno</span>
+                          )}
+                          {govStatus && govStatus !== 'schváleno' && (
+                            <span className="text-[9px] text-amber-600">⏳ {govStatus}</span>
+                          )}
+                          {!isRequest && isActive && <span className="text-[10px]">✓</span>}
+                        </span>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setExpandedMeasure(isExpanded ? null : m.id)}
+                      aria-label={isExpanded ? 'Skrýt detaily opatření' : 'Zobrazit detaily opatření'}
+                      aria-expanded={isExpanded}
+                      className={`flex-shrink-0 w-10 rounded-lg border text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center ${
+                        isExpanded ? 'bg-gray-50 border-gray-300' : 'bg-white border-gray-200'
+                      }`}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="9" strokeWidth={1.6} />
+                        <path strokeWidth={1.8} strokeLinecap="round" d="M12 11v5M12 8h.01" />
+                      </svg>
+                    </button>
+                  </div>
+                  {isExpanded && (
                     <div className="mx-1 mt-0.5 mb-1 px-2.5 py-2 bg-gray-50 border border-gray-200 rounded-md text-[10px] text-gray-600 leading-relaxed space-y-1.5 animate-in fade-in">
                       <p>{m.description}</p>
                       <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[9px] font-medium text-gray-500">

@@ -3,6 +3,7 @@ import { useGameStore } from '../store/gameStore';
 import { AppMode } from '@tapir/core';
 import { VERSION } from '@tapir/core';
 import { useRoute, navigate } from '../lib/route';
+import { TapirMark } from './brand/BrandIcons';
 
 export default function Header() {
   const { appMode, sidebarOpen, setSidebarOpen, auth, logout } = useAppStore();
@@ -53,14 +54,12 @@ export default function Header() {
         {/* Home / rozcestník */}
         <button
           onClick={goHome}
-          className="flex items-center gap-1.5 p-1.5 -ml-1 rounded hover:bg-gray-100 flex-shrink-0"
+          className="flex items-center gap-2 p-1.5 -ml-1 rounded-lg hover:bg-gray-100 flex-shrink-0"
           aria-label="Zpět na rozcestník"
           title="Zpět na rozcestník"
         >
-          <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10" />
-          </svg>
-          <h1 className="text-sm md:text-lg font-bold text-gray-900 truncate">
+          <TapirMark className="w-6 h-6 md:w-7 md:h-7 text-brand-teal" />
+          <h1 className="font-display text-sm md:text-lg font-bold text-brand-charcoal truncate">
             <span className="hidden sm:inline">Nedovařený tapír</span>
             <span className="sm:hidden">Tapír</span>
           </h1>

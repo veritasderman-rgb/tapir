@@ -1,5 +1,36 @@
 @import "tailwindcss";
 
+/* ─────────────────────────────────────────────────────────────
+   Brand tokeny — „ploché geometrické + retro-věda"
+   (předběžná paleta z DESIGN-BRIEF.md, k doladění designérem)
+   ───────────────────────────────────────────────────────────── */
+@theme {
+  --color-brand-teal: #0e7c7b;
+  --color-brand-teal-dark: #0a5d5c;
+  --color-brand-teal-soft: #d7eceb;
+  --color-brand-mustard: #e0a458;
+  --color-brand-mustard-soft: #f6e6cf;
+  --color-brand-red: #c44536;
+  --color-brand-red-soft: #f3d9d4;
+  --color-brand-cream: #f4efe6;
+  --color-brand-charcoal: #22303a;
+  --color-brand-slate: #5b6b73;
+
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Retro-vědecký jemný rastr na pozadí (decentní, neruší čitelnost) */
+.brand-grid-bg {
+  background-color: var(--color-brand-cream);
+  background-image: radial-gradient(var(--color-brand-teal-soft) 1.1px, transparent 1.1px);
+  background-size: 22px 22px;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
 /* Print styles */
 @media print {
   .disclaimer-banner {

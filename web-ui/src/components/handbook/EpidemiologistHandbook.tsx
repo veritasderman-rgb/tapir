@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { AppMode } from '@tapir/core';
-import { useAppStore } from '../../store/useAppStore';
+import { navigate } from '../../lib/route';
 
 type Section = 'intro' | 'sireni' | 'modely' | 'opatreni' | 'trasovani' | 'krizove' | 'pribeh';
 
@@ -16,11 +15,9 @@ const SECTIONS: { id: Section; label: string; icon: string }[] = [
 
 export default function EpidemiologistHandbook() {
   const [activeSection, setActiveSection] = useState<Section>('intro');
-  const { setAppMode, setAuth } = useAppStore();
 
   const handleBack = () => {
-    setAuth({ role: null, username: null, classId: null });
-    setAppMode(AppMode.Expert);
+    navigate({ screen: 'hub' });
   };
 
   return (

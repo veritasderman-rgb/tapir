@@ -13,6 +13,8 @@ import {
 } from '@tapir/core';
 import EventTimeline from './EventTimeline';
 import ParameterPanel from '../ParameterPanel';
+import { AppMode } from '@tapir/core';
+import { gameLink } from '../../lib/route';
 
 const DEFAULT_TOTAL_TURNS = 24;
 const DEFAULT_DAYS_PER_TURN = 14;
@@ -50,7 +52,7 @@ export default function ScenarioBuilder() {
   const handleExport = useCallback(() => {
     const gs = buildGameScenario();
     const encoded = encodeGameScenario(gs);
-    const url = `${window.location.origin}${window.location.pathname}#game=${encoded}`;
+    const url = gameLink({ screen: AppMode.CrisisStaff, scenarioParam: encoded });
     setExportedUrl(url);
     navigator.clipboard.writeText(url).catch(() => {});
   }, [buildGameScenario]);

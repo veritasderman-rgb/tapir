@@ -2,6 +2,7 @@ import React from 'react';
 import { useOsackaStore } from '../../store/osackaStore';
 import { contacts } from '../../data/osacka/contacts';
 import { calculateScore } from '../../data/osacka/scoring';
+import HomeButton from '../HomeButton';
 
 const OsackaResults: React.FC = () => {
   const identifiedInfected = useOsackaStore((s) => s.identifiedInfected);
@@ -318,13 +319,14 @@ const OsackaResults: React.FC = () => {
       </div>
 
       {/* Reset button */}
-      <div className="text-center">
+      <div className="flex flex-wrap items-center justify-center gap-3">
         <button
           onClick={resetGame}
           className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
         >
           Zpět na úvodní obrazovku
         </button>
+        <HomeButton className="bg-gray-100" />
       </div>
     </div>
   );

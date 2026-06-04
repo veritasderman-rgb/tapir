@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { encodeGameScenario, PRESET_SCENARIOS } from '@tapir/core';
 import { defaultScenario } from '@tapir/core';
@@ -20,20 +20,8 @@ export default function ScenarioLoader() {
 
   const displayError = error || loadError;
 
-  useEffect(() => {
-    let gameParam: string | null = null;
-    const hash = window.location.hash;
-    if (hash.startsWith('#game=')) {
-      gameParam = hash.slice('#game='.length);
-    }
-    if (!gameParam) {
-      const params = new URLSearchParams(window.location.search);
-      gameParam = params.get('game');
-    }
-    if (gameParam) {
-      loadScenario(gameParam as any);
-    }
-  }, [loadScenario]);
+  // Pozn.: scénář z odkazu (?s= / #game=) načítá App přes router; zde řešíme
+  // jen ruční vložení kódu od učitele.
 
   const handleLoad = () => {
     let encoded = input.trim();
@@ -49,10 +37,13 @@ export default function ScenarioLoader() {
       };
       encoded = encodeGameScenario(gs as any);
     } else {
-      if (encoded.includes('#game=')) {
+      // Vytáhni base64 z různých podob odkazu (nové ?s= i staré #game=/?game=).
+      if (encoded.includes('?s=')) {
+        encoded = decodeURIComponent(encoded.split('?s=')[1].split('&')[0]);
+      } else if (encoded.includes('#game=')) {
         encoded = encoded.split('#game=')[1];
       } else if (encoded.includes('?game=')) {
-        encoded = encoded.split('?game=')[1].split('&')[0];
+        encoded = decodeURIComponent(encoded.split('?game=')[1].split('&')[0]);
       }
     }
     loadScenario(encoded as any);

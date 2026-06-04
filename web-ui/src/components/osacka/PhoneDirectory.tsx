@@ -55,8 +55,8 @@ const PhoneDirectory: React.FC = () => {
                 key={contact.id}
                 onClick={() => handleClick(contact.id)}
                 disabled={!canAfford}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors
-                  ${isSelected ? 'bg-blue-100 border border-blue-300' : 'hover:bg-gray-100'}
+                className={`w-full text-left px-3 min-h-[44px] py-2 rounded-xl text-sm transition-colors border-2
+                  ${isSelected ? 'bg-brand-teal-soft border-brand-teal' : 'border-transparent hover:bg-gray-100'}
                   ${!canAfford ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 `}
               >
@@ -90,7 +90,7 @@ const PhoneDirectory: React.FC = () => {
           placeholder="Hledat kontakt..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full px-3 min-h-[44px] text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-teal"
         />
         <div className="mt-2 text-xs text-gray-500">
           Rozpocet: <span className="font-bold text-gray-700">{budget}b</span>

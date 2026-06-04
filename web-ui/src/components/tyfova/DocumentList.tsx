@@ -36,9 +36,9 @@ export const DocumentList: React.FC = () => {
 
   return (
     <div className="p-3">
-      <div className="mb-4 p-2 bg-indigo-50 rounded-lg border border-indigo-200">
-        <p className="text-xs text-indigo-500 font-medium">Aktuální krok</p>
-        <p className="text-sm font-semibold text-indigo-700">
+      <div className="mb-4 p-3 bg-brand-teal-soft rounded-xl border border-brand-teal/30">
+        <p className="eyebrow text-brand-teal-dark">Aktuální krok</p>
+        <p className="text-sm font-semibold text-brand-teal-dark mt-0.5">
           Krok {currentStep + 1}/7: {STEP_TITLES[currentStep]}
         </p>
       </div>
@@ -64,15 +64,15 @@ export const DocumentList: React.FC = () => {
             statusClass = 'text-gray-700 cursor-pointer hover:bg-gray-100';
           } else {
             icon = '\u{1F4C4}';
-            statusClass = 'text-blue-700 cursor-pointer hover:bg-blue-50 font-medium';
+            statusClass = 'text-brand-teal-dark cursor-pointer hover:bg-brand-teal-soft/50 font-medium';
           }
 
           return (
             <li
               key={doc.id}
               onClick={() => isUnlocked && selectDocument(doc.id)}
-              className={`flex items-start gap-2 px-2 py-2 rounded-lg text-sm transition-colors ${statusClass} ${
-                isSelected ? 'bg-indigo-100 ring-1 ring-indigo-300' : ''
+              className={`flex items-start gap-2 px-3 min-h-[44px] py-2 rounded-xl text-sm transition-colors border-2 ${statusClass} ${
+                isSelected ? 'bg-brand-teal-soft border-brand-teal' : 'border-transparent'
               }`}
             >
               <span className="flex-shrink-0 mt-0.5">{icon}</span>

@@ -127,7 +127,7 @@ const TestimonyView: React.FC = () => {
             value={note?.freeText ?? ''}
             onChange={(e) => updateNote(contact.id, { freeText: e.target.value })}
             placeholder="Zapiste si poznamku k tomuto kontaktu..."
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-teal resize-none"
             rows={3}
           />
         </div>
@@ -138,10 +138,10 @@ const TestimonyView: React.FC = () => {
         <div className="flex gap-2">
           <button
             onClick={() => toggleInfected(contact.id)}
-            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors
+            className={`flex-1 px-4 min-h-[44px] rounded-xl text-sm font-bold transition-colors
               ${
                 isInfected
-                  ? 'bg-red-600 text-white hover:bg-red-700'
+                  ? 'bg-brand-red text-white hover:bg-brand-red-dark'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }
             `}
@@ -153,7 +153,7 @@ const TestimonyView: React.FC = () => {
           <select
             value={epiDay}
             onChange={(e) => setEpiDay(Number(e.target.value))}
-            className="px-2 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="px-2 min-h-[44px] text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-teal"
           >
             {Array.from({ length: 14 }, (_, i) => i + 1).map((d) => (
               <option key={d} value={d}>
@@ -163,7 +163,7 @@ const TestimonyView: React.FC = () => {
           </select>
           <button
             onClick={handleAddToEpiCurve}
-            className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+            className="flex-1 px-4 min-h-[44px] bg-brand-teal text-white rounded-xl text-sm font-bold hover:bg-brand-teal-dark transition-colors"
           >
             Pridat na epi krivku
           </button>

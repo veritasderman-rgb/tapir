@@ -125,16 +125,16 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, answered }) => {
           {question.options.map((option) => (
             <label
               key={option}
-              className={`flex items-start gap-2 text-sm cursor-pointer p-2 rounded ${
+              className={`flex items-center gap-2 text-sm cursor-pointer p-3 min-h-[44px] rounded-lg border-2 ${
                 submitted
                   ? option === question.correctAnswer
-                    ? 'bg-green-100 font-semibold'
+                    ? 'bg-green-100 border-green-300 font-semibold'
                     : option === localAnswer
-                      ? 'bg-red-100'
-                      : ''
+                      ? 'bg-red-100 border-red-300'
+                      : 'border-transparent'
                   : localAnswer === option
-                    ? 'bg-indigo-50'
-                    : 'hover:bg-gray-50'
+                    ? 'bg-brand-teal-soft border-brand-teal'
+                    : 'border-transparent hover:bg-gray-50'
               }`}
             >
               <input
@@ -164,16 +164,16 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, answered }) => {
             return (
               <label
                 key={option}
-                className={`flex items-start gap-2 text-sm cursor-pointer p-2 rounded ${
+                className={`flex items-center gap-2 text-sm cursor-pointer p-3 min-h-[44px] rounded-lg border-2 ${
                   submitted
                     ? isOptionCorrect
-                      ? 'bg-green-100 font-semibold'
+                      ? 'bg-green-100 border-green-300 font-semibold'
                       : isChecked
-                        ? 'bg-red-100'
-                        : ''
+                        ? 'bg-red-100 border-red-300'
+                        : 'border-transparent'
                     : isChecked
-                      ? 'bg-indigo-50'
-                      : 'hover:bg-gray-50'
+                      ? 'bg-brand-teal-soft border-brand-teal'
+                      : 'border-transparent hover:bg-gray-50'
                 }`}
               >
                 <input
@@ -199,7 +199,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, answered }) => {
             onChange={(e) => handleTextChange(e.target.value)}
             disabled={submitted}
             placeholder="Zadejte odpověď..."
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-gray-100"
+            className="w-full border border-gray-300 rounded-lg px-3 min-h-[44px] text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal disabled:bg-gray-100"
           />
           {submitted && (
             <p className="text-xs text-gray-600 mt-1">
@@ -214,7 +214,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, answered }) => {
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className="mt-3 px-4 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          className="mt-3 px-5 min-h-[44px] bg-brand-teal text-white text-sm font-bold rounded-xl hover:bg-brand-teal-dark disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
         >
           Odpovědět
         </button>

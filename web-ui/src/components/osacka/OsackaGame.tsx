@@ -93,7 +93,7 @@ const OsackaGame: React.FC = () => {
 
           <button
             onClick={startGame}
-            className="w-full py-3 bg-blue-600 text-white rounded-lg text-base md:text-lg font-bold hover:bg-blue-700 transition-colors"
+            className="w-full min-h-[52px] py-3 bg-brand-teal text-white rounded-xl text-base md:text-lg font-bold hover:bg-brand-teal-dark transition-colors"
           >
             Zahajit vysetrovani
           </button>
@@ -126,9 +126,9 @@ const OsackaGame: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setMobileTab(tab.id)}
-            className={`flex-1 py-2.5 text-xs font-bold text-center transition-colors ${
+            className={`flex-1 min-h-[44px] py-2.5 text-xs font-bold text-center transition-colors ${
               mobileTab === tab.id
-                ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
+                ? 'text-brand-teal-dark border-b-2 border-brand-teal bg-brand-teal-soft/50'
                 : 'text-gray-400 hover:text-gray-600'
             }`}
           >

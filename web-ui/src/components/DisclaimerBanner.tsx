@@ -1,11 +1,11 @@
 export default function DisclaimerBanner() {
   return (
     <div
-      className="disclaimer-banner bg-red-50 border-b border-red-200 px-4 py-2 text-center text-sm text-red-800 print:block"
+      className="disclaimer-banner bg-brand-red-soft border-b border-brand-red/30 px-4 py-1.5 text-center text-xs text-brand-red print:block"
       role="alert"
     >
-      <strong>DISCLAIMER:</strong> Toto je edukační simulátor. Není to klinický nástroj ani predikce reality.
-      Výsledky nesmí být prezentovány jako doporučení pro reálná rozhodnutí.
+      <strong className="font-bold tracking-wide">SIMULACE</strong> · Edukační model, ne klinická
+      predikce. Výsledky nepoužívejte jako doporučení pro reálná rozhodnutí.
     </div>
   );
 }

@@ -676,7 +676,30 @@ export const HANDBOOK: Chapter[] = [
         { t: 'info', title: 'Proč příběh', html: 'Za čísly v modelech jsou vždycky <strong>skutečná rozhodnutí konkrétních lidí</strong> — pod tlakem, s neúplnými daty a s odpovědností za následky. Epidemiologie není jen matematika; je to řemeslo, detektivní práce a odpovědnost zároveň. Přesně tu kombinaci si zkoušíte ve všech hrách platformy.' },
       ],
       vs: [
-        { t: 'p', html: 'V reálném vyšetřování neprochází epidemiolog naše čtyři roviny po jedné — vidí je naráz. Příběh Dr. Kovářové ukazuje, jak se virus, klinika, populace i lidský rozměr spojují do jednoho řemesla, kterému se říká vyšetřování ohniska. Terénní epidemiologie (jak ji učí programy jako EIS nebo evropský FETP) ho rozkládá do ustálených kroků:' },
+        { t: 'p', html: 'V reálném vyšetřování neprochází epidemiolog naše čtyři roviny po jedné — vidí je naráz a skoro nikdy na to není sám. Abychom ukázali, jak to vypadá, nesledujme jeden izolovaný případ, ale celý <strong>týden</strong> jednoho ohniska očima Dr. Kovářové, epidemioložky krajské hygienické stanice (KHS) — a všimněme si, kolik různých týmů se postupně zapojí.' },
+
+        { t: 'h', text: 'Pondělí — signál' },
+        { t: 'p', html: 'V pondělí ráno přijde z infekčního oddělení okresní nemocnice hlášení: za víkend přijali <strong>sedm pacientů</strong> s vysokými horečkami, vodnatými průjmy a dehydratací, čtyři z jedné obce. Klinik, který je přijímal, popisuje, co vidí na lůžku — průběh, závažnost, dva pacienti na infuzích — a hlavně udělal to nejdůležitější: odebral <strong>vzorky</strong> (stolice, krev) a poslal je do laboratoře. Kovářová zakládá <strong>definici případu</strong> (kdo, s jakými příznaky, od kdy a odkud se počítá) a spouští aktivní vyhledávání — obvolá okolní nemocnice a praktiky, jestli nevidí totéž.' },
+
+        { t: 'h', text: 'Úterý — popis a první hypotéza' },
+        { t: 'p', html: 'Případů je už čtrnáct. Kovářová z dat sestaví <strong>epidemickou křivku</strong> — a ta má jeden ostrý vrchol. To napovídá <em>společný zdroj</em>, ne šíření z člověka na člověka. Když dál srovná, co mají nemocní společného, vyjde najevo, že většina byla v pátek na téže venkovské slavnosti. Vzniká hypotéza: <strong>kontaminovaná potravina nebo voda</strong>. Tady už epidemiolog ví, že na to sám nestačí, a zvedá telefon.' },
+
+        { t: 'h', text: 'Středa — laboratoř dává jméno' },
+        { t: 'p', html: 'Z <strong>národní referenční laboratoře</strong> (při Státním zdravotním ústavu) přichází průlom. Kultivace a PCR potvrdí konkrétní agens; protože jde o virus, laboratoř pustí i <strong>celogenomovou sekvenaci</strong>. A právě sekvence je to, co klinické podezření promění v důkaz: izoláty od nemocných z různých rodin jsou <strong>geneticky prakticky totožné</strong> — patří do jednoho klonu. To je silný argument pro jediný společný zdroj, ne pro náhodnou souběhu několika nákaz. Laboratoř tu „doplňuje" terén: bez ní bychom měli jen příběh, teď máme i otisk prstu.' },
+
+        { t: 'h', text: 'Čtvrtek — terén a další týmy' },
+        { t: 'p', html: 'Vyšetřování se rozbíhá do terénu hned na několika frontách. Protože padlo podezření na jídlo, nastupuje <strong>SZPI</strong> (Státní zemědělská a potravinářská inspekce) a u potravin živočišného původu by se přidala <strong>SVS</strong> (Státní veterinární správa): inspektoři dohledávají dodavatele, odebírají vzorky z provozu i ze skladovaných šarží a kontrolují hygienu přípravy. Hygienici KHS mezitím vedou <strong>terénní šetření</strong> — dotazníky se všemi účastníky slavnosti (kdo co jedl a pil), stěry z prostředí, prověření zdroje vody. Z dotazníků se rodí malá <strong>case-control studie</strong>: nemocní vs. zdraví účastníci a jejich jídelníček.' },
+
+        { t: 'h', text: 'Pátek — eskalace a koordinace' },
+        { t: 'p', html: 'Case-control ukáže silnou vazbu na jeden konkrétní výrobek od regionálního dodavatele — a ten ho rozváží i do dalších krajů. Tím případ přerůstá hranice okresu. Kovářová svolává <strong>koordinační schůzku</strong>: zapojuje se ústřední úroveň (SZÚ, hlavní hygienik / ministerstvo), informuje se ostatní KHS a vzhledem k distribuci do zahraničí se podává hlášení do evropského systému včasného varování (a tím i k <strong>ECDC</strong>). Pokud by se objevilo podezření na úmyslnou kontaminaci nebo by bylo třeba dohledat a zajistit zboží proti vůli provozovatele, přizvala by se i <strong>Policie ČR</strong>. Zároveň běží <strong>komunikace s veřejností</strong> — varování, ať lidé výrobek nekonzumují.' },
+
+        { t: 'h', text: 'Víkend — zásah a kontrola' },
+        { t: 'p', html: 'Přichází rozhodující krok: <strong>stažení šarže</strong> z trhu, uzavření provozu do nápravy a cílené dohledání odběratelů. Na epidemické křivce se to projeví se zpožděním daným inkubační dobou — nové případy během několika dní ustávají. Kovářová sepisuje závěrečnou zprávu: co se stalo, jak se to potvrdilo, co zabralo a co příště udělat jinak. Ohnisko je zvládnuté — ne proto, že by jeden chytrý epidemiolog „vyřešil záhadu", ale proto, že na sebe navázalo několik týmů.' },
+
+        { t: 'p', html: 'A tady se příběh spojí s celou příručkou. V jednom týdnu jste viděli <strong>všechny čtyři roviny</strong> najednou: <em>virus</em> (sekvenace, typizace), <em>jednotlivce</em> (klinický obraz na lůžku), <em>populaci</em> (epidemická křivka, case-control, pokles po zásahu) i <em>společnost</em> (koordinace rezortů, rozhodnutí, komunikace). A v každé z her platformy si zkoušíte jeden její výsek — <strong>Záhada z Oyster Bay</strong> to celé vyšetřování, <strong>Ósacká horečka</strong> trasování, <strong>Krizový štáb</strong> rozhodování pod tlakem.' },
+
+        { t: 'h', text: 'Pod příběhem se skrývá ustálená kostra' },
+        { t: 'p', html: 'Ať je ohnisko jakékoli, terénní epidemiologie (jak ji učí programy jako americký EIS nebo evropský FETP) postupuje v týchž krocích:' },
         { t: 'list', items: [
           'potvrdit, že ohnisko opravdu existuje, a ověřit diagnózu — vyloučit, že jde jen o výkyv v hlášení;',
           'stanovit přesnou <strong>definici případu</strong> a podle ní aktivně vyhledat všechny nemocné;',

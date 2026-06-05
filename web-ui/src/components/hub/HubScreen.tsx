@@ -100,7 +100,7 @@ export default function HubScreen() {
             <span className="bg-brand-red-soft text-brand-red font-semibold px-2 py-0.5 rounded">
               SIMULACE
             </span>
-            <span>v{VERSION} · edukační model, ne klinická predikce</span>
+            <span>v {VERSION} · edukační model pro výuku epidemiologie, nikoliv klinická predikce</span>
           </div>
         </header>
 

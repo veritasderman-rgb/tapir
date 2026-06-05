@@ -146,6 +146,15 @@ function BlockView({ block }: { block: Block }) {
           </dl>
         </div>
       );
+    case 'exercise':
+      return (
+        <div className="bg-brand-mustard-soft border-2 border-brand-mustard/50 rounded-xl p-4 md:p-5 my-5">
+          <div className="text-xs font-black text-brand-mustard-dark uppercase tracking-wide mb-2">
+            ✎ {block.title}
+          </div>
+          <div className="text-sm text-brand-charcoal leading-relaxed [&_strong]:text-brand-charcoal [&_ul]:mt-2 [&_ul]:space-y-1 [&_ul]:list-disc [&_ul]:list-inside [&_h4]:font-bold [&_h4]:mt-3 [&_h4]:mb-1" dangerouslySetInnerHTML={{ __html: block.html }} />
+        </div>
+      );
     case 'refs':
       return <ReferencesBox items={block.items} />;
   }

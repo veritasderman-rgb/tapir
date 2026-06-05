@@ -29,6 +29,7 @@ export type Block =
   | { t: 'diagram'; html: string }
   | { t: 'html'; html: string }
   | { t: 'gloss'; items: { term: string; def: string }[] }
+  | { t: 'exercise'; title: string; html: string }
   | { t: 'refs'; items: Reference[] };
 
 export interface Chapter {
@@ -110,6 +111,50 @@ const seirDiagram = `
     <span class="bg-green-100 text-green-800 px-3 py-1.5 rounded-lg font-bold">R — uzdravený</span>
   </div>`;
 
+// Graf „zploštění křivky" — ostrý vrchol nad kapacitou vs. nízká široká křivka.
+const flattenCurveSvg = (() => {
+  const g = (cx: number, amp: number, w: number, x: number) => amp * Math.exp(-((x - cx) ** 2) / (2 * w * w));
+  let sharp = '';
+  let flat = '';
+  for (let x = 0; x <= 300; x += 4) {
+    sharp += `${x === 0 ? 'M' : 'L'}${x + 10},${(120 - g(110, 95, 16, x)).toFixed(1)} `;
+    flat += `${x === 0 ? 'M' : 'L'}${x + 10},${(120 - g(160, 42, 42, x)).toFixed(1)} `;
+  }
+  return `<svg viewBox="0 0 330 150" style="width:100%;height:auto;max-width:420px;display:block;margin:0 auto" font-family="sans-serif">
+    <line x1="10" y1="120" x2="320" y2="120" stroke="#5b6b73"/>
+    <line x1="10" y1="20" x2="10" y2="120" stroke="#5b6b73"/>
+    <line x1="10" y1="58" x2="320" y2="58" stroke="#22303a" stroke-width="1.3" stroke-dasharray="5 4"/>
+    <text x="316" y="53" font-size="9" fill="#22303a" text-anchor="end">kapacita zdravotnictví</text>
+    <path d="${sharp}" fill="none" stroke="#c44536" stroke-width="2.5"/>
+    <path d="${flat}" fill="none" stroke="#0e7c7b" stroke-width="2.5"/>
+    <text x="118" y="22" font-size="9.5" fill="#c44536">bez opatření</text>
+    <text x="208" y="86" font-size="9.5" fill="#0e7c7b">s opatřeními</text>
+    <text x="165" y="137" font-size="9" fill="#5b6b73" text-anchor="middle">čas →</text>
+    <text x="16" y="30" font-size="9" fill="#5b6b73">případy</text>
+  </svg>`;
+})();
+
+// Graf R(t) v čase — drží se nad prahem 1, po zavedení opatření klesá pod něj.
+const rtCurveSvg = (() => {
+  let r = '';
+  for (let x = 0; x <= 300; x += 4) {
+    const v = x < 130 ? 1.7 : Math.max(0.65, 1.7 - (x - 130) * 0.012);
+    r += `${x === 0 ? 'M' : 'L'}${x + 10},${(120 - (v - 0.5) * 55).toFixed(1)} `;
+  }
+  const yOne = (120 - (1 - 0.5) * 55).toFixed(1);
+  return `<svg viewBox="0 0 330 150" style="width:100%;height:auto;max-width:420px;display:block;margin:0 auto" font-family="sans-serif">
+    <line x1="10" y1="120" x2="320" y2="120" stroke="#5b6b73"/>
+    <line x1="10" y1="20" x2="10" y2="120" stroke="#5b6b73"/>
+    <line x1="10" y1="${yOne}" x2="320" y2="${yOne}" stroke="#22303a" stroke-width="1.3" stroke-dasharray="5 4"/>
+    <text x="316" y="${Number(yOne) - 4}" font-size="9" fill="#22303a" text-anchor="end">R = 1 (práh)</text>
+    <line x1="140" y1="20" x2="140" y2="120" stroke="#e0a458" stroke-width="1.3"/>
+    <text x="144" y="30" font-size="9" fill="#c5862f">opatření</text>
+    <path d="${r}" fill="none" stroke="#0e7c7b" stroke-width="2.5"/>
+    <text x="40" y="46" font-size="9.5" fill="#0e7c7b">Rₜ</text>
+    <text x="165" y="137" font-size="9" fill="#5b6b73" text-anchor="middle">čas →</text>
+  </svg>`;
+})();
+
 export const HANDBOOK: Chapter[] = [
   // ════════════════════════════ ÚVOD ════════════════════════════
   {
@@ -135,7 +180,7 @@ export const HANDBOOK: Chapter[] = [
         { t: 'info', title: 'Zakladatelský příběh — John Snow (1854)', html: 'Při epidemii cholery v Londýně lékař John Snow zakreslil úmrtí do mapy a všiml si, že se soustředí kolem jedné <strong>veřejné pumpy</strong> v Broad Street. Když nechal odstranit její páku, epidemie ustala. Snow neznal bakterii cholery — odhalil zdroj <em>analýzou dat</em>. To je dodnes podstata terénní epidemiologie a přesně to děláte v <em>Ósacké horečce</em>.' },
         { t: 'h', text: 'K čemu jsou modely' },
         { t: 'p', html: 'Modely nám umožní <strong>předem promyslet</strong>, co se stane, když zasáhneme — nebo nezasáhneme. Pomáhají odpovídat na otázky typu „Když teď zavřeme školy, o kolik se sníží vrchol epidemie?" nebo „Kolik lidí musíme naočkovat, aby se šíření zastavilo?". Bez modelu bychom se rozhodovali jen podle intuice; s modelem můžeme různé scénáře porovnat.' },
-        { t: 'warn', title: 'Důležité upozornění', html: 'Naše modely jsou <strong>zjednodušenou verzí reality</strong>. Cílem je představit podstatu epidemiologických procesů, ne přesně předpovídat realitu. Skutečné epidemie ovlivňují stovky faktorů, které zde nezohledňujeme — od chování lidí po proměnlivost viru. Model je nástroj k <em>porozumění</em>, ne křišťálová koule.' },
+        { t: 'warn', title: 'Důležité upozornění', html: 'Naše modely jsou <strong>zjednodušenou verzí reality</strong>. Cílem je představit podstatu epidemiologických procesů, nikoliv přesně předpovídat realitu. Skutečné epidemie ovlivňují stovky faktorů, které zde nezohledňujeme — od chování lidí po proměnlivost viru. Model je nástroj k <em>porozumění</em>, nikoliv křišťálová koule.' },
         { t: 'h', text: 'Co se v příručce naučíte' },
         { t: 'list', items: [
           '<strong>Jak se šíří virus</strong> — cesty přenosu, R₀, exponenciální růst, kontaktní matice',
@@ -156,7 +201,7 @@ export const HANDBOOK: Chapter[] = [
           '</div>' },
         { t: 'p', html: 'Ve stejném pořadí budeme postupovat i my. Začneme u viru a jeho průběhu v jednom těle, přejdeme k matematice populace, pak k zásahům, jimiž se epidemie brzdí, a skončíme u lidské a etické roviny rozhodování. Výklad je kvantitativní a předpokládá základy diferenciálního počtu a pravděpodobnosti; u zásadních tvrzení odkazuje na původní práce v rámečcích „Pro hlubší studium".' },
         { t: 'p', html: 'Matematická epidemiologie se od té popisné (která jen mapuje, kdo, kde a kdy onemocněl) liší tím, že přenos popisuje <strong>explicitním modelem</strong> — soustavou rovnic nebo náhodným procesem. Takový model pak slouží trojímu účelu: pomáhá pochopit mechanismus šíření, odhadnout z dat veličiny, které přímo nevidíme (třeba R₀ nebo skutečný počet nakažených), a předem porovnat, jak by epidemie dopadla při různých opatřeních.' },
-        { t: 'warn', title: 'Model není věštba', html: 'Modely, se kterými budeme pracovat, stojí na zjednodušeních — předpokládají dobře promíchanou populaci a „bezpaměťové" doby trvání jednotlivých stádií. K jakémukoli reálnému odhadu proto patří kalibrace na data, poctivé vyčíslení nejistoty a ověření na datech, která model neviděl. Číslo bez intervalu spolehlivosti je ilustrace, ne předpověď.' },
+        { t: 'warn', title: 'Model není věštba', html: 'Modely, se kterými budeme pracovat, stojí na zjednodušeních — předpokládají dobře promíchanou populaci a „bezpaměťové" doby trvání jednotlivých stádií. K jakémukoli reálnému odhadu proto patří kalibrace na data, poctivé vyčíslení nejistoty a ověření na datech, která model neviděl. Číslo bez intervalu spolehlivosti je ilustrace, nikoliv předpověď.' },
         { t: 'gloss', items: [
           { term: 'Generativní model', def: 'předpis, který umí „vyrobit" data podobná pozorovaným (např. průběh epidemie); díky tomu z dat zpětně odhadujeme jeho parametry.' },
           { term: 'Diferenciální rovnice (ODR)', def: 'rovnice popisující, jak se nějaká veličina mění v čase (rychlost změny). Soustava ODR je páteří kompartmentových modelů.' },
@@ -322,7 +367,7 @@ export const HANDBOOK: Chapter[] = [
           ).join('') + '</div>' },
         { t: 'p', html: 'Proto se u vysoce nakažlivých nemocí (spalničky) klade takový důraz na vysokou proočkovanost — i malý pokles pod práh otevírá dveře ohnisku.' },
         { t: 'h', text: 'Deterministický vs. stochastický model' },
-        { t: 'p', html: 'Náš základní model je <strong>deterministický</strong> — pro stejné vstupy dá vždy stejný výsledek, počítá s „průměrnou" populací. Realita je ale <strong>stochastická</strong> (náhodná): při malém počtu případů může nákaza náhodou vymřít, nebo naopak jeden superspreading event spustí velké ohnisko. Stochastické modely proto počítají mnoho scénářů a dívají se na rozdělení výsledků, ne na jediné číslo.' },
+        { t: 'p', html: 'Náš základní model je <strong>deterministický</strong> — pro stejné vstupy dá vždy stejný výsledek, počítá s „průměrnou" populací. Realita je ale <strong>stochastická</strong> (náhodná): při malém počtu případů může nákaza náhodou vymřít, nebo naopak jeden superspreading event spustí velké ohnisko. Stochastické modely proto počítají mnoho scénářů a dívají se na rozdělení výsledků, nikoliv na jediné číslo.' },
         { t: 'warn', title: 'Co náš model nezachycuje', html: 'Model je <strong>deterministický a homogenní</strong> — nezachycuje superspreading (kdy ~10 % nakažených způsobí ~80 % přenosů), heterogenitu kontaktů uvnitř věkových skupin, prostorovou strukturu (město vs. vesnice), sezónnost, změny chování v reakci na média ani evoluci viru v reálném čase. Přesto dobře vystihuje <em>podstatu</em> — exponenciální dynamiku a účinek opatření. To k pochopení principů stačí; k reálné předpovědi by bylo potřeba mnohem víc.' },
       ],
       vs: [
@@ -338,6 +383,10 @@ export const HANDBOOK: Chapter[] = [
         { t: 'h', text: 'Práh a finální velikost epidemie' },
         { t: 'info', title: 'Práh stádní imunity', html: 'Kritický podíl imunních H<sub>c</sub> = 1 − 1/R₀ (homogenní model). Pro R₀ = 3 ~67 %. Při heterogenitě a neuniformním očkování se práh posouvá; sterilizující vs. transmisní účinnost vakcíny mění výpočet (efektivní R₀ se násobí (1 − ε·v)).' },
         { t: 'p', html: 'Pro uzavřenou epidemii dává <strong>rovnice finální velikosti</strong> podíl nakažených z∞ implicitně: <strong>z∞ = 1 − e^(−R₀·z∞)</strong>. Ukazuje, že bez intervence prodělá nákazu výrazně víc lidí, než kolik činí práh H<sub>c</sub> (epidemiologický „overshoot").' },
+        { t: 'h', text: 'Proč nezáleží jen na ploše pod křivkou' },
+        { t: 'p', html: 'Stejný počet celkově nakažených může proběhnout buď jako prudká vlna, nebo jako rozprostřené pásmo. Pro zdravotnictví je rozdíl zásadní — rozhoduje výška vrcholu vůči kapacitě, ne jen plocha. Cílem opatření proto bývá křivku <strong>zploštit</strong> tak, aby okamžitá poptávka po lůžkách nepřekročila nabídku:' },
+        { t: 'html', html: flattenCurveSvg },
+        { t: 'p', html: 'Červená vlna sice odezní rychleji, ale její vrchol leží vysoko nad kapacitou — část pacientů se nedostane k péči a úmrtnost stoupne. Tatáž nákaza rozložená v čase (tyrkysová) se vejde pod čáru kapacity. Plocha pod oběma křivkami se přitom může lišit jen málo.' },
         { t: 'h', text: 'Vazba na reálný čas a R<sub>t</sub>' },
         { t: 'p', html: 'Zbývá spojit teorii s tím, co reálně vidíme v datech — totiž s tempem růstu. V rané fázi roste počet případů exponenciálně rychlostí <strong>r</strong> (Malthusovský růstový parametr) a platí jednoduchá ekvivalence: R₀ &gt; 1 právě tehdy, když r &gt; 0. Časově proměnné R<sub>t</sub> pak odhadujeme buď z tohoto tempa, nebo z renewal rovnice (Cori et al.) — v obou případech ale potřebujeme znát rozdělení generačního intervalu.' },
         { t: 'warn', title: 'Když je nakažených málo, rozhoduje náhoda', html: 'Deterministický model dává smysl jen u velkých čísel; na začátku a na konci epidemie (kdy je infekčních pár) je namístě <strong>větvící proces</strong> (model Galton–Watson). Pravděpodobnost, že řetězec z jednoho případu sám vyhasne, je nejmenší kořen rovnice q = G(q), kde G je vytvořující funkce počtu potomků. Pro Poissonovo potomstvo se střední hodnotou R₀ řeší q = e^(R₀(q−1)) — třeba pro R₀ = 2 vyjde q ≈ 0,20. (Známý vztah „pravděpodobnost velkého ohniska = 1 − 1/R₀" platí jen pro speciální geometrické rozdělení; při silném superspreadingu je vyhasnutí ještě pravděpodobnější.) Proto i nemoc s R₀ &gt; 1 po zavlečení nezřídka sama odezní.' },
@@ -411,13 +460,15 @@ export const HANDBOOK: Chapter[] = [
         { t: 'p', html: 'V modelu to znamená dvě věci: opatření buď sníží přenosnost β na (1 − ε)·β (kde ε je účinnost), nebo přeškálují <strong>kontaktní matici</strong> — a to cíleně po prostředích, protože uzavření škol se dotkne jiných políček než home-office. Efektivní reprodukční číslo pak spočítáme jako spektrální poloměr takto upravené next-generation matrix.' },
         { t: 'h', text: 'Jak se efekt opatření vlastně změří' },
         { t: 'p', html: 'Měřit účinnost opatření je překvapivě ošemetné. Nejspolehlivějším signálem bývají <strong>úmrtí</strong> (méně závisí na intenzitě testování než počty případů), jenže přicházejí s několikatýdenním zpožděním. Moderní studie proto počítají <em>pozpátku</em>: od pozorovaných úmrtí přes známé zpoždění a IFR zrekonstruují, kolik lidí se muselo nakazit o týdny dřív, a teprve z toho odhadují, jak se R<sub>t</sub> měnilo s jednotlivými opatřeními. Informace se přitom sdílí mezi zeměmi, aby data z jedné pomohla zpřesnit odhad pro druhou.' },
-        { t: 'p', html: 'Takto vznikl známý odhad z 11 evropských zemí: na jaře 2020 stlačila opatření — především lockdowny — R<sub>t</sub> s vysokou jistotou pod 1, přičemž do začátku května bylo nakaženo jen kolem 3–4 % populace. I tento výsledek ale stojí na předpokladech (pevné IFR, skoková reakce R na opatření), které jsou samy zdrojem nejistoty.' },
+        { t: 'p', html: 'Takto vznikl známý odhad z 11 evropských zemí: na jaře 2020 stlačila opatření — především lockdowny — R<sub>t</sub> s vysokou jistotou pod 1, přičemž do začátku května bylo nakaženo jen kolem 3–4 % populace. Schematicky vypadá ten zlom takto:' },
+        { t: 'html', html: rtCurveSvg },
+        { t: 'p', html: 'Dokud se R<sub>t</sub> drží nad prahem 1, epidemie roste; jakmile ho zavedená opatření stlačí pod 1, počty začnou klesat. I tento výsledek ale stojí na předpokladech (pevné IFR, skoková reakce R na opatření), které jsou samy zdrojem nejistoty.' },
         { t: 'refs', items: [REF.flaxman2020] },
-        { t: 'warn', title: 'Proč nevíme, co zabralo nejvíc', html: 'Opatření se obvykle zaváděla během pár dní po sobě. Statisticky jsou pak jejich účinky <strong>nerozlišitelné</strong> (kolineární) — model klidně přisoudí celý pokles tomu poslednímu, ale je to artefakt, ne důkaz. Navíc se „efekt nařízení" mísí s tím, že lidé omezují kontakty <em>sami od sebe</em>, jakmile vnímají riziko. Proto se velikosti efektů z jedné vlny nebo země nedají mechanicky přenášet jinam.' },
+        { t: 'warn', title: 'Proč nevíme, co zabralo nejvíc', html: 'Opatření se obvykle zaváděla během pár dní po sobě. Statisticky jsou pak jejich účinky <strong>nerozlišitelné</strong> (kolineární) — model klidně přisoudí celý pokles tomu poslednímu, ale je to artefakt, nikoliv důkaz. Navíc se „efekt nařízení" mísí s tím, že lidé omezují kontakty <em>sami od sebe</em>, jakmile vnímají riziko. Proto se velikosti efektů z jedné vlny nebo země nedají mechanicky přenášet jinam.' },
         { t: 'gloss', items: [
           { term: 'NPI', def: 'nefarmaceutická intervence — opatření působící bez léků a vakcín (roušky, distanc, uzavírky, trasování).' },
           { term: 'Kontaktní matice', def: 'tabulka průměrného počtu kontaktů mezi skupinami (např. věkovými) v různých prostředích; opatření mění její jednotlivá políčka.' },
-          { term: 'Bayesovský model', def: 'statistický přístup, který kombinuje data s předchozí znalostí (priorem) a výsledkem je celé rozdělení pravděpodobných hodnot, ne jen jeden odhad — tedy přirozeně i míra nejistoty.' },
+          { term: 'Bayesovský model', def: 'statistický přístup, který kombinuje data s předchozí znalostí (priorem) a výsledkem je celé rozdělení pravděpodobných hodnot, nikoliv jen jeden odhad — tedy přirozeně i míra nejistoty.' },
           { term: 'Partial pooling', def: 'částečné sdílení informace mezi jednotkami (zeměmi): každá má vlastní odhad, ale „půjčuje si" sílu od ostatních, což stabilizuje odhady tam, kde je dat málo.' },
           { term: 'Kolinearita', def: 'situace, kdy dvě příčiny nastávají téměř současně, takže nelze rozlišit, která za následek může.' },
           { term: 'Endogenita chování', def: 'lidé reagují na samotnou epidemii (mění kontakty podle vnímaného rizika), takže příčina a následek se proplétají a „čistý" efekt nařízení se těžko izoluje.' },
@@ -467,7 +518,7 @@ export const HANDBOOK: Chapter[] = [
           '<strong>Kapacita</strong> — kolik případů zvládnou trasovači denně. Při exponenciálním růstu se systém snadno zahltí a trasování se „utrhne".',
           '<strong>Presymptomatický přenos</strong> — pokud je člověk nakažlivý už před příznaky, část přenosů proběhne dřív, než ho vůbec zachytíme. To je hlavní důvod, proč u COVID-19 samotné trasování nestačilo.',
         ] },
-        { t: 'p', html: '<strong>Digitální trasování</strong> (aplikace v telefonu) cílí hlavně na rychlost a pokrytí — upozorní kontakt během hodin, ne dní. Naráží ale na ochranu soukromí a na to, že ho musí používat dost lidí, aby mělo smysl.' },
+        { t: 'p', html: '<strong>Digitální trasování</strong> (aplikace v telefonu) cílí hlavně na rychlost a pokrytí — upozorní kontakt během hodin, nikoliv dní. Naráží ale na ochranu soukromí a na to, že ho musí používat dost lidí, aby mělo smysl.' },
         { t: 'info', title: 'Kdy trasování stačí samo', html: 'Při <strong>nízkém</strong> R<sub>eff</sub> může kombinace „testuj – trasuj – izoluj" udržet epidemii pod kontrolou bez tvrdých opatření. Při <strong>vysokém</strong> R<sub>eff</sub> nebo velkém presymptomatickém přenosu je nutné ho kombinovat s opatřeními, která sníží R<sub>eff</sub> natolik, aby ho trasování vůbec stíhalo.' },
         { t: 'h', text: 'Historický příběh — „Tyfová Mary"' },
         { t: 'p', html: 'Na začátku 20. století šířila kuchařka Mary Mallonová v New Yorku břišní tyfus, ač sama byla zdravá — byla <strong>asymptomatická přenašečka</strong>. Sanitární inženýr George Soper ji vystopoval klasickým trasováním: porovnal domácnosti, kde propukl tyfus, a našel společný článek — Mary. Přesně tohle detektivní pátrání si vyzkoušíte ve hře <strong>Záhada z Oyster Bay</strong>; logiku trasování po telefonu pak v <strong>Ósacké horečce</strong>.' },
@@ -479,7 +530,7 @@ export const HANDBOOK: Chapter[] = [
         { t: 'p', html: 'Stochastické modely COVID-19 dávají docela názorné prahy. Při R₀ kolem 1,5 stačí dohledat i méně než polovinu kontaktů; při R₀ ≈ 2,5 je potřeba přes 70 % a při R₀ ≈ 3,5 už přes 90 %. A jakmile epidemie naroste do desítek souběžných případů, je samotné trasování proveditelné jen za předpokladu, že téměř žádný přenos neproběhne před příznaky. Nejúčinnější pákou přitom skoro vždy je zkrátit zpoždění mezi prvními příznaky a izolací.' },
         { t: 'refs', items: [REF.hellewell2020] },
         { t: 'h', text: 'Závod s časem a digitální trasování' },
-        { t: 'p', html: 'A tady narazíme na slabé místo. U SARS-CoV-2 se ukázalo, že velká část přenosu proběhne ještě před příznaky — tedy dřív, než se vůbec dozvíme, koho máme trasovat. Ruční trasování (telefonáty hygieniků) je na takový závod s časem příliš pomalé. <strong>Digitální trasování</strong> přes aplikaci v telefonu cílí přesně sem: dokáže kontakt upozornit během hodin, ne dní, a v modelu pak může udržet epidemii pod kontrolou i bez plošných lockdownů. Cenou jsou otázky soukromí, spolehlivosti detekce blízkosti a toho, že aplikaci musí používat dost lidí, aby měla smysl.' },
+        { t: 'p', html: 'A tady narazíme na slabé místo. U SARS-CoV-2 se ukázalo, že velká část přenosu proběhne ještě před příznaky — tedy dřív, než se vůbec dozvíme, koho máme trasovat. Ruční trasování (telefonáty hygieniků) je na takový závod s časem příliš pomalé. <strong>Digitální trasování</strong> přes aplikaci v telefonu cílí přesně sem: dokáže kontakt upozornit během hodin, nikoliv dní, a v modelu pak může udržet epidemii pod kontrolou i bez plošných lockdownů. Cenou jsou otázky soukromí, spolehlivosti detekce blízkosti a toho, že aplikaci musí používat dost lidí, aby měla smysl.' },
         { t: 'info', title: 'Dopředné vs. zpětné trasování', html: 'Klasické (dopředné) trasování hledá, koho nemocný mohl nakazit. Při silném superspreadingu je ale často cennější ptát se obráceně — <strong>kdo nakazil jeho</strong>: dohledání zdroje s velkou pravděpodobností odhalí celý klastr, ze kterého vzešlo víc případů najednou.' },
         { t: 'refs', items: [REF.ferretti2020] },
         { t: 'gloss', items: [
@@ -524,20 +575,20 @@ export const HANDBOOK: Chapter[] = [
         { t: 'p', html: 'Na začátku epidemie nevíme skoro nic — jak je virus nakažlivý, jak smrtelný, jak dlouho drží imunita. Přesto je nutné jednat, a to <strong>rychle</strong>, protože exponenciální růst nepočká. Vzniká napětí mezi „počkat na data" (jistota, ale ztracený čas) a „jednat hned" (čas, ale riziko chybného kroku). Často je lepší <em>rozhodnout se a průběžně korigovat</em> než čekat na dokonalou informaci, která přijde pozdě.' },
         { t: 'h', text: 'Důvěra a sociální kapitál' },
         { t: 'p', html: 'Sebelepší opatření nefunguje, pokud ho lidé nedodržují — a to dělají jen tehdy, když <strong>věří</strong>, že dává smysl a že je s nimi jednáno férově. Tato „měkká" veličina (ve hře <em>důvěra veřejnosti</em> a <em>sociální kapitál</em>) je vyčerpatelný zdroj: nejasná, měnící se nebo nespravedlivá rozhodnutí ji spotřebovávají. Když dojde, lidé přestanou spolupracovat a i správná opatření selžou.' },
-        { t: 'info', title: 'Zásady krizové komunikace', html: 'Být <strong>první, mít pravdu, být důvěryhodný</strong>. Říkat i to, co nevíme. Nesvádět na lidi vlastní chyby. Konzistence napříč mluvčími. Vysvětlit <em>proč</em>, ne jen <em>co</em>. Nedůvěryhodná autorita si neporadí ani s dobrými daty.' },
+        { t: 'info', title: 'Zásady krizové komunikace', html: 'Být <strong>první, mít pravdu, být důvěryhodný</strong>. Říkat i to, co nevíme. Nesvádět na lidi vlastní chyby. Konzistence napříč mluvčími. Vysvětlit <em>proč</em>, nikoliv jen <em>co</em>. Nedůvěryhodná autorita si neporadí ani s dobrými daty.' },
         { t: 'h', text: 'Politické tlaky a poradci' },
         { t: 'p', html: 'Krizový manažer není ve vzduchoprázdnu. Tlačí na něj ekonom (náklady), politik (popularita a volby), opozice (kritika), média i veřejnost — a každý vidí jinou ze tří os. Ve hře <strong>Krizový štáb</strong> proto dostáváte protichůdné rady od pěti poradců; vaším úkolem není všem vyhovět, ale rozhodnout a obhájit to.' },
         { t: 'h', text: 'Etika a spravedlnost' },
-        { t: 'p', html: 'Když jsou zdroje omezené (lůžka na JIP, první dávky vakcín), je nutné <strong>rozhodnout o prioritách</strong> — koho léčit a očkovat dřív. To jsou <em>hodnotové</em> volby, ne matematické: chráníme nejzranitelnější, nejpotřebnější profese, nebo ty, kdo nejvíc šíří? Spravedlnost rozhodnutí navíc zpětně ovlivňuje důvěru — vnímaná nespravedlnost ji rychle ničí.' },
-        { t: 'info', title: 'Ve hře Krizový štáb', html: 'Sledujete důvěru veřejnosti a sociální kapitál (0–100). Při jejich kolapsu padá vláda a opatření na pár kol přestanou platit — přesně jako v realitě selhává autorita, která ztratí podporu. Hra vás nutí vyvažovat všechny tři osy zároveň, ne optimalizovat jen jednu.' },
+        { t: 'p', html: 'Když jsou zdroje omezené (lůžka na JIP, první dávky vakcín), je nutné <strong>rozhodnout o prioritách</strong> — koho léčit a očkovat dřív. To jsou <em>hodnotové</em> volby, nikoliv matematické: chráníme nejzranitelnější, nejpotřebnější profese, nebo ty, kdo nejvíc šíří? Spravedlnost rozhodnutí navíc zpětně ovlivňuje důvěru — vnímaná nespravedlnost ji rychle ničí.' },
+        { t: 'info', title: 'Ve hře Krizový štáb', html: 'Sledujete důvěru veřejnosti a sociální kapitál (0–100). Při jejich kolapsu padá vláda a opatření na pár kol přestanou platit — přesně jako v realitě selhává autorita, která ztratí podporu. Hra vás nutí vyvažovat všechny tři osy zároveň, nikoliv optimalizovat jen jednu.' },
       ],
       vs: [
-        { t: 'p', html: 'Modely, opatření i trasování zatím mlčky počítaly s tím, že lidé udělají, co jim řekneme. Jenže nemoc se šíří mezi lidmi — a ti mají svobodnou vůli, strach, nedůvěru a vlastní zájmy. Tady epidemiologie přestává být jen biologií a matematikou a stává se z velké části sociologií a etikou. A právě tady, ne v rovnicích, se epidemie obvykle vyhrávají nebo prohrávají.' },
+        { t: 'p', html: 'Modely, opatření i trasování zatím mlčky počítaly s tím, že lidé udělají, co jim řekneme. Jenže nemoc se šíří mezi lidmi — a ti mají svobodnou vůli, strach, nedůvěru a vlastní zájmy. Tady epidemiologie přestává být jen biologií a matematikou a stává se z velké části sociologií a etikou. A právě tady, nikoliv v rovnicích, se epidemie obvykle vyhrávají nebo prohrávají.' },
         { t: 'h', text: 'Rozhodování za nejistoty' },
         { t: 'p', html: 'Teorie rozhodování nabízí úhledný recept: ze všech možných kroků vyber ten, který přinese nejvyšší <em>očekávaný</em> užitek — tedy zprůměruješ následky každé volby přes všechno, co o epidemii (ne)víme. Háček je v tom slově „užitek". Skládá se ze tří nesouměřitelných věcí — zdraví, ekonomiky a společnosti — a jakmile je začneme převádět na společnou jednotku (třeba na zachráněné roky života v plném zdraví, QALY), děláme už tím hodnotový soud: kolik váží rok života seniora proti roku, který dítě stráví doma místo ve škole? Etické rozhodnutí se tu jen převléklo za technické.' },
         { t: 'p', html: 'Z toho plyne několik praktických zásad. Vyplatí se vážit <strong>hodnotu informace</strong> — kdy ještě počkat na data a kdy už čekání stojí víc, než kolik přinese (a při exponenciálním růstu cena čekání roste rychle). Volit raději rozhodnutí <strong>robustní</strong>, která dopadnou rozumně i když se v odhadech spleteme, než ta optimální pro jediné „nejlepší" číslo. A řídit <strong>adaptivně</strong> — po krocích, s pravidly navázanými na ukazatele jako R<sub>t</sub> nebo obsazenost JIP, ve stylu „přitáhnout–povolit".' },
         { t: 'h', text: 'Sociologie: jak vůbec přimět lidi spolupracovat' },
-        { t: 'p', html: 'Compliance (dodržování) je <strong>chování</strong>, ne nařízení — a chování je <em>endogenní</em>: lidé mění kontakty i bez příkazu, podle vnímaného rizika. To má praktické důsledky:' },
+        { t: 'p', html: 'Compliance (dodržování) je <strong>chování</strong>, nikoliv nařízení — a chování je <em>endogenní</em>: lidé mění kontakty i bez příkazu, podle vnímaného rizika. To má praktické důsledky:' },
         { t: 'list', items: [
           '<strong>Důvěra je hlavní měna.</strong> Bez ní opatření selžou bez ohledu na to, jak jsou „správná". Důvěra se buduje pomalu a ztrácí rychle.',
           '<strong>Reaktance.</strong> Tvrdé nařízení může vyvolat odpor a opačné chování — někdy přesvědčování a srozumitelné „proč" zaberou víc než zákaz.',
@@ -545,7 +596,7 @@ export const HANDBOOK: Chapter[] = [
           '<strong>Pobídky vs. příkazy (nudge vs mandate).</strong> Architektura volby (dostupnost, default, pohodlí) často změní chování levněji a méně konfliktně než zákaz.',
           '<strong>Spravedlnost vnímaná i reálná.</strong> Pravidla, která dopadají nerovně (nebo se na ně elity nevztahují), důvěru ničí rychleji než cokoli jiného.',
         ] },
-        { t: 'info', title: 'Zásady krizové komunikace', html: 'Být první, mít pravdu, být důvěryhodný. Přiznat nejistotu. Vysvětlit <em>proč</em>, ne jen <em>co</em>. Konzistence napříč mluvčími. Komunikace není „PR k opatřením" — je to samostatná intervence, která R<sub>eff</sub> mění reálně.' },
+        { t: 'info', title: 'Zásady krizové komunikace', html: 'Být první, mít pravdu, být důvěryhodný. Přiznat nejistotu. Vysvětlit <em>proč</em>, nikoliv jen <em>co</em>. Konzistence napříč mluvčími. Komunikace není „PR k opatřením" — je to samostatná intervence, která R<sub>eff</sub> mění reálně.' },
         { t: 'h', text: 'Etika: má společnost právo chránit se před virem?' },
         { t: 'p', html: 'Tady přicházejí otázky, na které <strong>neexistuje neutrální odpověď</strong> — jen různé hodnotové rámce. Klasické napětí je mezi <strong>individuální svobodou</strong> a <strong>kolektivní ochranou</strong>. Millův „harm principle" říká, že svobodu jednotlivce lze omezit, jen aby se zabránilo újmě druhým — jenže infekční nemoc dělá z téměř každého jednání potenciální újmu druhým. Kde je tedy hranice?' },
         { t: 'html', html: '<div class="bg-mustard-soft-x" style="background:#f6e6ce;border-left:4px solid #e0a458;border-radius:0 10px 10px 0;padding:12px 16px;">' +
@@ -555,16 +606,38 @@ export const HANDBOOK: Chapter[] = [
         { t: 'list', items: [
           '<strong>Povinné očkování.</strong> Je očkování proti chřipce (nebo dětské očkování) věcí osobní volby a „rizika života", nebo má být <em>povinné</em>? Stádní imunita je veřejný statek a neočkovaný se veze na ostatních (problém černého pasažéra) — to mluví pro povinnost. Proti stojí tělesná autonomie a nedůvěra k donucení. A proč u spalniček (R₀≈15) bereme školní povinnost jako samozřejmost, ale u chřipky ne? Kde je práh?',
           '<strong>Izolace zdravých nositelů.</strong> Smí stát zavřít člověka, který se ničím neprovinil, jen proto, že je infekční (Mary Mallonová, karantény u COVID-19)? Za jakých podmínek, na jak dlouho a s jakou náhradou?',
-          '<strong>Triáž a racionování.</strong> Komu připadne poslední plicní ventilátor — mladšímu, tomu s lepší prognózou, losem, nebo „kdo dřív přijde"? Každé kritérium je etická volba, ne medicínský fakt.',
+          '<strong>Triáž a racionování.</strong> Komu připadne poslední plicní ventilátor — mladšímu, tomu s lepší prognózou, losem, nebo „kdo dřív přijde"? Každé kritérium je etická volba, nikoliv medicínský fakt.',
           '<strong>Sledování vs. soukromí.</strong> Digitální trasování zachraňuje životy tím, že lidi sleduje. Kolik soukromí je společnost ochotná vyměnit za kontrolu epidemie — a kdo data potom drží?',
           '<strong>Lockdown a kolaterální škody.</strong> Plošné omezení svobody dopadá i na zdravé a nejvíc na nejzranitelnější (chudší, děti, duševní zdraví). Kdy je „lék" horší než nemoc?',
           '<strong>Globální spravedlnost.</strong> Mají bohaté země právo zajistit vakcíny nejdřív své populaci („vaccine nationalism"), zatímco jinde umírají zdravotníci bez první dávky?',
         ] },
-        { t: 'p', html: 'Filozoficky se tu střetávají <strong>utilitarismus</strong> (maximalizuj celkový prospěch — i za cenu obětování jednotlivce) s <strong>deontologií a právy</strong> (některé hranice se nepřekračují, i kdyby to „vyšlo lépe"). Epidemiologie umí spočítat <em>následky</em> každé volby; <strong>kterou volbu si společnost vybere, je rozhodnutí demokratické, právní a hodnotové</strong> — ne odborné. Dobrá příručka epidemiologa proto nedává „správnou odpověď", ale učí ty otázky správně klást.' },
+        { t: 'p', html: 'Filozoficky se tu střetávají <strong>utilitarismus</strong> (maximalizuj celkový prospěch — i za cenu obětování jednotlivce) s <strong>deontologií a právy</strong> (některé hranice se nepřekračují, i kdyby to „vyšlo lépe"). Epidemiologie umí spočítat <em>následky</em> každé volby; <strong>kterou volbu si společnost vybere, je rozhodnutí demokratické, právní a hodnotové</strong> — nikoliv odborné. Dobrá příručka epidemiologa proto nedává „správnou odpověď", ale učí ty otázky správně klást.' },
+        { t: 'exercise', title: 'Cvičení — debata a pak ordinace', html:
+          '<p>Vezměte jednu spornou otázku — třeba <strong>povinné očkování proti chřipce</strong> — a rozehrajte ji ve dvou krocích.</p>' +
+          '<h4>1. Debata: rozdělte role</h4>' +
+          '<p>Každá skupina dostane jednu roli a má za úkol hájit její <em>nejlepší</em> argument (ne karikaturu):</p>' +
+          '<ul>' +
+          '<li><strong>Hygienik / veřejné zdraví</strong> — kolektivní imunita je veřejný statek; očkováním chráním i ty, kdo se chránit nemohou; neočkovaný se „veze" na ostatních.</li>' +
+          '<li><strong>Zastánce občanských svobod</strong> — tělesná autonomie a informovaný souhlas; donucení je kluzký svah a u zákroku s nízkým individuálním rizikem nepřiměřené.</li>' +
+          '<li><strong>Váhající rodič</strong> — nemá důvěru, slyšel o nežádoucích účincích, chce rozhodovat za své dítě; není „hloupý", jen opatrný a špatně informovaný.</li>' +
+          '<li><strong>Imunokompromitovaný pacient</strong> — sám se očkovat nemůže; kolektivní imunita okolí je jeho jediná ochrana. Jeho svoboda žít závisí na rozhodnutí druhých.</li>' +
+          '<li><strong>Praktický lékař</strong> — stojí mezi všemi; musí pacienta informovat, ale neztratit jeho důvěru.</li>' +
+          '</ul>' +
+          '<h4>2. Reflexe</h4>' +
+          '<p>Proč má <em>každá</em> strana kus pravdy? Kde se argumenty skutečně střetávají (svoboda jednotlivce × ochrana zranitelných) a kde jde jen o nedorozumění nebo chybějící informace? Lišila by se vaše odpověď u chřipky a u spalniček (R₀ ≈ 15)? Kde leží práh, za kterým povinnost obhájíte?</p>' +
+          '<h4>3. A teď v ordinaci</h4>' +
+          '<p>Sehrajte konzultaci lékaře s váhajícím pacientem. Cíl <strong>není „vyhrát" spor</strong>, ale podpořit dobré rozhodnutí a udržet vztah. Zkuste:</p>' +
+          '<ul>' +
+          '<li>nejdřív se ptát a naslouchat — co konkrétně pacienta znepokojuje;</li>' +
+          '<li>respektovat autonomii a vyhnout se moralizování (tlak budí <em>reaktanci</em> — odpor);</li>' +
+          '<li>nabídnout srozumitelná fakta i míru nejistoty, přiznat, co nevíme;</li>' +
+          '<li>dát čas a nechat dveře otevřené (motivační rozhovor, ne ultimátum).</li>' +
+          '</ul>' +
+          '<p>Na závěr porovnejte, jak jinak se mluví v <em>debatě</em> (kde jde o pravidla pro všechny) a v <em>ordinaci</em> (kde jde o jednoho konkrétního člověka a jeho důvěru).</p>' },
         { t: 'h', text: 'Alokace omezených zdrojů — příklad vakcín' },
-        { t: 'p', html: 'Priorizace očkování je etika převedená do optimalizace s odlišnými cíli. Modelová analýza ukázala, že strategie <strong>závisí na cíli</strong>: minimalizace <em>počtu nákaz</em> favorizuje očkování dospělých 20–49 let (hlavní přenašeči), zatímco minimalizace <em>úmrtí a ztracených let života</em> ve většině scénářů favorizuje seniory 60+. Sérologické cílení (přeskočení séropozitivních) zvyšuje marginální přínos dávky a může snižovat nerovnosti. Model řekne, co která volba <em>způsobí</em> — ne kterou si máme vybrat.' },
+        { t: 'p', html: 'Priorizace očkování je etika převedená do optimalizace s odlišnými cíli. Modelová analýza ukázala, že strategie <strong>závisí na cíli</strong>: minimalizace <em>počtu nákaz</em> favorizuje očkování dospělých 20–49 let (hlavní přenašeči), zatímco minimalizace <em>úmrtí a ztracených let života</em> ve většině scénářů favorizuje seniory 60+. Sérologické cílení (přeskočení séropozitivních) zvyšuje marginální přínos dávky a může snižovat nerovnosti. Model řekne, co která volba <em>způsobí</em> — nikoliv kterou si máme vybrat.' },
         { t: 'refs', items: [REF.bubar2021] },
-        { t: 'warn', title: 'Modely jako podpora, ne náhrada', html: 'Modely kvantifikují <em>kompromisy</em>, ale samotnou volbu vah mezi životy, ekonomikou a svobodami nedávají — ta je politická a etická. Transparentnost předpokladů a nejistoty je proto součástí odpovědného použití modelu v rozhodování. A tím se náš příběh uzavírá: od jednoho viru jsme došli až k otázce, jakou společností chceme být.' },
+        { t: 'warn', title: 'Modely jako podpora, nikoliv náhrada', html: 'Modely kvantifikují <em>kompromisy</em>, ale samotnou volbu vah mezi životy, ekonomikou a svobodami nedávají — ta je politická a etická. Transparentnost předpokladů a nejistoty je proto součástí odpovědného použití modelu v rozhodování. A tím se náš příběh uzavírá: od jednoho viru jsme došli až k otázce, jakou společností chceme být.' },
         { t: 'gloss', items: [
           { term: 'Očekávaný užitek', def: 'průměrný přínos rozhodnutí, vážený pravděpodobnostmi možných následků. Základ teorie racionálního rozhodování za nejistoty.' },
           { term: 'QALY / DALY', def: 'jednotky zdraví. QALY = rok života v plném zdraví; DALY = rok zdravého života ztracený nemocí nebo úmrtím. Umožní (sporné) srovnání různých zdravotních dopadů.' },

@@ -132,6 +132,20 @@ function BlockView({ block }: { block: Block }) {
       );
     case 'html':
       return <div className="my-4 text-sm text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: block.html }} />;
+    case 'gloss':
+      return (
+        <div className="bg-brand-teal-soft/40 border border-brand-teal/25 rounded-xl p-4 my-5">
+          <div className="text-xs font-black text-brand-teal-dark uppercase tracking-wide mb-3">Vysvětlivky pojmů</div>
+          <dl className="space-y-2 text-sm">
+            {block.items.map((g) => (
+              <div key={g.term} className="leading-relaxed">
+                <dt className="inline font-bold text-brand-charcoal">{g.term}</dt>
+                <dd className="inline text-gray-700" dangerouslySetInnerHTML={{ __html: ' — ' + g.def }} />
+              </div>
+            ))}
+          </dl>
+        </div>
+      );
     case 'refs':
       return <ReferencesBox items={block.items} />;
   }

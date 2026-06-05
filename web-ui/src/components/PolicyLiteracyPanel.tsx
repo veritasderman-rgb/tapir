@@ -15,7 +15,7 @@ const SECTIONS = [
   },
   {
     title: 'Korelace ≠ kauzalita',
-    text: 'Pokud v simulaci zavedení NPI koreluje s poklesem infekcí, je to kauzální efekt v rámci modelu. V reálném světě by takový závěr vyžadoval kontrolovanou studii. Model ukazuje mechanismus, ne důkaz.',
+    text: 'Pokud v simulaci zavedení NPI koreluje s poklesem infekcí, je to kauzální efekt v rámci modelu. V reálném světě by takový závěr vyžadoval kontrolovanou studii. Model ukazuje mechanismus, nikoliv důkaz.',
   },
   {
     title: 'Stochastika a vyhasnutí',

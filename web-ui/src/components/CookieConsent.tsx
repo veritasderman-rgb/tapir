@@ -52,11 +52,25 @@ export default function CookieConsent() {
   );
 }
 
-/** Odkaz do patičky, kterým jde souhlas kdykoli znovu otevřít a odvolat. */
-export function CookieSettingsLink({ className }: { className?: string }) {
-  if (!GA_ID) return null;
+/**
+ * Ovladač, kterým jde souhlas kdykoli znovu otevřít a odvolat.
+ *
+ * Visí v rohu obrazovky, ne v hlavičce: hlavička se na půlce obrazovek
+ * (rozcestník, žebříček, admin, obě hry, příručka) vůbec nevykresluje a
+ * odvolat souhlas musí jít odkudkoli. Skryje se, když je lišta otevřená —
+ * dvě ovládání téhož vedle sebe nedávají smysl.
+ */
+export function CookieSettingsLink() {
+  const open = useSyncExternalStore(subscribeConsent, isConsentOpen, () => false);
+
+  if (!GA_ID || open) return null;
+
   return (
-    <button type="button" onClick={reopenConsent} className={className}>
+    <button
+      type="button"
+      onClick={reopenConsent}
+      className="fixed bottom-2 left-2 z-40 rounded bg-white/80 px-2 py-1 text-[11px] text-brand-slate/70 backdrop-blur transition-colors hover:text-brand-slate print:hidden"
+    >
       Nastavení cookies
     </button>
   );

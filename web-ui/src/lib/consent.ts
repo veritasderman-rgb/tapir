@@ -19,28 +19,72 @@ declare global {
   }
 }
 
+/**
+ * Volba pro případ, že localStorage zápis odmítne (privátní režim, sandbox).
+ * Bez ní by se lišta po kliknutí nezavřela — přečetla by si prázdné úložiště
+ * a otevřela se znovu.
+ */
+let fallbackChoice: Choice | null = null;
+
 export function storedChoice(): Choice | null {
   try {
     const v = localStorage.getItem(CONSENT_KEY);
-    return v === 'granted' || v === 'denied' ? v : null;
+    if (v === 'granted' || v === 'denied') return v;
   } catch {
-    return null;
+    // Privátní režim — spolehneme se na volbu drženou v paměti.
   }
+  return fallbackChoice;
 }
 
 export function rememberChoice(choice: Choice): void {
+  // Nejdřív do paměti: platí i tehdy, když zápis do localStorage selže.
+  fallbackChoice = choice;
   try {
     localStorage.setItem(CONSENT_KEY, choice);
   } catch {
     /* privátní režim — volba platí jen pro tuto návštěvu */
   }
+  reopened = false;
+  notify();
 }
 
-function consentPayload(choice: Choice) {
+/** Lišta otevřená z patičky, i když volba už padla (odvolání souhlasu). */
+let reopened = false;
+let listeners: (() => void)[] = [];
+
+function notify(): void {
+  for (const l of listeners) l();
+}
+
+export function subscribeConsent(onChange: () => void): () => void {
+  listeners = [...listeners, onChange];
+  return () => {
+    listeners = listeners.filter((l) => l !== onChange);
+  };
+}
+
+/** Má se lišta vykreslit? Bez měřicího kódu se neptáme na nic. */
+export function isConsentOpen(): boolean {
+  if (!GA_ID) return false;
+  return reopened || storedChoice() === null;
+}
+
+/** Odkaz „Nastavení cookies" v patičce — souhlas musí jít odvolat stejně
+ *  snadno, jako se dával. */
+export function reopenConsent(): void {
+  reopened = true;
+  notify();
+}
+
+/**
+ * Reklamní souhlas zůstává vždycky denied — lišta mluví jen o měření
+ * návštěvnosti, na reklamní účely se neptá, tak je nesmíme udělit.
+ */
+function consentDefaults(choice: Choice) {
   return {
-    ad_storage: choice,
-    ad_user_data: choice,
-    ad_personalization: choice,
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
     analytics_storage: choice,
   };
 }
@@ -61,7 +105,7 @@ function ensureGtag(): (...args: unknown[]) => void {
 
 /** Promítne volbu do GA. Když GA neběží, tiše se nic nestane. */
 export function updateConsent(choice: Choice): void {
-  window.gtag?.('consent', 'update', consentPayload(choice));
+  window.gtag?.('consent', 'update', { analytics_storage: choice });
 }
 
 /** Zavolat jednou při startu aplikace, ještě před vykreslením lišty. */
@@ -70,7 +114,7 @@ export function initAnalytics(): void {
 
   const gtag = ensureGtag();
   gtag('consent', 'default', {
-    ...consentPayload(storedChoice() ?? 'denied'),
+    ...consentDefaults(storedChoice() ?? 'denied'),
     wait_for_update: 500,
   });
 

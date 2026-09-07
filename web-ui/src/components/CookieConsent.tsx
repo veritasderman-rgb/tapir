@@ -1,25 +1,27 @@
-import { useEffect, useState } from 'react';
-import { type Choice, GA_ID, rememberChoice, storedChoice, updateConsent } from '../lib/consent';
+import { useSyncExternalStore } from 'react';
+import {
+  type Choice,
+  GA_ID,
+  isConsentOpen,
+  rememberChoice,
+  reopenConsent,
+  subscribeConsent,
+  updateConsent,
+} from '../lib/consent';
 
 /**
  * Lišta se souhlasem s cookies. Ukáže se jen tomu, kdo se ještě nerozhodl,
  * a jen když je nastavené VITE_GA_ID — ptát se na souhlas s měřením, které
- * neběží, nedává smysl.
+ * neběží, nedává smysl. Znovu ji otevře odkaz v patičce.
  */
 export default function CookieConsent() {
-  const [visible, setVisible] = useState(false);
+  const open = useSyncExternalStore(subscribeConsent, isConsentOpen, () => false);
 
-  useEffect(() => {
-    if (!GA_ID) return;
-    if (storedChoice() === null) setVisible(true);
-  }, []);
-
-  if (!visible) return null;
+  if (!open) return null;
 
   const choose = (choice: Choice) => {
     rememberChoice(choice);
     updateConsent(choice);
-    setVisible(false);
   };
 
   return (
@@ -47,5 +49,15 @@ export default function CookieConsent() {
         </div>
       </div>
     </div>
+  );
+}
+
+/** Odkaz do patičky, kterým jde souhlas kdykoli znovu otevřít a odvolat. */
+export function CookieSettingsLink({ className }: { className?: string }) {
+  if (!GA_ID) return null;
+  return (
+    <button type="button" onClick={reopenConsent} className={className}>
+      Nastavení cookies
+    </button>
   );
 }

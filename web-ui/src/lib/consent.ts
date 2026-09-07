@@ -19,16 +19,26 @@ declare global {
   }
 }
 
+/**
+ * Volba pro případ, že localStorage zápis odmítne (privátní režim, sandbox).
+ * Bez ní by se lišta po kliknutí nezavřela — přečetla by si prázdné úložiště
+ * a otevřela se znovu.
+ */
+let fallbackChoice: Choice | null = null;
+
 export function storedChoice(): Choice | null {
   try {
     const v = localStorage.getItem(CONSENT_KEY);
-    return v === 'granted' || v === 'denied' ? v : null;
+    if (v === 'granted' || v === 'denied') return v;
   } catch {
-    return null;
+    // Privátní režim — spolehneme se na volbu drženou v paměti.
   }
+  return fallbackChoice;
 }
 
 export function rememberChoice(choice: Choice): void {
+  // Nejdřív do paměti: platí i tehdy, když zápis do localStorage selže.
+  fallbackChoice = choice;
   try {
     localStorage.setItem(CONSENT_KEY, choice);
   } catch {

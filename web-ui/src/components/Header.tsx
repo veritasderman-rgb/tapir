@@ -4,7 +4,6 @@ import { AppMode } from '@tapir/core';
 import { VERSION } from '@tapir/core';
 import { useRoute, navigate } from '../lib/route';
 import { TapirMark } from './brand/BrandIcons';
-import { CookieSettingsLink } from './CookieConsent';
 
 export default function Header() {
   const { appMode, sidebarOpen, setSidebarOpen, auth, logout } = useAppStore();
@@ -91,7 +90,6 @@ export default function Header() {
             <option value={AppMode.CrisisStaff}>Krizový štáb</option>
           </select>
         )}
-        <CookieSettingsLink className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1.5" />
         <button
           onClick={handleLogout}
           className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1.5"
